@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import apiInstance from '../config/apiInstance';
+import { loginRequest, logoutRequest } from '../api/Auth';
 
 const AuthContext = createContext(null);
 
@@ -17,22 +17,21 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = async (email, password) => {
-    const res = await apiInstance.post('/auth/login', { email, password });
-    const { token, name, role, language } = res.data.data;
+    const res = await loginRequest(email, password);
+    const { token, name, role, language } = res.data;
 
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify({ name, role, language }));
     setUser({ name, role, language });
 
-    return res.data;
+    return res;
   };
 
   const logout = async () => {
     try {
-      await apiInstance.post('/auth/logout');
+      await logoutRequest();
     } catch (err) {
-        console.log(err);
-        
+      console.log(err);
     }
     localStorage.removeItem('token');
     localStorage.removeItem('user');
