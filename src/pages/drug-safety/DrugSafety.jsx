@@ -1,6 +1,41 @@
 import { useState } from 'react';
 import { checkDrugSafety } from '../../api/drugSafety';
 
+function parseResult(text) {
+  if (!text) return { riskLevel: '', sections: [] };
+
+  const riskMatch = text.match(/\[(LOW RISK|MODERATE RISK|HIGH RISK|CRITICAL)\]/i);
+  const riskLevel = riskMatch ? riskMatch[1].toUpperCase() : '';
+
+  const body = text.replace(/\[.*?\]/, '').trim();
+  const lines = body.split('\n').map((l) => l.trim()).filter(Boolean);
+
+  const sections = [];
+  let current = null;
+
+  lines.forEach((line) => {
+    if (line.startsWith('*')) {
+      current = { title: line.replace(/^\*\s*/, ''), items: [] };
+      sections.push(current);
+    } else if (line.startsWith('+')) {
+      const item = line.replace(/^\+\s*/, '');
+      if (current) current.items.push(item);
+      else sections.push({ title: '', items: [item] });
+    } else if (current) {
+      current.items.push(line);
+    }
+  });
+
+  return { riskLevel, sections };
+}
+
+const riskConfig = {
+  'LOW RISK': { bg: 'bg-green-50', border: 'border-green-300', text: 'text-green-800', badge: 'bg-green-600', icon: '✓' },
+  'MODERATE RISK': { bg: 'bg-yellow-50', border: 'border-yellow-300', text: 'text-yellow-800', badge: 'bg-yellow-500', icon: '⚠' },
+  'HIGH RISK': { bg: 'bg-orange-50', border: 'border-orange-300', text: 'text-orange-800', badge: 'bg-orange-600', icon: '⚠' },
+  CRITICAL: { bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-800', badge: 'bg-red-600', icon: '✕' },
+};
+
 export default function DrugSafety() {
   const [medications, setMedications] = useState([{ name: '', dosage: '' }]);
   const [language, setLanguage] = useState('en');
@@ -14,20 +49,8 @@ export default function DrugSafety() {
     setMedications(updated);
   };
 
-  const addMedication = () => {
-    setMedications([...medications, { name: '', dosage: '' }]);
-  };
-
-  const removeMedication = (index) => {
-    setMedications(medications.filter((_, i) => i !== index));
-  };
-
-  const getRiskColor = (text) => {
-    if (text?.includes('[CRITICAL]')) return 'bg-red-50 border-red-300 text-red-800';
-    if (text?.includes('[HIGH RISK]')) return 'bg-orange-50 border-orange-300 text-orange-800';
-    if (text?.includes('[MODERATE RISK]')) return 'bg-yellow-50 border-yellow-300 text-yellow-800';
-    return 'bg-green-50 border-green-300 text-green-800';
-  };
+  const addMedication = () => setMedications([...medications, { name: '', dosage: '' }]);
+  const removeMedication = (index) => setMedications(medications.filter((_, i) => i !== index));
 
   const handleCheck = async () => {
     const validMeds = medications.filter((m) => m.name.trim());
@@ -49,6 +72,9 @@ export default function DrugSafety() {
       setIsLoading(false);
     }
   };
+
+  const parsed = result ? parseResult(result) : null;
+  const config = parsed ? riskConfig[parsed.riskLevel] || riskConfig['MODERATE RISK'] : null;
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-8">
@@ -110,10 +136,7 @@ export default function DrugSafety() {
           </div>
         ))}
 
-        <button
-          onClick={addMedication}
-          className="text-blue-600 text-sm font-medium hover:underline mt-1"
-        >
+        <button onClick={addMedication} className="text-blue-600 text-sm font-medium hover:underline mt-1">
           + Add another medication
         </button>
 
@@ -128,9 +151,32 @@ export default function DrugSafety() {
         </button>
       </div>
 
-      {result && (
-        <div className={`border rounded-xl p-5 whitespace-pre-wrap text-sm leading-relaxed ${getRiskColor(result)}`}>
-          {result}
+      {parsed && config && (
+        <div className={`border ${config.border} ${config.bg} rounded-xl overflow-hidden`}>
+          {/* Risk banner */}
+          <div className={`${config.badge} text-white px-5 py-3 flex items-center gap-2`}>
+            <span className="text-lg">{config.icon}</span>
+            <span className="font-semibold text-sm tracking-wide">{parsed.riskLevel}</span>
+          </div>
+
+          {/* Sections */}
+          <div className="p-5 space-y-5">
+            {parsed.sections.map((section, i) => (
+              <div key={i}>
+                {section.title && (
+                  <h3 className={`text-sm font-semibold ${config.text} mb-2`}>{section.title}</h3>
+                )}
+                <ul className="space-y-1.5">
+                  {section.items.map((item, j) => (
+                    <li key={j} className="flex items-start gap-2 text-sm text-gray-700">
+                      <span className={`mt-1 w-1.5 h-1.5 rounded-full ${config.badge} flex-shrink-0`}></span>
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>
