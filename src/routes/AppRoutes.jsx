@@ -12,6 +12,9 @@ import PatientHistory from '../pages/consultations/PatientHistory';
 
 
 
+import FollowUps from '../pages/followups/FollowUps';
+import PatientsList from '../pages/patients/PatientsList';
+import PatientForm from '../pages/patients/PatientForm';
 const router = createBrowserRouter([
   {
     path: '/login',
@@ -30,8 +33,17 @@ const router = createBrowserRouter([
       { path: 'consultations', element: <ConsultationList /> },
       { path: 'consultations/add', element: <ConsultationForm /> },
       { path: 'consultations/edit/:id', element: <ConsultationForm /> },
+      { path:"/", element: <Navigate to="patients" replace /> },
+      // { index: true, element: <Navigate to="/ai-chat" replace /> },
+     { path: 'patients', element: <PatientsList /> },
+      { path: 'patients/add', element: <PatientForm /> },
+      { path: 'patients/edit/:id', element: <PatientForm /> },
+      { path: 'patients/history/:id', element: <PatientHistory /> },
+
+
+      { path: 'consultations', element: <div>Consultations page</div> },
       { path: 'prescriptions', element: <div>Prescriptions page</div> },
-      { path: 'followups', element: <div>Follow-ups page</div> },
+{ path: 'followups', element: <FollowUps /> },
       { path: 'ai-chat', element: <AiChat/> },
       { path: 'drug-safety', element: <DrugSafety /> },
       { path: 'consultations/search-patient', element: <PatientSearch /> },
