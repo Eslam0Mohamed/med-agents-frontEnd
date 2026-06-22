@@ -29,6 +29,7 @@ const router = createBrowserRouter([
     ),
     children: [
       { index: true, element: <Navigate to="/patients" replace /> },
+      { path: 'patients', element: <div>Patients page — coming next</div> },
       { path: 'consultations', element: <ConsultationList /> },
       { path: 'consultations/add', element: <ConsultationForm /> },
       { path: 'consultations/edit/:id', element: <ConsultationForm /> },
