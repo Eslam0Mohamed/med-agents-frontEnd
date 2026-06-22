@@ -5,10 +5,10 @@ import Layout from '../components/Layout';
 import NotFound from '../components/NotFound';
 import AiChat from '../pages/ai-chat/AiChat';
 import DrugSafety from '../pages/drug-safety/DrugSafety';
+import FollowUps from '../pages/followups/FollowUps';
 import PatientsList from '../pages/patients/PatientsList';
 import PatientForm from '../pages/patients/PatientForm';
 import PatientHistory from '../pages/patients/PatientHistory';
-
 const router = createBrowserRouter([
   {
     path: '/login',
@@ -32,7 +32,7 @@ const router = createBrowserRouter([
 
       { path: 'consultations', element: <div>Consultations page</div> },
       { path: 'prescriptions', element: <div>Prescriptions page</div> },
-      { path: 'followups', element: <div>Follow-ups page</div> },
+{ path: 'followups', element: <FollowUps /> },
       { path: 'ai-chat', element: <AiChat/> },
      
       { path: 'drug-safety', element: <DrugSafety /> },
