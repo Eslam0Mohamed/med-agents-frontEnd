@@ -5,7 +5,7 @@ import Layout from '../components/Layout';
 import NotFound from '../components/NotFound';
 import AiChat from '../pages/ai-chat/AiChat';
 import DrugSafety from '../pages/drug-safety/DrugSafety';
-
+import FollowUps from '../pages/followups/FollowUps';
 const router = createBrowserRouter([
   {
     path: '/login',
@@ -24,7 +24,7 @@ const router = createBrowserRouter([
       { path: 'patients', element: <div>Patients page — coming next</div> },
       { path: 'consultations', element: <div>Consultations page</div> },
       { path: 'prescriptions', element: <div>Prescriptions page</div> },
-      { path: 'followups', element: <div>Follow-ups page</div> },
+{ path: 'followups', element: <FollowUps /> },
       { path: 'ai-chat', element: <AiChat/> },
      
       { path: 'drug-safety', element: <DrugSafety /> },
