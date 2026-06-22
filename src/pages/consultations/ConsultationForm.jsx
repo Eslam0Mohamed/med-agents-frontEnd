@@ -11,16 +11,6 @@ import {
   updateConsultation,
 } from '../../api/consultation';
 
-const ConsultationForm = () => {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const isEditMode = !!id;
-
-  const [patients, setPatients] = useState([]);
-  const [patientSearch, setPatientSearch] = useState('');
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [selectedPatientId, setSelectedPatientId] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
 
   const {
     register,
@@ -35,22 +25,35 @@ const ConsultationForm = () => {
   });
 
   useEffect(() => {
-    loadPatients();
-  }, []);
+    
+     const loadPatients = async () => {
+  try {
+    const res = await getPatients();
+    const list = res.data || res;
 
-  const loadPatients = async () => {
-    try {
-      const res = await getPatients();
-      const list = res.data || res;
-      setPatients(list);
+    setPatients(list);
 
-      if (isEditMode) {
-        loadConsultation(list);
-      }
-    } catch (err) {
-      console.error('Failed to load patients', err);
+    // Edit mode
+    if (isEditMode) {
+      loadConsultation(list);
     }
-  };
+
+    // Coming from Patient History
+    if (patientId) {
+      const patient = list.find((p) => p._id === patientId);
+
+      if (patient) {
+        setSelectedPatientId(patient._id);
+        setPatientSearch(patient.name);
+        setValue('patientId', patient._id);
+        setShowDropdown(false);
+      }
+    }
+  } catch (err) {
+    console.error('Failed to load patients', err);
+  }
+};
+  } ) ;
 
   const loadConsultation = async (patientsList) => {
     try {
@@ -115,7 +118,7 @@ const ConsultationForm = () => {
     }
   };
 
-  // حساب الحدود للتاريخ
+  
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   const minDate = tomorrow.toISOString().split('T')[0];
@@ -135,41 +138,57 @@ const ConsultationForm = () => {
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-            {/* Patient Autocomplete */}
-            <div className="md:col-span-2 relative">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Patient</label>
-              <input
-                type="text"
-                value={patientSearch}
-                onChange={(e) => {
-                  setPatientSearch(e.target.value);
-                  setSelectedPatientId('');
-                  setShowDropdown(true);
-                }}
-                onFocus={() => setShowDropdown(true)}
-                placeholder="Type patient name..."
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <input type="hidden" {...register('patientId')} value={selectedPatientId} />
+           {/* Patient */}
+<div className="md:col-span-2 relative">
+  <label className="block text-sm font-medium text-gray-700 mb-1">
+    Patient
+  </label>
 
-              {showDropdown && filteredPatients.length > 0 && (
-                <ul className="absolute z-10 w-full bg-white border border-gray-200 rounded-md mt-1 max-h-48 overflow-y-auto shadow-lg">
-                  {filteredPatients.map((p) => (
-                    <li
-                      key={p._id}
-                      onClick={() => handlePatientSelect(p)}
-                      className="px-3 py-2 hover:bg-blue-50 cursor-pointer text-sm"
-                    >
-                      {p.name}
-                    </li>
-                  ))}
-                </ul>
-              )}
+  <input
+    type="text"
+    value={patientSearch}
+    disabled={!!patientId}
+    onChange={(e) => {
+      setPatientSearch(e.target.value);
+      setSelectedPatientId('');
+      setShowDropdown(true);
+    }}
+    onFocus={() => !patientId && setShowDropdown(true)}
+    placeholder="Type patient name..."
+    className={`w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+      patientId ? 'bg-gray-100 cursor-not-allowed' : ''
+    }`}
+  />
 
-              {errors.patientId && (
-                <p className="text-red-500 text-xs mt-1">{errors.patientId.message}</p>
-              )}
-            </div>
+  <input
+    type="hidden"
+    {...register('patientId')}
+    value={selectedPatientId}
+  />
+
+  {!patientId && showDropdown && filteredPatients.length > 0 && (
+    <ul className="absolute z-10 w-full bg-white border border-gray-200 rounded-md mt-1 max-h-48 overflow-y-auto shadow-lg">
+      {filteredPatients.map((p) => (
+        <li
+          key={p._id}
+          onClick={() => handlePatientSelect(p)}
+          className="px-3 py-2 hover:bg-blue-50 cursor-pointer text-sm"
+        >
+          {p.name}
+        </li>
+      ))}
+    </ul>
+  )}
+
+  {errors.patientId && (
+    <p className="text-red-500 text-xs mt-1">
+      {errors.patientId.message}
+    </p>
+  )}
+</div>l className="absolute z-10 w-full bg-wh
+
+
+
 
             {/* Doctor's Notes */}
             <div className="md:col-span-2">
@@ -198,7 +217,19 @@ const ConsultationForm = () => {
               {errors.symptoms && (
                 <p className="text-red-500 text-xs mt-1">{errors.symptoms.message}</p>
               )}
+           
+              <input
+                type="date"
+                {...register('followUpDate')}
+                min={minDate}
+                max={maxDate}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              {errors.followUpDate && (
+                <p className="text-red-500 text-xs mt-1">{errors.followUpDate.message}</p>
+              )}
             </div>
+ </div>
 
             {/* Diagnosis */}
             <div>
@@ -229,18 +260,6 @@ const ConsultationForm = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Follow-up Date (optional)
               </label>
-              <input
-                type="date"
-                {...register('followUpDate')}
-                min={minDate}
-                max={maxDate}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              {errors.followUpDate && (
-                <p className="text-red-500 text-xs mt-1">{errors.followUpDate.message}</p>
-              )}
-            </div>
-
           </div>
 
           {/* Actions */}
@@ -264,6 +283,6 @@ const ConsultationForm = () => {
       </div>
     </div>
   );
-};
+
 
 export default ConsultationForm;
