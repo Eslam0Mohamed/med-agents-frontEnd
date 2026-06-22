@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const navItems = [
@@ -12,6 +12,7 @@ const navItems = [
 
 export default function Navbar() {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   const initials = user?.name
     ?.split(' ')
@@ -50,6 +51,16 @@ export default function Navbar() {
 
       {/* Right side */}
       <div className="flex items-center gap-4">
+
+        {/* Add Consultation Button */}
+        <button
+          onClick={() => navigate('/consultations/search-patient')}
+          className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-md transition flex items-center gap-1.5"
+        >
+          <span className="text-base leading-none">+</span>
+          Add Consultation
+        </button>
+
         <div className="flex items-center bg-gray-100 rounded-md p-0.5">
           <button className="px-2.5 py-1 rounded text-xs font-medium bg-white shadow-sm text-gray-900">
             EN

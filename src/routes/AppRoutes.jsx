@@ -5,6 +5,12 @@ import Layout from '../components/Layout';
 import NotFound from '../components/NotFound';
 import AiChat from '../pages/ai-chat/AiChat';
 import DrugSafety from '../pages/drug-safety/DrugSafety';
+import ConsultationList from '../pages/consultations/ConsultationList';
+import ConsultationForm from '../pages/consultations/ConsultationForm';
+import PatientSearch from '../pages/consultations/PatientSearch';
+import PatientHistory from '../pages/consultations/PatientHistory';
+
+
 
 const router = createBrowserRouter([
   {
@@ -20,14 +26,16 @@ const router = createBrowserRouter([
     ),
     children: [
       { index: true, element: <Navigate to="/patients" replace /> },
-      // { index: true, element: <Navigate to="/ai-chat" replace /> },
       { path: 'patients', element: <div>Patients page — coming next</div> },
-      { path: 'consultations', element: <div>Consultations page</div> },
+      { path: 'consultations', element: <ConsultationList /> },
+      { path: 'consultations/add', element: <ConsultationForm /> },
+      { path: 'consultations/edit/:id', element: <ConsultationForm /> },
       { path: 'prescriptions', element: <div>Prescriptions page</div> },
       { path: 'followups', element: <div>Follow-ups page</div> },
       { path: 'ai-chat', element: <AiChat/> },
-     
       { path: 'drug-safety', element: <DrugSafety /> },
+      { path: 'consultations/search-patient', element: <PatientSearch /> },
+       { path: 'consultations/patient/:id/history', element: <PatientHistory /> }
     ],
   },
   {
