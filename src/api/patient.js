@@ -1,14 +1,14 @@
 import apiInstance from '../config/apiInstance';
 
 export const getPatients = async (search = '') => {
-  const res = await apiInstance.get('/patient', {
-    params: search ? { search } : {},
-  });
+  let params = '';
+  if (search) params = `?search=${search}`;
+  const res = await apiInstance.get(`/patients/doctor${params}`);
   return res.data;
 };
 
 export const getPatientHistory = async (id) => {
-  const res = await apiInstance.get(`/patient/${id}/history`);
+  const res = await apiInstance.get(`/patients/${id}/history`);
   return res.data;
 };
 import {createAsyncThunk } from '@reduxjs/toolkit';

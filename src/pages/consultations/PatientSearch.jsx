@@ -35,12 +35,15 @@ const PatientSearch = () => {
     navigate(`/consultations/patient/${patient._id}/history`);
   };
 
-  const calculateAge = (dob) => {
-    if (!dob) return '—';
-    const diff = Date.now() - new Date(dob).getTime();
-    return Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
-  };
-
+ const calculateAge = (dob) => {
+  if (!dob) return '—';
+  const birth = new Date(dob);
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+  const m = today.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+  return age;
+};
   return (
     <div className="p-4 max-w-4xl mx-auto">
 

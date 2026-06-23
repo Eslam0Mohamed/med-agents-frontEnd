@@ -110,12 +110,20 @@ export default function PatientHistory() {
           </div>
         </div>
 
-        <button
-          onClick={() => navigate(`/patients/edit/${patient._id}`)}
-          className="flex items-center gap-2 bg-blue-800 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-900"
-        >
-          ✏️ Edit Record
-        </button>
+    <div className="flex items-center gap-2">
+  <button
+    onClick={() => navigate(`/consultations/add/${patient._id}`)}
+    className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700"
+  >
+    + New Consultation
+  </button>
+  <button
+    onClick={() => navigate(`/patients/edit/${patient._id}`)}
+    className="flex items-center gap-2 bg-blue-800 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-900"
+  >
+    ✏️ Edit Record
+  </button>
+</div>
       </div>
 
       <h2 className="text-lg font-bold text-gray-900 mb-4">
