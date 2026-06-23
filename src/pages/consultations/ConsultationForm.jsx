@@ -107,9 +107,7 @@ const ConsultationForm = () => {
     setShowDropdown(false);
   };
 
-  //  Get AI Recommendation
   const handleGetAIRecommendation = async () => {
-    // eslint-disable-next-line react-hooks/incompatible-library
     const formValues = watch();
 
     if (!selectedPatientId) {
@@ -144,7 +142,7 @@ const ConsultationForm = () => {
       const res = await createConsultation(payload);
       setAiResult(res.data);
       setIsSaved(true);
-    } catch {
+    } catch (err) {
       Swal.fire('Error', 'Failed to get AI recommendation', 'error');
     } finally {
       setIsGenerating(false);
@@ -152,7 +150,6 @@ const ConsultationForm = () => {
   };
 
   const onSubmit = async (formData) => {
-    
     if (isSaved && !isEditMode) {
       navigate('/consultations');
       return;
@@ -209,7 +206,7 @@ const ConsultationForm = () => {
 
         {/* Main Form */}
         <div className="lg:col-span-2 bg-white rounded-xl shadow p-6 sm:p-8">
-          <h2 className="text-xl font-bold text-gray-800 mb-1">
+          <h2 className="text-xl font-bold text-blue-700 mb-1">
             {isEditMode ? 'Edit Consultation' : 'New Consultation'}
           </h2>
           <p className="text-sm text-gray-500 mb-6 pb-4 border-b">
@@ -221,7 +218,7 @@ const ConsultationForm = () => {
 
               {/* Patient */}
               <div className="md:col-span-2 relative">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-blue-700 mb-1">
                   Patient
                 </label>
 
@@ -264,7 +261,7 @@ const ConsultationForm = () => {
 
               {/* Doctor's Notes */}
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Doctor's Notes</label>
+                <label className="block text-sm font-medium text-blue-700 mb-1">Doctor's Notes</label>
                 <textarea
                   {...register('rawInput')}
                   rows={4}
@@ -277,7 +274,7 @@ const ConsultationForm = () => {
 
               {/* Symptoms */}
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-blue-700 mb-1">
                   Symptoms (comma separated)
                 </label>
                 <input
@@ -293,7 +290,7 @@ const ConsultationForm = () => {
 
               {/* Diagnosis */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-blue-700 mb-1">
                   Diagnosis (optional)
                 </label>
                 <input
@@ -305,7 +302,7 @@ const ConsultationForm = () => {
 
               {/* Language */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Language</label>
+                <label className="block text-sm font-medium text-blue-700 mb-1">Language</label>
                 <select
                   {...register('language')}
                   className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -317,7 +314,7 @@ const ConsultationForm = () => {
 
               {/* Follow-up Date */}
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-blue-700 mb-1">
                   Follow-up Date (optional)
                 </label>
                 <input
@@ -355,7 +352,7 @@ const ConsultationForm = () => {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="bg-gray-900 hover:bg-gray-800 text-white px-5 py-2 rounded-md font-medium text-sm disabled:opacity-50"
+                  className="bg-blue-700 hover:bg-blue-800 text-white px-5 py-2 rounded-md font-medium text-sm disabled:opacity-50"
                 >
                   {isLoading ? 'Saving...' : isEditMode ? 'Update' : 'Save Record'}
                 </button>
