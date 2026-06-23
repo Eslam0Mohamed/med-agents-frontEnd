@@ -7,10 +7,21 @@ export const getPatients = async (search = '') => {
   return res.data;
 };
 
+export const getAllPatients = async ({ search = '', page = 1, limit = 10 } = {}) => {
+    let params = `?page=${page}&limit=${limit}`;
+    if (search) params += `&search=${search}`;
+    const res = await apiInstance.get(`/patients${params}`);
+    return res.data;
+  
+};
+
+
 export const getPatientHistory = async (id) => {
   const res = await apiInstance.get(`/patients/${id}/history`);
   return res.data;
 };
+
+
 import {createAsyncThunk } from '@reduxjs/toolkit';
 export const fetchPatients = createAsyncThunk(
   'patients/fetchPatients',

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getPatients } from '../../api/patient';
+import { getAllPatients } from '../../api/patient';
 
 const PatientSearch = () => {
   const navigate = useNavigate();
@@ -8,10 +8,11 @@ const PatientSearch = () => {
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const loadPatients = useCallback(async (query) => {
+  const loadPatients = useCallback(async (search) => {
     try {
       setLoading(true);
-      const res = await getPatients(query);
+      const res = await getAllPatients({search});
+      console.log(res)
       setPatients(res.data || []);
     } catch (err) {
       console.error('Failed to load patients', err);
@@ -76,7 +77,7 @@ const PatientSearch = () => {
       )}
 
       {!loading && patients.length > 0 && (
-        <div className="space-y-2">
+        <div className="space-y-2 h-125 overflow-auto">
           {patients.map((p) => (
             <button
               key={p._id}
