@@ -10,6 +10,7 @@ import {
   getConsultationById,
   updateConsultation,
 } from '../../api/consultation';
+import { createFollowUp } from '../../api/followup';
 
 const ConsultationForm = () => {
   const { id, patientId } = useParams();
@@ -24,13 +25,15 @@ const ConsultationForm = () => {
 
   const [aiResult, setAiResult] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isSaved, setIsSaved] = useState(false);
+  const [ setIsSaved] = useState(false);
+  const [createdId, setCreatedId] = useState(null);
 
   const {
     register,
     handleSubmit,
     setValue,
     watch,
+    trigger,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(consultationSchema),
@@ -61,6 +64,7 @@ const ConsultationForm = () => {
           'followUpDate',
           data.followUpDate ? new Date(data.followUpDate).toISOString().split('T')[0] : ''
         );
+        setAiResult(data);
       } catch (err) {
         console.error('Failed to load consultation', err);
       }
@@ -108,20 +112,12 @@ const ConsultationForm = () => {
   };
 
   const handleGetAIRecommendation = async () => {
-    const formValues = watch();
+    // Validate fields using React Hook Form trigger to show validation errors below inputs in red instead of popups
+    const isValid = await trigger(['patientId', 'rawInput', 'symptoms']);
+    if (!isValid) return;
 
-    if (!selectedPatientId) {
-      Swal.fire('Missing Patient', 'Please select a patient first', 'warning');
-      return;
-    }
-    if (!formValues.rawInput || formValues.rawInput.trim().length < 10) {
-      Swal.fire('Missing Notes', "Doctor's Notes must be at least 10 characters", 'warning');
-      return;
-    }
-    if (!formValues.symptoms || !formValues.symptoms.trim()) {
-      Swal.fire('Missing Symptoms', 'Please enter symptoms', 'warning');
-      return;
-    }
+    // eslint-disable-next-line react-hooks/incompatible-library
+    const formValues = watch();
 
     setIsGenerating(true);
     setAiResult(null);
@@ -141,8 +137,12 @@ const ConsultationForm = () => {
     try {
       const res = await createConsultation(payload);
       setAiResult(res.data);
+      setCreatedId(res.data._id);
       setIsSaved(true);
-    } catch (err) {
+      if (res.data.diagnosis) {
+        setValue('diagnosis', res.data.diagnosis);
+      }
+    } catch  {
       Swal.fire('Error', 'Failed to get AI recommendation', 'error');
     } finally {
       setIsGenerating(false);
@@ -150,11 +150,6 @@ const ConsultationForm = () => {
   };
 
   const onSubmit = async (formData) => {
-    if (isSaved && !isEditMode) {
-      navigate('/consultations');
-      return;
-    }
-
     setIsLoading(true);
 
     const payload = {
@@ -172,8 +167,36 @@ const ConsultationForm = () => {
     try {
       if (isEditMode) {
         await updateConsultation(id, payload);
+      } else if (createdId) {
+        await updateConsultation(createdId, payload);
+        if (formData.followUpDate) {
+          try {
+            await createFollowUp({
+              consultationId: createdId,
+              patientId: formData.patientId,
+              instructions: '-',
+              scheduledDate: formData.followUpDate,
+              language: formData.language || 'en',
+            });
+          } catch (followUpErr) {
+            console.error('Failed to automatically create follow-up:', followUpErr);
+          }
+        }
       } else {
-        await createConsultation(payload);
+        const res = await createConsultation(payload);
+        if (formData.followUpDate) {
+          try {
+            await createFollowUp({
+              consultationId: res.data._id,
+              patientId: formData.patientId,
+              instructions: '-',
+              scheduledDate: formData.followUpDate,
+              language: formData.language || 'en',
+            });
+          } catch (followUpErr) {
+            console.error('Failed to automatically create follow-up:', followUpErr);
+          }
+        }
       }
       navigate('/consultations');
     } catch {
@@ -225,22 +248,23 @@ const ConsultationForm = () => {
                 <input
                   type="text"
                   value={patientSearch}
-                  disabled={!!patientId}
+                  disabled={isEditMode || !!patientId}
                   onChange={(e) => {
                     setPatientSearch(e.target.value);
                     setSelectedPatientId('');
+                    setValue('patientId', '');
                     setShowDropdown(true);
                   }}
-                  onFocus={() => !patientId && setShowDropdown(true)}
+                  onFocus={() => !isEditMode && !patientId && setShowDropdown(true)}
                   placeholder="Type patient name..."
                   className={`w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    patientId ? 'bg-gray-100 cursor-not-allowed' : ''
+                    (isEditMode || patientId) ? 'bg-gray-100 cursor-not-allowed' : ''
                   }`}
                 />
 
                 <input type="hidden" {...register('patientId')} value={selectedPatientId} />
 
-                {!patientId && showDropdown && filteredPatients.length > 0 && (
+                {!isEditMode && !patientId && showDropdown && filteredPatients.length > 0 && (
                   <ul className="absolute z-10 w-full bg-white border border-gray-200 rounded-md mt-1 max-h-48 overflow-y-auto shadow-lg">
                     {filteredPatients.map((p) => (
                       <li
@@ -288,20 +312,8 @@ const ConsultationForm = () => {
                 )}
               </div>
 
-              {/* Diagnosis */}
-              <div>
-                <label className="block text-sm font-medium text-blue-700 mb-1">
-                  Diagnosis (optional)
-                </label>
-                <input
-                  type="text"
-                  {...register('diagnosis')}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
               {/* Language */}
-              <div>
+              <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-blue-700 mb-1">Language</label>
                 <select
                   {...register('language')}
@@ -312,24 +324,54 @@ const ConsultationForm = () => {
                 </select>
               </div>
 
-              {/* Follow-up Date */}
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-blue-700 mb-1">
-                  Follow-up Date (optional)
-                </label>
-                <input
-                  type="date"
-                  {...register('followUpDate')}
-                  min={minDate}
-                  max={maxDate}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                {errors.followUpDate && (
-                  <p className="text-red-500 text-xs mt-1">{errors.followUpDate.message}</p>
-                )}
-              </div>
-
             </div>
+
+            {/* AI Recommendation Result - Separate Card for Diagnosis & Follow-up Date */}
+            {(aiResult || isEditMode) && (
+              <div className="mt-6 p-6 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-xl shadow-sm space-y-4">
+                <h3 className="text-base font-bold text-blue-800 flex items-center gap-2">
+                  <span>📋 Clinical Decision Support & Follow-up</span>
+                </h3>
+                <p className="text-xs text-gray-500">
+                  Please finalize the diagnosis and set a follow-up date if required.
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Diagnosis (Required) */}
+                  <div>
+                    <label className="block text-sm font-medium text-blue-700 mb-1">
+                      Diagnosis <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      {...register('diagnosis')}
+                      placeholder="Enter final diagnosis..."
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    {errors.diagnosis && (
+                      <p className="text-red-500 text-xs mt-1">{errors.diagnosis.message}</p>
+                    )}
+                  </div>
+
+                  {/* Follow-up Date */}
+                  <div>
+                    <label className="block text-sm font-medium text-blue-700 mb-1">
+                      Follow-up Date
+                    </label>
+                    <input
+                      type="date"
+                      {...register('followUpDate')}
+                      min={minDate}
+                      max={maxDate}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    {errors.followUpDate && (
+                      <p className="text-red-500 text-xs mt-1">{errors.followUpDate.message}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Actions */}
             <div className="flex flex-wrap items-center justify-between gap-3 mt-6 pt-5 border-t">
