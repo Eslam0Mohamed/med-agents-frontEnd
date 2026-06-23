@@ -135,6 +135,13 @@ export default function PatientsList() {
                         🕓
                       </button>
                       <button
+                        onClick={() => navigate(`/patients/report/${patient._id}`)}
+                        className="w-8 h-8 flex items-center justify-center rounded-md border border-gray-200 text-gray-500 hover:bg-gray-100"
+                        title="Report"
+                      >
+                        📊
+                      </button>
+                      <button
                         onClick={() => navigate(`/patients/edit/${patient._id}`)}
                         className="w-8 h-8 flex items-center justify-center rounded-md border border-gray-200 text-gray-500 hover:bg-gray-100"
                         title="Edit"
