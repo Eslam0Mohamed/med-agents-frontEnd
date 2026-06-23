@@ -41,7 +41,7 @@ export function AuthProvider({ children }) {
   const isLoggedIn = () => !!localStorage.getItem('token');
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoggedIn, isLoading }}>
+    <AuthContext.Provider value={{ user, login, logout, isLoggedIn, isLoading, setUser }}>
       {children}
     </AuthContext.Provider>
   );
