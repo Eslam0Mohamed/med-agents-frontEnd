@@ -7,10 +7,10 @@ const maxDate = new Date();
 maxDate.setMonth(maxDate.getMonth() + 6);
 
 export const consultationSchema = z.object({
-  patientId: z.string().min(1, 'Please select a patient'),
+  patientId: z.string().min(1, 'Patient is required'),
   rawInput: z.string().min(10, 'Notes must be at least 10 characters'),
   symptoms: z.string().min(1, 'Symptoms are required'),
-  diagnosis: z.string().optional(),
+  diagnosis: z.string().min(1, 'Diagnosis is required'),
   language: z.enum(['en', 'ar']),
   followUpDate: z
     .string()

@@ -163,10 +163,20 @@ export default function PatientHistory() {
             <div className="grid grid-cols-2 gap-3 mb-3">
               <div>
                 <p className="text-xs font-semibold text-gray-400 uppercase">Diagnosis</p>
-                <p className="text-sm text-gray-900">{item.diagnosis}</p>
+                <p className="text-sm text-gray-900">{item.diagnosis || '—'}</p>
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-gray-400 uppercase">Follow-up Date</p>
+                <p className="text-sm text-gray-900">
+                  {item.followUpDate ? new Date(item.followUpDate).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric'
+                  }) : '—'}
+                </p>
               </div>
               {item.suggestedSpecialist && (
-                <div>
+                <div className="col-span-2">
                   <p className="text-xs font-semibold text-gray-400 uppercase">Specialist</p>
                   <p className="text-sm text-gray-900">{item.suggestedSpecialist}</p>
                 </div>

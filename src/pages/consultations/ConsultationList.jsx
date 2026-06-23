@@ -161,7 +161,11 @@ const Consultations = () => {
                 <td className="px-4 py-3">{c.suggestedSpecialist}</td>
                 <td className="px-4 py-3 capitalize">{c.status}</td>
                 <td className="px-4 py-3">
-                  {c.followUpDate ? new Date(c.followUpDate).toLocaleDateString() : '—'}
+                  {c.followUpDate ? new Date(c.followUpDate).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric'
+                  }) : '—'}
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex gap-2">
