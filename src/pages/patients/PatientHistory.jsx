@@ -112,6 +112,12 @@ export default function PatientHistory() {
 
     <div className="flex items-center gap-2">
   <button
+    onClick={() => navigate(`/patients/report/${patient._id}`)}
+    className="flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50"
+  >
+    📊 View Report
+  </button>
+  <button
     onClick={() => navigate(`/consultations/add/${patient._id}`)}
     className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700"
   >
