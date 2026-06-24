@@ -18,7 +18,7 @@ import PatientReport from '../pages/patients/PatientReport';
 import FollowUps from '../pages/followups/FollowUps';
 import PatientsList from '../pages/patients/PatientsList';
 import PatientForm from '../pages/patients/PatientForm';
-
+import StartFollowUp from '../pages/followups/StartFollowUp';
 
 const router = createBrowserRouter([
   {
@@ -59,14 +59,13 @@ const router = createBrowserRouter([
       // Prescriptions
       { path: 'prescriptions', element: <div>Prescriptions page</div> },
 
-      { path: 'followups', element: <div>Follow-ups page</div> },
       { path: 'ai-chat', element: <AiChat/> },
      { path: 'profile', element: <Profile /> },
 
 
       // Follow Ups
       { path: 'followups', element: <FollowUps /> },
-
+{ path: 'followups/start/:followupId', element: <StartFollowUp /> },
       // AI Chat
       { path: 'ai-chat', element: <AiChat /> },
 
