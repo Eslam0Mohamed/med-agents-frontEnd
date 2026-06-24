@@ -13,6 +13,8 @@ const Consultations = () => {
     try {
       setLoading(true);
       const res = await getConsultations();
+      // console.log(res.data[0].followUpId);
+      
       setConsultations(res.data);
       setFiltered(res.data);
     } catch {
@@ -136,7 +138,7 @@ const Consultations = () => {
 
       {/* Table */}
       <div className="overflow-x-auto bg-white rounded-lg shadow">
-        <table className="w-full min-w-[700px] text-sm">
+        <table className="w-full min-w-175 text-sm">
           <thead className="bg-gray-50 text-left">
             <tr>
               <th className="px-4 py-3 font-semibold text-gray-700">Patient</th>
@@ -150,6 +152,7 @@ const Consultations = () => {
           </thead>
           <tbody>
             {filtered.map((c) => (
+              
               <tr key={c._id} className="border-t hover:bg-gray-50">
                 <td className="px-4 py-3">{getPatientName(c.patientId)}</td>
                 <td className="px-4 py-3">{c.symptoms.join(', ')}</td>
@@ -165,7 +168,8 @@ const Consultations = () => {
                     month: 'short',
                     day: 'numeric',
                     year: 'numeric'
-                  }) : '—'}
+                  }) : '—'
+                    }
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex gap-2">

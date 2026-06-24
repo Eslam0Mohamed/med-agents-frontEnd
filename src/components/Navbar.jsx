@@ -56,8 +56,7 @@ export default function Navbar() {
       <h1 className="text-lg font-bold text-gray-900">
         Med<span className="text-blue-600">Agents</span>
       </h1>
-    </div>
-
+    </div>   
     {/* Desktop links */}
     <div className="hidden md:flex items-center gap-1">
       {navItems.map((item) => (
@@ -107,8 +106,7 @@ export default function Navbar() {
         )}
       </div>
     </div>
-  </div>
-
+       </div>
   {/* Mobile menu */}
   {mobileOpen && (
     <div className="md:hidden border-t border-gray-100 px-4 py-3 flex flex-col gap-1">
