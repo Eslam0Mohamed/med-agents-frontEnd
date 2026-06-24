@@ -5,6 +5,10 @@ import Layout from '../components/Layout';
 import NotFound from '../components/NotFound';
 import AiChat from '../pages/ai-chat/AiChat';
 import DrugSafety from '../pages/drug-safety/DrugSafety';
+
+import Profile from '../pages/profile/Profile';
+import Settings from '../pages/settings/Settings';
+
 import ConsultationList from '../pages/consultations/ConsultationList';
 import ConsultationForm from '../pages/consultations/ConsultationForm';
 import PatientSearch from '../pages/consultations/PatientSearch';
@@ -13,6 +17,7 @@ import PatientHistory from '../pages/Patients/PatientHistory';
 import FollowUps from '../pages/followups/FollowUps';
 import PatientsList from '../pages/patients/PatientsList';
 import PatientForm from '../pages/patients/PatientForm';
+
 
 const router = createBrowserRouter([
   {
@@ -52,6 +57,11 @@ const router = createBrowserRouter([
       // Prescriptions
       { path: 'prescriptions', element: <div>Prescriptions page</div> },
 
+      { path: 'followups', element: <div>Follow-ups page</div> },
+      { path: 'ai-chat', element: <AiChat/> },
+     { path: 'profile', element: <Profile /> },
+
+
       // Follow Ups
       { path: 'followups', element: <FollowUps /> },
 
@@ -59,7 +69,9 @@ const router = createBrowserRouter([
       { path: 'ai-chat', element: <AiChat /> },
 
       // Drug Safety
+
       { path: 'drug-safety', element: <DrugSafety /> },
+      { path: 'settings', element: <Settings /> },
     ],
   },
 
