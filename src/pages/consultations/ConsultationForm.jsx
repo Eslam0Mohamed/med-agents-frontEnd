@@ -14,6 +14,9 @@ import { createFollowUp } from '../../api/followup';
 
 const ConsultationForm = () => {
   const { id, patientId } = useParams();
+  console.log(id);
+  console.log(patientId);
+  
   const navigate = useNavigate();
   const isEditMode = !!id;
 const [createdId, setCreatedId] = useState('');
@@ -138,9 +141,12 @@ const [createdId, setCreatedId] = useState('');
   );
 
   const handlePatientSelect = (patient) => {
+      console.log(patient);
+      alert("ffffffff")
     setPatientSearch(patient.name);
     setSelectedPatientId(patient._id);
-    setValue('patientId', patient._id);
+    // setValue('patientId', patient._id);
+    setValue('patientId', patient._id, { shouldValidate: true, shouldDirty: true });
     setShowDropdown(false);
   };
 
@@ -186,7 +192,7 @@ const [createdId, setCreatedId] = useState('');
     setIsLoading(true);
 
     const payload = {
-      patientId: formData.patientId,
+      patientId:selectedPatientId || formData.patientId,
       rawInput: formData.rawInput,
       diagnosis: formData.diagnosis,
       language: formData.language,
@@ -219,7 +225,7 @@ const [createdId, setCreatedId] = useState('');
     if (isEditMode) {
       await updateConsultation(id, payload);
     } else if (createdId) {
-      await updateConsultation(createdId, payload);
+      await createConsultation(payload);
       if (formData.followUpDate) {
         try {
           await createFollowUp({
@@ -302,16 +308,16 @@ return (
                 onChange={(e) => {
                   setPatientSearch(e.target.value);
                   setSelectedPatientId('');
-                  setValue('patientId', '');
+                  // setValue('patientId', '');
+                  setValue('patientId', '', { shouldValidate: true });
                   setShowDropdown(true);
                 }}
                 onFocus={() => !isEditMode && !patientId && setShowDropdown(true)}
                 placeholder="Type patient name..."
-                className={`w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${(isEditMode || patientId) ? 'bg-gray-100 cursor-not-allowed' : ''
+                className={`w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${(isEditMode || patientId) ? 'bg-gray-100' : ''
                   }`}
               />
-
-              <input type="hidden" {...register('patientId')} value={selectedPatientId} />
+              <input type="hidden" {...register('patientId')} />
 
               {!isEditMode && !patientId && showDropdown && filteredPatients.length > 0 && (
                 <ul className="absolute z-10 w-full bg-white border border-gray-200 rounded-md mt-1 max-h-48 overflow-y-auto shadow-lg">

@@ -62,6 +62,7 @@ export default function Navbar() {
       {navItems.map((item) => (
         <NavLink
           key={item.path}
+          end
           to={item.path}
           className={({ isActive }) =>
             `px-3 py-2 rounded-md text-sm font-medium transition ${

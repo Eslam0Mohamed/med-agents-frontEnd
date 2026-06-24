@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchPatientHistory} from '../../api/patient';
-import {  clearHistory} from '../../slices/patientsSlice';
+import { fetchPatientHistory } from '../../api/patient';
+import { clearHistory } from '../../slices/patientsSlice';
 
 const urgencyStyles = {
   low: 'bg-green-100 text-green-700',
@@ -58,8 +58,8 @@ export default function PatientHistory() {
       </button>
 
       {/* Patient summary card */}
-      <div className="bg-white rounded-xl shadow-sm p-6 flex items-start justify-between mb-6">
-        <div className="flex items-start gap-4">
+      <div className="bg-white rounded-xl shadow-sm p-6 flex flex-col md:flex-row gap-8 md:gap-0 items-start justify-between mb-6">
+        <div className="flex  items-start gap-4">
           <div className="w-16 h-16 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xl font-semibold">
             {initials(patient.name)}
           </div>
@@ -109,27 +109,26 @@ export default function PatientHistory() {
             </div>
           </div>
         </div>
-
-    <div className="flex items-center gap-2">
-  <button
-    onClick={() => navigate(`/patients/report/${patient._id}`)}
-    className="flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50"
-  >
-    📊 View Report
-  </button>
-  <button
-    onClick={() => navigate(`/consultations/add/${patient._id}`)}
-    className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700"
-  >
-    + New Consultation
-  </button>
-  <button
-    onClick={() => navigate(`/patients/edit/${patient._id}`)}
-    className="flex items-center gap-2 bg-blue-800 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-900"
-  >
-    ✏️ Edit Record
-  </button>
-</div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => navigate(`/patients/report/${patient._id}`)}
+            className="flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50"
+          >
+            📊 View Report
+          </button>
+          <button
+            onClick={() => navigate(`/consultations/add/${patient._id}`)}
+            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700"
+          >
+            + New Consultation
+          </button>
+          <button
+            onClick={() => navigate(`/patients/edit/${patient._id}`)}
+            className="flex items-center gap-2 bg-blue-800 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-900"
+          >
+            ✏️ Edit Record
+          </button>
+        </div>
       </div>
 
       <h2 className="text-lg font-bold text-gray-900 mb-4">
@@ -142,7 +141,7 @@ export default function PatientHistory() {
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {consultations.map((item) => (
           <div key={item.consultationId} className="bg-white rounded-xl shadow-sm p-5">
             <div className="flex items-center justify-between mb-3">
@@ -150,9 +149,8 @@ export default function PatientHistory() {
                 {new Date(item.date).toLocaleString()}
               </span>
               <span
-                className={`text-xs px-2.5 py-1 rounded-full font-semibold uppercase ${
-                  urgencyStyles[item.urgencyLevel?.toLowerCase()] || 'bg-gray-100 text-gray-700'
-                }`}
+                className={`text-xs px-2.5 py-1 rounded-full font-semibold uppercase ${urgencyStyles[item.urgencyLevel?.toLowerCase()] || 'bg-gray-100 text-gray-700'
+                  }`}
               >
                 {item.urgencyLevel}
               </span>
