@@ -59,7 +59,6 @@ const router = createBrowserRouter([
       // Prescriptions
       { path: 'prescriptions', element: <div>Prescriptions page</div> },
 
-      { path: 'followups', element: <div>Follow-ups page</div> },
       { path: 'ai-chat', element: <AiChat/> },
      { path: 'profile', element: <Profile /> },
 
