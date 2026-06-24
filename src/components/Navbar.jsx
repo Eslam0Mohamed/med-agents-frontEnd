@@ -63,6 +63,7 @@ export default function Navbar() {
         <NavLink
           key={item.path}
           to={item.path}
+          end
           className={({ isActive }) =>
             `px-3 py-2 rounded-md text-sm font-medium transition ${
               isActive
