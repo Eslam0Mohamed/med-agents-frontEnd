@@ -82,7 +82,7 @@ const PatientSearch = () => {
             <button
               key={p._id}
               onClick={() => handleSelectPatient(p)}
-              className="w-full flex items-center justify-between bg-white border border-gray-200 rounded-lg p-4 hover:border-blue-400 hover:shadow-sm transition text-left"
+              className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white border border-gray-200 rounded-lg p-4 hover:border-blue-400 hover:shadow-sm transition text-left"
             >
               <div>
                 <p className="font-semibold text-gray-900">{p.name}</p>
@@ -90,7 +90,7 @@ const PatientSearch = () => {
                   National ID: {p.nationalID} · Age: {calculateAge(p.dateOfBirth)} · {p.gender}
                 </p>
               </div>
-              <span className="text-blue-600 text-sm font-medium">View History →</span>
+              <span className="text-blue-600 text-sm font-medium self-start sm:self-center">View History →</span>
             </button>
           ))}
         </div>

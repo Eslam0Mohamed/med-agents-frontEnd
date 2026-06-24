@@ -371,30 +371,28 @@ const ConsultationForm = () => {
                   </div>
                 </div>
               </div>
-            )}
-
-            {/* Actions */}
-            <div className="flex flex-wrap items-center justify-between gap-3 mt-6 pt-5 border-t">
+            )}            {/* Actions */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-6 pt-5 border-t">
               <button
                 type="button"
                 onClick={handleGetAIRecommendation}
                 disabled={isGenerating}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-md font-medium text-sm transition flex items-center gap-2 disabled:opacity-50"
+                className="w-full sm:w-auto justify-center bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-md font-medium text-sm transition flex items-center gap-2 disabled:opacity-50"
               >
                 🤖 {isGenerating ? 'Analyzing...' : 'Get AI Recommendation'} →
               </button>
 
-              <div className="flex gap-3 ms-auto">
+              <div className="flex gap-3 w-full sm:w-auto justify-end">
                 <Link
                   to="/consultations"
-                  className="border border-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-50 text-sm"
+                  className="w-1/2 sm:w-auto text-center border border-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-50 text-sm"
                 >
                   Cancel
                 </Link>
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="bg-blue-700 hover:bg-blue-800 text-white px-5 py-2 rounded-md font-medium text-sm disabled:opacity-50"
+                  className="w-1/2 sm:w-auto justify-center bg-blue-700 hover:bg-blue-800 text-white px-5 py-2 rounded-md font-medium text-sm disabled:opacity-50"
                 >
                   {isLoading ? 'Saving...' : isEditMode ? 'Update' : 'Save Record'}
                 </button>
