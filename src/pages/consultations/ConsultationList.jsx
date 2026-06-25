@@ -179,11 +179,32 @@ const Consultations = () => {
               <th className="px-4 py-3 font-semibold text-gray-700">Actions</th>
             </tr>
           </thead>
+      <div className="overflow-x-auto bg-white rounded-2xl shadow-lg border border-blue-200">
+        <table className="w-full min-w-[800px] text-sm table-auto">
+        
+      
+        <thead className="bg-blue-700 text-white">
+  <tr>
+    <th className="px-4 py-4 font-semibold">Patient</th>
+    <th className="px-4 py-4 font-semibold">Symptoms</th>
+    <th className="px-4 py-4 font-semibold">Urgency</th>
+    <th className="px-4 py-4 font-semibold">Specialist</th>
+    <th className="px-4 py-4 font-semibold">Status</th>
+    <th className="px-4 py-4 font-semibold">Follow-up</th>
+    <th className="px-4 py-4 font-semibold">Actions</th>
+  </tr>
+</thead>
           <tbody>
             {filtered.map((c) => (
               <tr key={c._id} className="border-t hover:bg-gray-50">
                 <td className="px-4 py-3">{getPatientName(c.patientId)}</td>
                 <td className="px-4 py-3">{c.symptoms.join(', ')}</td>
+            {paginatedData.map((c) => (
+              <tr key={c._id} className="border-t hover:bg-gray-50/50">
+<td className="px-4 py-3 font-bold text-blue-600 hover:text-blue-800 cursor-pointer">
+  {getPatientName(c.patientId)}
+</td>
+                 <td className="px-4 py-3 text-gray-600">{c.symptoms.join(', ')}</td>
                 <td className="px-4 py-3">
                   <span className={`px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${getUrgencyBadge(c.urgencyLevel)}`}>
                     {c.urgencyLevel}
