@@ -4,11 +4,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Swal from 'sweetalert2';
 import { consultationSchema } from '../../schemas/consultation';
-import { getPatients } from '../../api/patient';
-import {
-  createConsultation,
-  getConsultationById,
-  updateConsultation,
+import { getAllPatients, getPatients } from '../../api/patient';
+import {createConsultation,getAIRecommendation,getConsultationById,updateConsultation,
 } from '../../api/consultation';
 import { createFollowUp } from '../../api/followup';
 
@@ -16,17 +13,15 @@ const ConsultationForm = () => {
   const { id, patientId } = useParams();
   const navigate = useNavigate();
   const isEditMode = !!id;
-
+  const [createdId, setCreatedId] = useState('');
   const [patients, setPatients] = useState([]);
   const [patientSearch, setPatientSearch] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedPatientId, setSelectedPatientId] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-
   const [aiResult, setAiResult] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [ setIsSaved] = useState(false);
-  const [createdId, setCreatedId] = useState(null);
+  const [isSaved, setIsSaved] = useState(false);
 
   const {
     register,
@@ -48,20 +43,24 @@ const ConsultationForm = () => {
         const res = await getConsultationById(id);
         const data = res.data;
 
-        const patient = patientsList.find((p) => p._id === data.patientId);
+        const patientIdValue = typeof data.patientId === 'object'
+          ? data.patientId?._id
+          : data.patientId;
 
-        setValue('patientId', data.patientId);
-        setSelectedPatientId(data.patientId);
-        setPatientSearch(patient?.name || '');
+        const patientName = typeof data.patientId === 'object'
+          ? data.patientId?.name
+          : patientsList.find((p) => p._id === data.patientId)?.name || '';
+
+        setValue('patientId', patientIdValue);
+        setSelectedPatientId(patientIdValue);
+        setPatientSearch(patientName);
         setValue('rawInput', data.rawInput);
-        setValue(
-          'symptoms',
+        setValue('symptoms',
           Array.isArray(data.symptoms) ? data.symptoms.join(', ') : data.symptoms
         );
         setValue('diagnosis', data.diagnosis || '');
         setValue('language', data.language || 'en');
-        setValue(
-          'followUpDate',
+        setValue('followUpDate',
           data.followUpDate ? new Date(data.followUpDate).toISOString().split('T')[0] : ''
         );
         setAiResult(data);
@@ -71,11 +70,10 @@ const ConsultationForm = () => {
     },
     [id, setValue]
   );
-
   useEffect(() => {
     const loadPatients = async () => {
       try {
-        const res = await getPatients();
+        const res = await getAllPatients();
         const list = res.data || res;
         setPatients(list);
 
@@ -84,14 +82,17 @@ const ConsultationForm = () => {
         }
 
         if (patientId) {
-          const patient = list.find((p) => p._id === patientId);
-          if (patient) {
-            setSelectedPatientId(patient._id);
-            setPatientSearch(patient.name);
-            setValue('patientId', patient._id);
-            setShowDropdown(false);
-          }
-        }
+  const patient = list.find(
+    (p) => String(p._id) === String(patientId)
+  );
+
+  if (patient) {
+    setSelectedPatientId(patient._id);
+    setPatientSearch(patient.name);
+    setValue('patientId', patient._id);
+    setShowDropdown(false);
+  }
+}
       } catch (err) {
         console.error('Failed to load patients', err);
       }
@@ -100,23 +101,28 @@ const ConsultationForm = () => {
     loadPatients();
   }, [isEditMode, patientId, loadConsultation, setValue]);
 
+useEffect(() => {
+  if (!isEditMode && !patientId && patients.length > 0) {
+    setShowDropdown(true);
+  }
+}, [patients, isEditMode, patientId]);
+
   const filteredPatients = patients.filter((p) =>
     p.name.toLowerCase().includes(patientSearch.toLowerCase())
   );
 
   const handlePatientSelect = (patient) => {
+    
     setPatientSearch(patient.name);
     setSelectedPatientId(patient._id);
-    setValue('patientId', patient._id);
+    setValue('patientId', patient._id, { shouldValidate: true, shouldDirty: true });
     setShowDropdown(false);
   };
 
   const handleGetAIRecommendation = async () => {
-    // Validate fields using React Hook Form trigger to show validation errors below inputs in red instead of popups
     const isValid = await trigger(['patientId', 'rawInput', 'symptoms']);
     if (!isValid) return;
 
-    // eslint-disable-next-line react-hooks/incompatible-library
     const formValues = watch();
 
     setIsGenerating(true);
@@ -135,14 +141,19 @@ const ConsultationForm = () => {
     };
 
     try {
-      const res = await createConsultation(payload);
+      console.log("ai te 1");
+      const res = await getAIRecommendation(payload);
+      console.log(res);
+      
       setAiResult(res.data);
       setCreatedId(res.data._id);
       setIsSaved(true);
       if (res.data.diagnosis) {
         setValue('diagnosis', res.data.diagnosis);
       }
-    } catch  {
+    } catch(err) {
+      console.log(err.response?.data);
+      
       Swal.fire('Error', 'Failed to get AI recommendation', 'error');
     } finally {
       setIsGenerating(false);
@@ -153,7 +164,7 @@ const ConsultationForm = () => {
     setIsLoading(true);
 
     const payload = {
-      patientId: formData.patientId,
+      patientId: selectedPatientId || formData.patientId,
       rawInput: formData.rawInput,
       diagnosis: formData.diagnosis,
       language: formData.language,
@@ -164,11 +175,12 @@ const ConsultationForm = () => {
       followUpDate: formData.followUpDate || undefined,
     };
 
+
     try {
       if (isEditMode) {
         await updateConsultation(id, payload);
       } else if (createdId) {
-        await updateConsultation(createdId, payload);
+        await createConsultation(payload);
         if (formData.followUpDate) {
           try {
             await createFollowUp({
@@ -240,48 +252,49 @@ const ConsultationForm = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
               {/* Patient */}
-              <div className="md:col-span-2 relative">
-                <label className="block text-sm font-medium text-blue-700 mb-1">
-                  Patient
-                </label>
+  <div className="md:col-span-2 relative">
+  <label className="block text-sm font-medium text-blue-700 mb-1">
+    Patient
+  </label>
+  <input
+    type="text"
+    value={patientSearch}
+    disabled={isEditMode || !!patientId}
+    onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
+    onChange={(e) => {
+      setPatientSearch(e.target.value);
+      setSelectedPatientId('');
+      setValue('patientId', '', { shouldValidate: true });
+      setShowDropdown(true);
+    }}
+    onFocus={() => {
+      if (!isEditMode && !patientId) setShowDropdown(true);
+    }}
+    placeholder="Type patient name..."
+    className={`w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+      (isEditMode || patientId) ? 'bg-gray-100' : ''
+    }`}
+  />
+  <input type="hidden" {...register('patientId')} />
 
-                <input
-                  type="text"
-                  value={patientSearch}
-                  disabled={isEditMode || !!patientId}
-                  onChange={(e) => {
-                    setPatientSearch(e.target.value);
-                    setSelectedPatientId('');
-                    setValue('patientId', '');
-                    setShowDropdown(true);
-                  }}
-                  onFocus={() => !isEditMode && !patientId && setShowDropdown(true)}
-                  placeholder="Type patient name..."
-                  className={`w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    (isEditMode || patientId) ? 'bg-gray-100 cursor-not-allowed' : ''
-                  }`}
-                />
+  {!isEditMode && patientId && showDropdown && filteredPatients.length > 0 && (
+    <ul className="absolute z-10 w-full bg-white border border-gray-200 rounded-md mt-1 max-h-48 overflow-y-auto shadow-lg">
+      {filteredPatients.map((p) => (
+        <li
+          key={p._id}
+          onClick={() => handlePatientSelect(p)}
+          className="px-3 py-2 hover:bg-blue-50 cursor-pointer text-sm"
+        >
+          {p.name}
+        </li>
+      ))}
+    </ul>
+  )}
 
-                <input type="hidden" {...register('patientId')} value={selectedPatientId} />
-
-                {!isEditMode && !patientId && showDropdown && filteredPatients.length > 0 && (
-                  <ul className="absolute z-10 w-full bg-white border border-gray-200 rounded-md mt-1 max-h-48 overflow-y-auto shadow-lg">
-                    {filteredPatients.map((p) => (
-                      <li
-                        key={p._id}
-                        onClick={() => handlePatientSelect(p)}
-                        className="px-3 py-2 hover:bg-blue-50 cursor-pointer text-sm"
-                      >
-                        {p.name}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-
-                {errors.patientId && (
-                  <p className="text-red-500 text-xs mt-1">{errors.patientId.message}</p>
-                )}
-              </div>
+  {errors.patientId && (
+    <p className="text-red-500 text-xs mt-1">{errors.patientId.message}</p>
+  )}
+</div>
 
               {/* Doctor's Notes */}
               <div className="md:col-span-2">
@@ -328,7 +341,7 @@ const ConsultationForm = () => {
 
             {/* AI Recommendation Result - Separate Card for Diagnosis & Follow-up Date */}
             {(aiResult || isEditMode) && (
-              <div className="mt-6 p-6 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-xl shadow-sm space-y-4">
+              <div className="mt-6 p-6 bg-linear-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-xl shadow-sm space-y-4">
                 <h3 className="text-base font-bold text-blue-800 flex items-center gap-2">
                   <span>📋 Clinical Decision Support & Follow-up</span>
                 </h3>
@@ -371,7 +384,8 @@ const ConsultationForm = () => {
                   </div>
                 </div>
               </div>
-            )}            {/* Actions */}
+            )}
+            {/* Actions */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-6 pt-5 border-t">
               <button
                 type="button"
@@ -477,6 +491,6 @@ const ConsultationForm = () => {
       </div>
     </div>
   );
-};
+}
 
 export default ConsultationForm;

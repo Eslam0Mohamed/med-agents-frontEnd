@@ -3,16 +3,22 @@ import { Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { getConsultations, deleteConsultation } from '../../api/consultation';
 
+const ITEMS_PER_PAGE = 10;
+
 const Consultations = () => {
+  
   const [consultations, setConsultations] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const loadConsultations = useCallback(async () => {
     try {
       setLoading(true);
       const res = await getConsultations();
+      console.log(res);
+      
       setConsultations(res.data);
       setFiltered(res.data);
     } catch {
@@ -35,6 +41,7 @@ const Consultations = () => {
 
   const handleSearch = (value) => {
     setSearch(value);
+    setCurrentPage(1);
     const query = value.toLowerCase().trim();
 
     if (!query) {
@@ -107,6 +114,18 @@ const Consultations = () => {
     return styles[level] || 'bg-gray-100 text-gray-700';
   };
 
+  //  Pagination logic
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+  const paginatedData = filtered.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  const goToPage = (page) => {
+    if (page < 1 || page > totalPages) return;
+    setCurrentPage(page);
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -147,9 +166,9 @@ const Consultations = () => {
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto bg-white rounded-xl shadow border border-gray-100">
-        <table className="w-full min-w-[800px] text-sm table-auto">
-          <thead className="bg-gray-50 text-left border-b">
+      <div className="overflow-x-auto bg-white rounded-lg shadow">
+        <table className="w-full min-w-[700px] text-sm">
+          <thead className="bg-gray-50 text-left">
             <tr>
               <th className="px-4 py-3 font-semibold text-gray-700">Patient</th>
               <th className="px-4 py-3 font-semibold text-gray-700">Symptoms</th>
@@ -162,9 +181,9 @@ const Consultations = () => {
           </thead>
           <tbody>
             {filtered.map((c) => (
-              <tr key={c._id} className="border-t hover:bg-gray-50/50">
-                <td className="px-4 py-3 font-medium text-gray-900">{getPatientName(c.patientId)}</td>
-                <td className="px-4 py-3 text-gray-600">{c.symptoms.join(', ')}</td>
+              <tr key={c._id} className="border-t hover:bg-gray-50">
+                <td className="px-4 py-3">{getPatientName(c.patientId)}</td>
+                <td className="px-4 py-3">{c.symptoms.join(', ')}</td>
                 <td className="px-4 py-3">
                   <span className={`px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${getUrgencyBadge(c.urgencyLevel)}`}>
                     {c.urgencyLevel}
@@ -206,6 +225,48 @@ const Consultations = () => {
           </div>
         )}
       </div>
+
+      {/*  Pagination */}
+      {totalPages > 1 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-5">
+          <p className="text-sm text-gray-500">
+            Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}–
+            {Math.min(currentPage * ITEMS_PER_PAGE, filtered.length)} of {filtered.length}
+          </p>
+
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => goToPage(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="px-3 py-1.5 rounded-md text-sm border border-gray-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50"
+            >
+              ← Prev
+            </button>
+
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => goToPage(page)}
+                className={`px-3 py-1.5 rounded-md text-sm border ${
+                  page === currentPage
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'border-gray-300 hover:bg-gray-50 text-gray-700'
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+
+            <button
+              onClick={() => goToPage(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1.5 rounded-md text-sm border border-gray-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50"
+            >
+              Next →
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
