@@ -6,6 +6,7 @@ import { getConsultations, deleteConsultation } from '../../api/consultation';
 const ITEMS_PER_PAGE = 10;
 
 const Consultations = () => {
+  
   const [consultations, setConsultations] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [search, setSearch] = useState('');
@@ -16,6 +17,8 @@ const Consultations = () => {
     try {
       setLoading(true);
       const res = await getConsultations();
+      console.log(res);
+      
       setConsultations(res.data);
       setFiltered(res.data);
     } catch {

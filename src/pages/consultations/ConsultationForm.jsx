@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import Swal from 'sweetalert2';
 import { consultationSchema } from '../../schemas/consultation';
 import { getAllPatients, getPatients } from '../../api/patient';
-import {createConsultation,getConsultationById,updateConsultation,
+import {createConsultation,getAIRecommendation,getConsultationById,updateConsultation,
 } from '../../api/consultation';
 import { createFollowUp } from '../../api/followup';
 
@@ -141,14 +141,19 @@ useEffect(() => {
     };
 
     try {
-      const res = await createConsultation(payload);
+      console.log("ai te 1");
+      const res = await getAIRecommendation(payload);
+      console.log(res);
+      
       setAiResult(res.data);
       setCreatedId(res.data._id);
       setIsSaved(true);
       if (res.data.diagnosis) {
         setValue('diagnosis', res.data.diagnosis);
       }
-    } catch {
+    } catch(err) {
+      console.log(err.response?.data);
+      
       Swal.fire('Error', 'Failed to get AI recommendation', 'error');
     } finally {
       setIsGenerating(false);
