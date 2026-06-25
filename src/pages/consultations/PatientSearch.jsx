@@ -8,12 +8,11 @@ const PatientSearch = () => {
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const loadPatients = useCallback(async (query) => {
+  const loadPatients = useCallback(async (search) => {
     try {
       setLoading(true);
-      const res = await getAllPatients(query);
-      console.log(res);
-      
+      const res = await getAllPatients({search});
+      console.log(res)
       setPatients(res.data || []);
     } catch (err) {
       console.error('Failed to load patients', err);
@@ -23,6 +22,7 @@ const PatientSearch = () => {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadPatients('');
   }, [loadPatients]);
 
@@ -33,30 +33,19 @@ const PatientSearch = () => {
     return () => clearTimeout(timeout);
   }, [search, loadPatients]);
 
-  const handleSearchClick = () => {
-    loadPatients(search);
-  };
-
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      loadPatients(search);
-    }
-  };
-
   const handleSelectPatient = (patient) => {
     navigate(`/consultations/patient/${patient._id}/history`);
   };
 
-  const calculateAge = (dob) => {
-    if (!dob) return '—';
-    const birth = new Date(dob);
-    const today = new Date();
-    let age = today.getFullYear() - birth.getFullYear();
-    const m = today.getMonth() - birth.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
-    return age;
-  };
-
+ const calculateAge = (dob) => {
+  if (!dob) return '—';
+  const birth = new Date(dob);
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+  const m = today.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+  return age;
+};
   return (
     <div className="p-4 max-w-4xl mx-auto">
 
@@ -67,23 +56,15 @@ const PatientSearch = () => {
         </p>
       </div>
 
-   <div className="mb-5 flex flex-col sm:flex-row gap-2">
+      <div className="mb-5">
         <input
           type="text"
           autoFocus
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          onKeyDown={handleKeyDown}
           placeholder="Search by patient name or National ID..."
-          className="flex-1 border border-gray-300 rounded-md px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full border border-gray-300 rounded-md px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
-       
-       <button
-  onClick={handleSearchClick}
-  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md text-sm font-medium transition whitespace-nowrap"
->
-  Search
-</button>
       </div>
 
       {loading && (
@@ -97,7 +78,7 @@ const PatientSearch = () => {
       )}
 
       {!loading && patients.length > 0 && (
-        <div className="space-y-2">
+        <div className="space-y-2 h-125 overflow-auto">
           {patients.map((p) => (
             <button
               key={p._id}
