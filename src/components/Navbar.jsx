@@ -62,6 +62,7 @@ export default function Navbar() {
       {navItems.map((item) => (
         <NavLink
           key={item.path}
+          end
           to={item.path}
           end
           className={({ isActive }) =>
