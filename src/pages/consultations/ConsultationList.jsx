@@ -163,19 +163,21 @@ const Consultations = () => {
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto bg-white rounded-xl shadow border border-gray-100">
+      <div className="overflow-x-auto bg-white rounded-2xl shadow-lg border border-blue-200">
         <table className="w-full min-w-[800px] text-sm table-auto">
-          <thead className="bg-gray-50 text-left border-b">
-            <tr>
-              <th className="px-4 py-3 font-semibold text-gray-700">Patient</th>
-              <th className="px-4 py-3 font-semibold text-gray-700">Symptoms</th>
-              <th className="px-4 py-3 font-semibold text-gray-700">Urgency</th>
-              <th className="px-4 py-3 font-semibold text-gray-700">Specialist</th>
-              <th className="px-4 py-3 font-semibold text-gray-700">Status</th>
-              <th className="px-4 py-3 font-semibold text-gray-700">Follow-up</th>
-              <th className="px-4 py-3 font-semibold text-gray-700">Actions</th>
-            </tr>
-          </thead>
+        
+      
+        <thead className="bg-blue-700 text-white">
+  <tr>
+    <th className="px-4 py-4 font-semibold">Patient</th>
+    <th className="px-4 py-4 font-semibold">Symptoms</th>
+    <th className="px-4 py-4 font-semibold">Urgency</th>
+    <th className="px-4 py-4 font-semibold">Specialist</th>
+    <th className="px-4 py-4 font-semibold">Status</th>
+    <th className="px-4 py-4 font-semibold">Follow-up</th>
+    <th className="px-4 py-4 font-semibold">Actions</th>
+  </tr>
+</thead>
           <tbody>
             {paginatedData.map((c) => (
               <tr key={c._id} className="border-t hover:bg-gray-50/50">
