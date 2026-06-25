@@ -65,7 +65,7 @@ const PatientSearch = () => {
         </p>
       </div>
 
-      <div className="mb-5 flex gap-2">
+   <div className="mb-5 flex flex-col sm:flex-row gap-2">
         <input
           type="text"
           autoFocus
@@ -75,12 +75,13 @@ const PatientSearch = () => {
           placeholder="Search by patient name or National ID..."
           className="flex-1 border border-gray-300 rounded-md px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
-        <button
-          onClick={handleSearchClick}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md text-sm font-medium transition"
-        >
-          Search
-        </button>
+       
+       <button
+  onClick={handleSearchClick}
+  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md text-sm font-medium transition whitespace-nowrap"
+>
+  Search
+</button>
       </div>
 
       {loading && (
