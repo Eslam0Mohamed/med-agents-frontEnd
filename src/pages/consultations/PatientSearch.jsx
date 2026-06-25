@@ -12,6 +12,8 @@ const PatientSearch = () => {
     try {
       setLoading(true);
       const res = await getPatients(query);
+      console.log(res);
+      
       setPatients(res.data || []);
     } catch (err) {
       console.error('Failed to load patients', err);
