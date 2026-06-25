@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Swal from 'sweetalert2';
 import { consultationSchema } from '../../schemas/consultation';
-import { getPatients } from '../../api/patient';
+import { getAllPatients, getPatients } from '../../api/patient';
 import {createConsultation,getConsultationById,updateConsultation,
 } from '../../api/consultation';
 import { createFollowUp } from '../../api/followup';
@@ -36,37 +36,6 @@ const ConsultationForm = () => {
       language: 'en',
     },
   });
-
-  // const loadConsultation = useCallback(
-  //   async (patientsList) => {
-  //     try {
-  //       const res = await getConsultationById(id);
-  //       const data = res.data;
-
-  //       const patient = patientsList.find((p) => p._id === data.patientId._id);
-
-  //       setValue('patientId', data.patientId);
-  //       setSelectedPatientId(data.patientId);
-  //       setPatientSearch(patient?.name || '');
-  //       setValue('rawInput', data.rawInput);
-  //       setValue(
-  //         'symptoms',
-  //         Array.isArray(data.symptoms) ? data.symptoms.join(', ') : data.symptoms
-  //       );
-  //       setValue('diagnosis', data.diagnosis || '');
-  //       setValue('language', data.language || 'en');
-  //       setValue(
-  //         'followUpDate',
-  //         data.followUpDate ? new Date(data.followUpDate).toISOString().split('T')[0] : ''
-  //       );
-  //       setAiResult(data);
-  //     } catch (err) {
-  //       console.error('Failed to load consultation', err);
-  //     }
-  //   },
-  //   [id, setValue]
-  // );
-
 
   const loadConsultation = useCallback(
     async (patientsList) => {
@@ -104,7 +73,7 @@ const ConsultationForm = () => {
   useEffect(() => {
     const loadPatients = async () => {
       try {
-        const res = await getPatients();
+        const res = await getAllPatients();
         const list = res.data || res;
         setPatients(list);
 
@@ -285,7 +254,7 @@ useEffect(() => {
   <input
     type="text"
     value={patientSearch}
-    disabled={isEditMode || !patientId}
+    disabled={isEditMode || !!patientId}
     onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
     onChange={(e) => {
       setPatientSearch(e.target.value);
