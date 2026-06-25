@@ -5,12 +5,17 @@ export const getFollowUps = async () => {
   return response.data;
 };
 
-export const deleteFollowUp = async (id) => {
-  const response = await api.delete(`/followups/${id}`);
+export const getFollowUpById = async (id) => {
+  const response = await api.get(`/followups/${id}`);
   return response.data;
 };
 
-export const createFollowUp = async (data) => {
-  const response = await api.post('/followups', data);
+export const createFollowUp = async (payload) => {
+  const response = await api.post('/followups', payload);
+  return response.data;
+};
+
+export const updateFollowUp = async (id, payload) => {
+  const response = await api.put(`/followups/${id}`, payload);
   return response.data;
 };
