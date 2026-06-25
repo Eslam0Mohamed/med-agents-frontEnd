@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getPatients } from '../../api/patient';
+import { getAllPatients } from '../../api/patient';
 
 const PatientSearch = () => {
   const navigate = useNavigate();
@@ -11,7 +11,7 @@ const PatientSearch = () => {
   const loadPatients = useCallback(async (query) => {
     try {
       setLoading(true);
-      const res = await getPatients(query);
+      const res = await getAllPatients(query);
       console.log(res);
       
       setPatients(res.data || []);
