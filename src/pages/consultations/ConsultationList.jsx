@@ -179,8 +179,10 @@ const Consultations = () => {
           <tbody>
             {paginatedData.map((c) => (
               <tr key={c._id} className="border-t hover:bg-gray-50/50">
-                <td className="px-4 py-3 font-medium text-gray-900">{getPatientName(c.patientId)}</td>
-                <td className="px-4 py-3 text-gray-600">{c.symptoms.join(', ')}</td>
+<td className="px-4 py-3 font-bold text-blue-600 hover:text-blue-800 cursor-pointer">
+  {getPatientName(c.patientId)}
+</td>
+                 <td className="px-4 py-3 text-gray-600">{c.symptoms.join(', ')}</td>
                 <td className="px-4 py-3">
                   <span className={`px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${getUrgencyBadge(c.urgencyLevel)}`}>
                     {c.urgencyLevel}
