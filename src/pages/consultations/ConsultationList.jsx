@@ -6,7 +6,6 @@ import { getConsultations, deleteConsultation } from '../../api/consultation';
 const ITEMS_PER_PAGE = 10;
 
 const Consultations = () => {
-  
   const [consultations, setConsultations] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [search, setSearch] = useState('');
@@ -17,8 +16,6 @@ const Consultations = () => {
     try {
       setLoading(true);
       const res = await getConsultations();
-      console.log(res);
-      
       setConsultations(res.data);
       setFiltered(res.data);
     } catch {
@@ -114,7 +111,6 @@ const Consultations = () => {
     return styles[level] || 'bg-gray-100 text-gray-700';
   };
 
-  //  Pagination logic
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
   const paginatedData = filtered.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
@@ -166,45 +162,26 @@ const Consultations = () => {
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto bg-white rounded-lg shadow">
-        <table className="w-full min-w-[700px] text-sm">
-          <thead className="bg-gray-50 text-left">
-            <tr>
-              <th className="px-4 py-3 font-semibold text-gray-700">Patient</th>
-              <th className="px-4 py-3 font-semibold text-gray-700">Symptoms</th>
-              <th className="px-4 py-3 font-semibold text-gray-700">Urgency</th>
-              <th className="px-4 py-3 font-semibold text-gray-700">Specialist</th>
-              <th className="px-4 py-3 font-semibold text-gray-700">Status</th>
-              <th className="px-4 py-3 font-semibold text-gray-700">Follow-up</th>
-              <th className="px-4 py-3 font-semibold text-gray-700">Actions</th>
-            </tr>
-          </thead>
       <div className="overflow-x-auto bg-white rounded-2xl shadow-lg border border-blue-200">
         <table className="w-full min-w-[800px] text-sm table-auto">
-        
-      
-        <thead className="bg-blue-700 text-white">
-  <tr>
-    <th className="px-4 py-4 font-semibold">Patient</th>
-    <th className="px-4 py-4 font-semibold">Symptoms</th>
-    <th className="px-4 py-4 font-semibold">Urgency</th>
-    <th className="px-4 py-4 font-semibold">Specialist</th>
-    <th className="px-4 py-4 font-semibold">Status</th>
-    <th className="px-4 py-4 font-semibold">Follow-up</th>
-    <th className="px-4 py-4 font-semibold">Actions</th>
-  </tr>
-</thead>
+          <thead className="bg-blue-700 text-white">
+            <tr>
+              <th className="px-4 py-4 font-semibold">Patient</th>
+              <th className="px-4 py-4 font-semibold">Symptoms</th>
+              <th className="px-4 py-4 font-semibold">Urgency</th>
+              <th className="px-4 py-4 font-semibold">Specialist</th>
+              <th className="px-4 py-4 font-semibold">Status</th>
+              <th className="px-4 py-4 font-semibold">Follow-up</th>
+              <th className="px-4 py-4 font-semibold">Actions</th>
+            </tr>
+          </thead>
           <tbody>
-            {filtered.map((c) => (
-              <tr key={c._id} className="border-t hover:bg-gray-50">
-                <td className="px-4 py-3">{getPatientName(c.patientId)}</td>
-                <td className="px-4 py-3">{c.symptoms.join(', ')}</td>
             {paginatedData.map((c) => (
               <tr key={c._id} className="border-t hover:bg-gray-50/50">
-<td className="px-4 py-3 font-bold text-blue-600 hover:text-blue-800 cursor-pointer">
-  {getPatientName(c.patientId)}
-</td>
-                 <td className="px-4 py-3 text-gray-600">{c.symptoms.join(', ')}</td>
+                <td className="px-4 py-3 font-bold text-blue-600 hover:text-blue-800 cursor-pointer">
+                  {getPatientName(c.patientId)}
+                </td>
+                <td className="px-4 py-3 text-gray-600">{c.symptoms.join(', ')}</td>
                 <td className="px-4 py-3">
                   <span className={`px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${getUrgencyBadge(c.urgencyLevel)}`}>
                     {c.urgencyLevel}
@@ -247,7 +224,7 @@ const Consultations = () => {
         )}
       </div>
 
-      {/*  Pagination */}
+      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-5">
           <p className="text-sm text-gray-500">
