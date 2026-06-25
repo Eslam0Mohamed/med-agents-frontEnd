@@ -46,15 +46,26 @@ const PatientSearch = () => {
   if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
   return age;
 };
-  return (
-    <div className="p-4 max-w-4xl mx-auto">
+  
+return (
+  <div className="p-4 max-w-4xl mx-auto">
 
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-blue-700 mb-1">Search Patient</h2>
-        <p className="text-gray-500 text-sm">
-          Search by name or National ID to start a new consultation
-        </p>
-      </div>
+  
+    <button
+  onClick={() => navigate(-1)}
+  className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-blue-700 mb-5 transition group"
+>
+  <span className="text-base group-hover:-translate-x-0.5 transition-transform">←</span>
+  Back
+</button>
+    <div className="mb-6">
+      <h2 className="text-2xl font-bold text-blue-700 mb-1">Search Patient</h2>
+      <p className="text-gray-500 text-sm">
+        Search by name or National ID to start a new consultation
+      </p>
+    </div>
+
+    
 
       <div className="mb-5">
         <input
