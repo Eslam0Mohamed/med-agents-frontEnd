@@ -134,7 +134,7 @@ const Consultations = () => {
           <div className="absolute inset-0 border-4 border-blue-100 rounded-full"></div>
           <div className="absolute inset-0 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
         </div>
-        <p className="text-slate-400 font-medium text-xs mt-4 tracking-wider uppercase">Loading Dashboard...</p>
+        <p className="text-slate-400 font-medium text-xs mt-4 tracking-wider uppercase">Loading ...</p>
       </div>
     );
   }
@@ -178,7 +178,7 @@ const Consultations = () => {
             type="text"
             value={search}
             onChange={(e) => handleSearch(e.target.value)}
-            placeholder="Search dashboard by patient, symptoms, or status..."
+            placeholder="Search Consultation..."
             className="w-full border-0 rounded-2xl pl-12 pr-4 py-4.5 text-base bg-white shadow-md focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all duration-200 placeholder-slate-400 font-medium text-slate-700"
           />
         </div>
