@@ -142,7 +142,6 @@ const Consultations = () => {
   return (
     <div className="min-h-screen bg-slate-50/70 antialiased text-slate-800 pb-12">
       
-      {/* هيدر خلفي جرافيكي مبتكر يدمج بين تدرج أزرق ساحر والصفحة */}
       <div className="bg-gradient-to-r from-blue-700 to-blue-600 text-white pt-10 pb-28 px-6 shadow-lg">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div>
@@ -165,10 +164,10 @@ const Consultations = () => {
         </div>
       </div>
 
-      {/* منطقة المحتوى المرفوعة فوق الهيدر الخلفي (Floating Layout) */}
+      
       <div className="max-w-7xl mx-auto px-6 -mt-14">
         
-        {/* صندوق البحث الزجاجي الأنيق */}
+       
         <div className="mb-6 relative group shadow-sm rounded-2xl">
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-600 transition-colors">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -184,11 +183,10 @@ const Consultations = () => {
           />
         </div>
 
-        {/* كرت الجدول العصري المطور */}
         <div className="bg-white rounded-2xl shadow-xl shadow-slate-100/80 border border-slate-100 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[950px] text-sm table-auto border-collapse text-left">
-              {/* هيدر أزرق فاخر ذو تباين عالي جداً وقراءة مريحة */}
+            
               <thead className="bg-blue-600 text-white/95">
                 <tr>
                   <th className="px-6 py-4.5 font-bold tracking-wide text-xs uppercase opacity-90">Patient Name</th>
@@ -289,7 +287,7 @@ const Consultations = () => {
           )}
         </div>
 
-        {/* الباجينيشن ولوحة التحكم السفلية */}
+      
         {totalPages > 1 && (
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 px-2">
             <p className="text-xs text-slate-400 font-extrabold tracking-wider uppercase">
