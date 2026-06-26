@@ -1,18 +1,15 @@
 import apiInstance from '../config/apiInstance';
 
 export const getConsultations = async () => {
-  console.log("eslam");
-
-  const res = await apiInstance.get('/consultations/doctor');
+  const res = await apiInstance.get('/consultations');
   return res.data;
 };
 
-export const getAIRecommendation = async(AiData) => {
-  console.log(AiData);
-  
+export const getAIRecommendation = async (AiData) => {
   const { data } = await apiInstance.post("/consultations/ai-recommendation", AiData);
-  return data
-}
+  return data;
+};
+
 export const getConsultationById = async (id) => {
   const res = await apiInstance.get(`/consultations/${id}`);
   return res.data;
