@@ -60,7 +60,6 @@ const PatientSearch = () => {
 
       {/* Header Section */}
       <div className="mb-8">
-        {/* تم التعديل هنا ليكون باللون الأزرق بالكامل بناءً على طلبك */}
         <h2 className="text-3xl font-extrabold text-blue-600 tracking-tight mb-2">
           Search Patient<span className="text-blue-700">.</span>
         </h2>
@@ -90,7 +89,7 @@ const PatientSearch = () => {
       {loading && (
         <div className="flex flex-col items-center justify-center py-20 space-y-4">
           <div className="w-9 h-9 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-sm font-semibold text-slate-400 tracking-wide animate-pulse">Searching patients dashboard...</p>
+          <p className="text-sm font-semibold text-slate-400 tracking-wide animate-pulse">Searching patients ...</p>
         </div>
       )}
 
