@@ -49,7 +49,7 @@ const FollowUps = () => {
   };
 
   const isCompleted = (item) => {
-    return item.status === 'completed' || item.status === 'done';
+    return item.status === 'confirmed' || item.status === 'done';
   };
 
   const isCancelled = (item) => {

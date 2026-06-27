@@ -154,7 +154,7 @@ const StartFollowUp = () => {
       const newConsultation = consultationRes?.data;
 
       await updateFollowUp(followupId, {
-        status: 'completed',
+        status: 'confirmed',
       });
 
       if (form.followUpDate && newConsultation?._id) {
