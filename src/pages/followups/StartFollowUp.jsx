@@ -31,7 +31,7 @@ const StartFollowUp = () => {
     return value._id || value.id || '';
   };
 
-  const formatDate = (date) => {
+  function formatDate(date) {
     if (!date) return 'No date';
 
     return new Date(date).toLocaleDateString('en-US', {
@@ -39,7 +39,7 @@ const StartFollowUp = () => {
       day: 'numeric',
       year: 'numeric',
     });
-  };
+  }
 
   const loadFollowUp = async () => {
     try {
@@ -49,6 +49,7 @@ const StartFollowUp = () => {
       const data = res?.data;
 
       setFollowUp(data);
+
       setForm((prev) => ({
         ...prev,
         language: data?.language || 'en',
@@ -141,9 +142,9 @@ const StartFollowUp = () => {
           .split(',')
           .map((item) => item.trim())
           .filter(Boolean),
+
         followUpDate: form.followUpDate || undefined,
 
-        // دول لو الباك عندكم بيدعمهم هيبقوا مفيدين للـ history label
         visitType: 'followup',
         sourceFollowupId: followupId,
         parentConsultationId: getId(followUp?.consultationId),
@@ -153,7 +154,7 @@ const StartFollowUp = () => {
       const newConsultation = consultationRes?.data;
 
       await updateFollowUp(followupId, {
-        status: 'done',
+        status: 'completed',
       });
 
       if (form.followUpDate && newConsultation?._id) {
@@ -177,10 +178,14 @@ const StartFollowUp = () => {
 
       navigate('/followups');
     } catch (error) {
-      console.error(error);
+      console.error('FULL ERROR:', error);
+      console.error('BACKEND RESPONSE:', error?.response?.data);
+
       Swal.fire(
         'Error',
-        error?.response?.data?.message || 'Failed to save follow-up session',
+        error?.response?.data?.error ||
+          error?.response?.data?.message ||
+          'Failed to save follow-up session',
         'error'
       );
     } finally {
