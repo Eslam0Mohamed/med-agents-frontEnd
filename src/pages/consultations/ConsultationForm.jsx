@@ -8,6 +8,8 @@ import { getAllPatients, getPatients } from '../../api/patient';
 import {createConsultation,getAIRecommendation,getConsultationById,updateConsultation,
 } from '../../api/consultation';
 import { createFollowUp } from '../../api/followup';
+import { getPrescriptionByConsultation } from '../../api/prescription';
+import PrescriptionModal from '../../components/prescriptions/PrescriptionModal';
 
 const ConsultationForm = () => {
   const { id, patientId } = useParams();
@@ -22,6 +24,11 @@ const ConsultationForm = () => {
   const [aiResult, setAiResult] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+
+  // Prescription modal state — opens right after "Save Record" succeeds
+  const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
+  const [savedConsultationId, setSavedConsultationId] = useState('');
+  const [existingPrescription, setExistingPrescription] = useState(null);
 
   const {
     register,
@@ -175,32 +182,20 @@ useEffect(() => {
       followUpDate: formData.followUpDate || undefined,
     };
 
-
     try {
+      let consultationId = id;
+
       if (isEditMode) {
         await updateConsultation(id, payload);
-      } else if (createdId) {
-        await createConsultation(payload);
-        if (formData.followUpDate) {
-          try {
-            await createFollowUp({
-              consultationId: createdId,
-              patientId: formData.patientId,
-              instructions: '-',
-              scheduledDate: formData.followUpDate,
-              language: formData.language || 'en',
-            });
-          } catch (followUpErr) {
-            console.error('Failed to automatically create follow-up:', followUpErr);
-          }
-        }
       } else {
         const res = await createConsultation(payload);
+        consultationId = res.data._id;
+
         if (formData.followUpDate) {
           try {
             await createFollowUp({
-              consultationId: res.data._id,
-              patientId: formData.patientId,
+              consultationId,
+              patientId: payload.patientId,
               instructions: '-',
               scheduledDate: formData.followUpDate,
               language: formData.language || 'en',
@@ -210,7 +205,18 @@ useEffect(() => {
           }
         }
       }
-      navigate('/consultations');
+
+      // Open the "Add Prescription" modal right after the record is saved,
+      // instead of navigating away immediately. If this consultation already
+      // has a prescription (edit mode), load it so the doctor edits in place.
+      setSavedConsultationId(consultationId);
+      try {
+        const presRes = await getPrescriptionByConsultation(consultationId);
+        setExistingPrescription(presRes.data);
+      } catch {
+        setExistingPrescription(null);
+      }
+      setShowPrescriptionModal(true);
     } catch {
       Swal.fire('Error', 'Failed to save consultation', 'error');
     } finally {
@@ -233,6 +239,25 @@ useEffect(() => {
       critical: 'text-red-600 bg-red-50 border-red-200',
     };
     return colors[level] || 'text-gray-600 bg-gray-50 border-gray-200';
+  };
+
+  // Full patient object (with allergies / dateOfBirth) for the prescription modal.
+  // Falls back to the prescription's populated patientId (covers edit mode where
+  // the patients list may not have loaded the exact match yet).
+  const currentPatient =
+    patients.find((p) => String(p._id) === String(selectedPatientId || watch('patientId'))) ||
+    (existingPrescription?.patientId && typeof existingPrescription.patientId === 'object'
+      ? existingPrescription.patientId
+      : null);
+
+  const handleClosePrescriptionModal = () => {
+    setShowPrescriptionModal(false);
+    navigate('/consultations');
+  };
+
+  const handlePrescriptionSaved = () => {
+    setShowPrescriptionModal(false);
+    navigate('/prescriptions');
   };
 
   return (
@@ -490,6 +515,16 @@ useEffect(() => {
           </div>
         </div>
       </div>
+
+      <PrescriptionModal
+        isOpen={showPrescriptionModal}
+        onClose={handleClosePrescriptionModal}
+        consultationId={savedConsultationId}
+        patient={currentPatient}
+        language={watch('language') || 'en'}
+        existingPrescription={existingPrescription}
+        onSaved={handlePrescriptionSaved}
+      />
     </div>
   );
 }
