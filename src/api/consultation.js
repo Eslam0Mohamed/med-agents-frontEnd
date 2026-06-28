@@ -4,6 +4,8 @@ export const getConsultations = async () => {
   console.log("eslam");
 
   const res = await apiInstance.get('/consultations/doctor');
+console.log(res.data);
+
   return res.data;
 };
 
