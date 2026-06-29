@@ -10,7 +10,7 @@ import {
 import Swal from "sweetalert2";
 import { getFollowUps } from "../../api/followup";
 import "./followups.css";
-
+import apiInstance from '../../config/apiInstance';
 const weekDays = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
 const monthNames = [
@@ -74,20 +74,34 @@ const FollowUps = () => {
     return item.status === 'pending' && toDateKey(item.scheduledDate) < todayKey;
   };
 
- const loadFollowUps = async () => {
+const loadFollowUps = async () => {
   try {
-   
-
     setLoading(true);
 
-  
+    const [followupsRes, consultationsRes] = await Promise.all([
+      getFollowUps(),
+      apiInstance.get('/consultations/doctor'),
+    ]);
 
-    const res = await getFollowUps();
+    const allFollowups = followupsRes?.data || [];
+    const doctorConsultations = consultationsRes?.data?.data || [];
 
- 
+    const doctorConsultationIds = new Set(
+      doctorConsultations.map((consultation) => String(consultation._id))
+    );
 
-    setFollowUps(res?.data || []);
+    const filteredFollowups = allFollowups.filter((followup) => {
+      const followupConsultationId =
+        typeof followup.consultationId === 'object'
+          ? followup.consultationId?._id
+          : followup.consultationId;
+
+      return doctorConsultationIds.has(String(followupConsultationId));
+    });
+
+    setFollowUps(filteredFollowups);
   } catch (error) {
+    console.error(error);
     Swal.fire('Error', 'Failed to load follow-ups', 'error');
   } finally {
     setLoading(false);
