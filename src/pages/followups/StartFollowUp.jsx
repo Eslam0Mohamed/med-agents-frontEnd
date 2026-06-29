@@ -38,15 +38,17 @@ const StartFollowUp = () => {
     return value._id || value.id || "";
   };
 
-  const formatDate = (date) => {
-    if (!date) return "No date";
+
+
+  function formatDate(date) {
+    if (!date) return 'No date';
 
     return new Date(date).toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
       year: "numeric",
     });
-  };
+  }
 
   const loadFollowUp = async () => {
     try {
@@ -56,6 +58,7 @@ const StartFollowUp = () => {
       const data = res?.data;
 
       setFollowUp(data);
+
       setForm((prev) => ({
         ...prev,
         language: data?.language || "en",
@@ -143,6 +146,9 @@ const StartFollowUp = () => {
     try {
       setSubmitting(true);
 
+
+
+
       const consultationPayload = {
         patientId,
         rawInput: form.rawInput.trim(),
@@ -153,16 +159,21 @@ const StartFollowUp = () => {
           .map((item) => item.trim())
           .filter(Boolean),
         followUpDate: form.followUpDate || undefined,
-
         // بيربط الكونسلتيشن الجديدة بالفولو أب اللي جاية منه (للهيستوري وعرض المصدر في صفحة البريسكربشن)
         followupId,
+        visitType: 'followup',
+        sourceFollowupId: followupId,
+        parentConsultationId: getId(followUp?.consultationId),
       };
+
+
+
 
       const consultationRes = await createConsultation(consultationPayload);
       const newConsultation = consultationRes?.data;
 
       await updateFollowUp(followupId, {
-        status: "confirmed",
+        status: 'confirmed',
       });
 
       if (form.followUpDate && newConsultation?._id) {
@@ -188,11 +199,14 @@ const StartFollowUp = () => {
       }
       setShowPrescriptionModal(true);
     } catch (error) {
-      console.error(error);
-      Swal.fire(
-        "Error",
-        error?.response?.data?.message || "Failed to save follow-up session",
-        "error",
+      console.error('FULL ERROR:', error);
+      console.error('BACKEND RESPONSE:', error?.response?.data);
+
+      Swal.fire('Error',
+        error?.response?.data?.error ||
+          error?.response?.data?.message ||
+          'Failed to save follow-up session',
+        'error'
       );
     } finally {
       setSubmitting(false);

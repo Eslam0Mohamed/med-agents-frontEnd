@@ -11,7 +11,12 @@ import Swal from "sweetalert2";
 import { getFollowUps } from "../../api/followup";
 import "./followups.css";
 
+<<<<<<< HEAD
 const weekDays = ["S", "M", "T", "W", "T", "F", "S"];
+=======
+const weekDays = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+
+>>>>>>> origin/main
 const monthNames = [
   "January",
   "February",
@@ -33,11 +38,62 @@ const FollowUps = () => {
   const [followUps, setFollowUps] = useState([]);
   const [activeTab, setActiveTab] = useState("upcoming");
   const [loading, setLoading] = useState(false);
+
   const [calendarMonth, setCalendarMonth] = useState(() => {
     const today = new Date();
     return new Date(today.getFullYear(), today.getMonth(), 1);
   });
+
   const [selectedDate, setSelectedDate] = useState(null);
+
+  const getId = (value) => {
+    if (!value) return '';
+    if (typeof value === 'string') return value;
+    return value._id || value.id || '';
+  };
+
+  const isCompleted = (item) => {
+    return item.status === 'confirmed' || item.status === 'done';
+  };
+
+  const isCancelled = (item) => {
+    return item.status === 'cancelled' || item.status === 'canceled';
+  };
+
+  const toDateKey = (date) => {
+    if (!date) return '';
+
+    const d = new Date(date);
+    if (Number.isNaN(d.getTime())) return '';
+
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+  };
+
+  function formatDate(date) {
+    if (!date) return 'No date';
+
+    return new Date(date).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  }
+
+  const todayKey = toDateKey(new Date());
+
+  const isPastDue = (item) => {
+    if (isCompleted(item)) return false;
+
+    if (isCancelled(item)) return true;
+
+    if (!item.scheduledDate) return false;
+
+    return item.status === 'pending' && toDateKey(item.scheduledDate) < todayKey;
+  };
 
   const loadFollowUps = async () => {
     try {
@@ -57,6 +113,7 @@ const FollowUps = () => {
     loadFollowUps();
   }, []);
 
+<<<<<<< HEAD
   const getId = (value) => {
     if (!value) return "";
     if (typeof value === "string") return value;
@@ -85,6 +142,8 @@ const FollowUps = () => {
     return toDateKey(item.scheduledDate) < todayKey;
   };
 
+=======
+>>>>>>> origin/main
   const validFollowUps = useMemo(() => {
     return followUps.filter((item) => item.patientId && item.consultationId);
   }, [followUps]);
@@ -113,11 +172,19 @@ const FollowUps = () => {
   const filteredFollowUps = useMemo(() => {
     return validFollowUps.filter((item) => {
       const matchesTab =
+<<<<<<< HEAD
         activeTab === "completed"
           ? item.status === "confirmed"
           : activeTab === "pastDue"
             ? isPastDue(item)
             : item.status !== "confirmed" && !isPastDue(item);
+=======
+        activeTab === 'completed'
+          ? isCompleted(item)
+          : activeTab === 'pastDue'
+            ? isPastDue(item)
+            : !isCompleted(item) && !isPastDue(item);
+>>>>>>> origin/main
 
       const matchesSelectedDate = selectedDate
         ? toDateKey(item.scheduledDate) === toDateKey(selectedDate)
@@ -127,6 +194,7 @@ const FollowUps = () => {
     });
   }, [validFollowUps, activeTab, selectedDate]);
 
+<<<<<<< HEAD
   const todayCount = useMemo(() => {
     return validFollowUps.filter(
       (item) =>
@@ -143,6 +211,15 @@ const FollowUps = () => {
 
   const completedCount = useMemo(() => {
     return validFollowUps.filter((item) => item.status === "confirmed").length;
+=======
+  const pastDueCount = useMemo(() => {
+    return validFollowUps.filter((item) => !isCompleted(item) && isPastDue(item))
+      .length;
+  }, [validFollowUps]);
+
+  const completedCount = useMemo(() => {
+    return validFollowUps.filter((item) => isCompleted(item)).length;
+>>>>>>> origin/main
   }, [validFollowUps]);
 
   const selectedDateCount = useMemo(() => {
@@ -152,6 +229,20 @@ const FollowUps = () => {
       (item) => toDateKey(item.scheduledDate) === toDateKey(selectedDate),
     ).length;
   }, [validFollowUps, selectedDate]);
+
+  const insightDateCount = useMemo(() => {
+    const targetDate = selectedDate || new Date();
+
+    return validFollowUps.filter(
+      (item) =>
+        !isCompleted(item) &&
+        toDateKey(item.scheduledDate) === toDateKey(targetDate)
+    ).length;
+  }, [validFollowUps, selectedDate]);
+
+  const insightDateLabel = selectedDate
+    ? `on ${formatDate(selectedDate)}`
+    : 'today';
 
   const getFollowUpsCountForDate = (date) => {
     if (!date) return 0;
@@ -182,6 +273,7 @@ const FollowUps = () => {
       .toUpperCase();
   };
 
+<<<<<<< HEAD
   const formatDate = (date) => {
     if (!date) return "No date";
 
@@ -192,6 +284,8 @@ const FollowUps = () => {
     });
   };
 
+=======
+>>>>>>> origin/main
   const getConsultationSummary = (item) => {
     const consultation = item.consultationId;
 
@@ -221,6 +315,11 @@ const FollowUps = () => {
     setCalendarMonth((prev) => {
       return new Date(prev.getFullYear(), prev.getMonth() + 1, 1);
     });
+  };
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setSelectedDate(null);
   };
 
   const handleStartFollowUp = (item) => {
@@ -255,22 +354,37 @@ const FollowUps = () => {
 
       <div className="followups-tabs">
         <button
+<<<<<<< HEAD
           className={activeTab === "upcoming" ? "active" : ""}
           onClick={() => setActiveTab("upcoming")}
+=======
+          className={activeTab === 'upcoming' ? 'active' : ''}
+          onClick={() => handleTabChange('upcoming')}
+>>>>>>> origin/main
         >
           Upcoming
         </button>
 
         <button
+<<<<<<< HEAD
           className={activeTab === "pastDue" ? "active" : ""}
           onClick={() => setActiveTab("pastDue")}
+=======
+          className={activeTab === 'pastDue' ? 'active' : ''}
+          onClick={() => handleTabChange('pastDue')}
+>>>>>>> origin/main
         >
           Past Due
         </button>
 
         <button
+<<<<<<< HEAD
           className={activeTab === "completed" ? "active" : ""}
           onClick={() => setActiveTab("completed")}
+=======
+          className={activeTab === 'completed' ? 'active' : ''}
+          onClick={() => handleTabChange('completed')}
+>>>>>>> origin/main
         >
           Completed
         </button>
@@ -354,8 +468,12 @@ const FollowUps = () => {
             <h3>AI Insights</h3>
 
             <div className="insight-list">
-              <p>{todayCount} follow-up(s) scheduled today.</p>
+              <p>
+                {insightDateCount} follow-up(s) scheduled {insightDateLabel}.
+              </p>
+
               <p>{pastDueCount} pending follow-up(s) are past due.</p>
+
               <p>{completedCount} follow-up(s) completed.</p>
             </div>
 
@@ -407,11 +525,21 @@ const FollowUps = () => {
                         isPastDue(item) ? "urgent-badge danger" : "urgent-badge"
                       }
                     >
+<<<<<<< HEAD
                       {item.status === "confirmed"
                         ? "Completed"
                         : isPastDue(item)
                           ? "Past Due"
                           : "Pending"}
+=======
+                      {isCompleted(item)
+                        ? 'Completed'
+                        : isPastDue(item)
+                          ? isCancelled(item)
+                            ? 'Missed'
+                            : 'Past Due'
+                          : 'Pending'}
+>>>>>>> origin/main
                     </span>
                   </div>
 
@@ -433,7 +561,11 @@ const FollowUps = () => {
                   </div>
 
                   <div className="card-actions">
+<<<<<<< HEAD
                     {item.status !== "confirmed" ? (
+=======
+                    {!isCompleted(item) ? (
+>>>>>>> origin/main
                       <button
                         className="start-btn"
                         onClick={() => handleStartFollowUp(item)}

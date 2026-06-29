@@ -6,7 +6,6 @@ import { getConsultations, deleteConsultation } from '../../api/consultation';
 const ITEMS_PER_PAGE = 10;
 
 const Consultations = () => {
-  
   const [consultations, setConsultations] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [search, setSearch] = useState('');
@@ -17,8 +16,6 @@ const Consultations = () => {
     try {
       setLoading(true);
       const res = await getConsultations();
-      console.log(res);
-      
       setConsultations(res.data);
       setFiltered(res.data);
     } catch {
@@ -74,9 +71,14 @@ const Consultations = () => {
       text: 'You will not be able to revert this!',
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
+      confirmButtonColor: '#f43f5e',
+      cancelButtonColor: '#64748b',
       confirmButtonText: 'Yes, delete it!',
+      customClass: {
+        popup: 'rounded-2xl',
+        confirmButton: 'rounded-xl px-4 py-2 font-bold',
+        cancelButton: 'rounded-xl px-4 py-2 font-bold'
+      }
     });
 
     if (result.isConfirmed) {
@@ -107,14 +109,22 @@ const Consultations = () => {
 
   const getUrgencyBadge = (level) => {
     const styles = {
-      low: 'bg-green-100 text-green-700',
-      medium: 'bg-orange-100 text-orange-700',
-      critical: 'bg-red-100 text-red-700',
+      low: 'bg-emerald-50 text-emerald-600 border-emerald-200/50',
+      medium: 'bg-amber-50 text-amber-600 border-amber-200/50',
+      critical: 'bg-rose-50 text-rose-600 border-rose-200/60 animate-pulse font-bold',
     };
-    return styles[level] || 'bg-gray-100 text-gray-700';
+    return styles[level?.toLowerCase()] || 'bg-slate-50 text-slate-600 border-slate-200';
   };
 
-  //  Pagination logic
+  const formatDate = (dateString) => {
+    if (!dateString) return <span className="text-slate-300">—</span>;
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
+
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
   const paginatedData = filtered.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
@@ -128,149 +138,250 @@ const Consultations = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <p className="text-gray-500">Loading consultations...</p>
+      <div className="flex flex-col justify-center items-center h-screen bg-slate-50">
+        <div className="relative w-12 h-12">
+          <div className="absolute inset-0 border-4 border-blue-100 rounded-full"></div>
+          <div className="absolute inset-0 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+        <p className="text-slate-400 font-medium text-xs mt-4 tracking-wider uppercase">Loading ...</p>
       </div>
     );
   }
 
   return (
-    <div className="p-4 max-w-7xl mx-auto">
-
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div>
-          <h2 className="text-2xl font-bold text-blue-700">Consultations</h2>
-          <p className="text-sm text-gray-500 mt-1">Review clinical consult history and recommendations.</p>
+    <div className="min-h-screen bg-slate-50/70 antialiased text-slate-800 pb-12 w-full box-border">
+      
+      {/* Header Container */}
+      <div className="bg-gradient-to-r from-blue-700 to-blue-600 text-white pt-8 pb-24 px-4 sm:px-6 shadow-lg">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-black tracking-tight flex items-center gap-2">
+              Consultations <span className="w-2 h-2 rounded-full bg-blue-300"></span>
+            </h2>
+            <p className="text-blue-100 text-xs sm:text-sm font-medium mt-1 opacity-90">
+              Review clinical consult history, specialist notes, and digital recommendations.
+            </p>
+          </div>
+          <Link
+            to="/consultations/search-patient"
+            className="inline-flex items-center justify-center gap-2 bg-white text-blue-600 hover:bg-blue-50 px-5 py-3 rounded-xl text-sm font-extrabold transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 active:translate-y-0 w-full md:w-auto"
+          >
+            <svg className="w-4 h-4 stroke-[3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            New Consultation
+          </Link>
         </div>
-        <Link
-          to="/consultations/search-patient"
-          className="flex items-center justify-center gap-2 bg-blue-700 hover:bg-blue-800 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition shadow-sm w-full sm:w-auto"
-        >
-          + New Consultation
-        </Link>
       </div>
 
-      {/* Search */}
-      <div className="bg-white rounded-xl shadow-sm p-4 mb-6 flex items-center gap-3">
-        <div className="flex-1 flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2.5">
-          <span className="text-gray-400">🔍</span>
+      {/* Main Content Area */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 -mt-12">
+        
+        {/* Search Bar */}
+        <div className="mb-6 relative group shadow-sm rounded-2xl">
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-600 transition-colors">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
           <input
             type="text"
             value={search}
             onChange={(e) => handleSearch(e.target.value)}
-            placeholder="Search consultations by patient, symptoms, or status..."
-            className="flex-1 bg-transparent outline-none text-sm"
+            placeholder="Search Consultation..."
+            className="w-full border-0 rounded-2xl pl-12 pr-4 py-3.5 sm:py-4 text-sm sm:text-base bg-white shadow-md focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all duration-200 placeholder-slate-400 font-medium text-slate-700"
           />
         </div>
-      </div>
 
-      {/* Table */}
-      <div className="overflow-x-auto bg-white rounded-2xl shadow-lg border border-blue-200">
-        <table className="w-full min-w-[800px] text-sm table-auto">
-        
-      
-        <thead className="bg-blue-700 text-white">
-  <tr>
-    <th className="px-4 py-4 font-semibold">Patient</th>
-    <th className="px-4 py-4 font-semibold">Symptoms</th>
-    <th className="px-4 py-4 font-semibold">Urgency</th>
-    <th className="px-4 py-4 font-semibold">Specialist</th>
-    <th className="px-4 py-4 font-semibold">Status</th>
-    <th className="px-4 py-4 font-semibold">Follow-up</th>
-    <th className="px-4 py-4 font-semibold">Actions</th>
-  </tr>
-</thead>
-          <tbody>
-            {paginatedData.map((c) => (
-              <tr key={c._id} className="border-t hover:bg-gray-50/50">
-<td className="px-4 py-3 font-bold text-blue-600 hover:text-blue-800 cursor-pointer">
-  {getPatientName(c.patientId)}
-</td>
-                 <td className="px-4 py-3 text-gray-600">{c.symptoms.join(', ')}</td>
-                <td className="px-4 py-3">
-                  <span className={`px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${getUrgencyBadge(c.urgencyLevel)}`}>
-                    {c.urgencyLevel}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-gray-600">{c.suggestedSpecialist || '—'}</td>
-                <td className="px-4 py-3 capitalize text-gray-600">{c.status}</td>
-                <td className="px-4 py-3 text-gray-900">
-                  {c.followUpDate ? new Date(c.followUpDate).toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric'
-                  }) : '—'}
-                </td>
-                <td className="px-4 py-3">
-                  <div className="flex gap-2">
-                    <Link
-                      to={`/consultations/edit/${c._id}`}
-                      className="border border-blue-600 text-blue-600 px-3 py-1 rounded-md text-xs hover:bg-blue-50 transition"
-                    >
-                      Edit
-                    </Link>
-                    <button
-                      onClick={() => handleDelete(c._id)}
-                      className="border border-red-600 text-red-600 px-3 py-1 rounded-md text-xs hover:bg-red-50 transition"
-                    >
-                      Delete
-                    </button>
+        {/* Desktop View: Table (Visible only on md screens and up) */}
+        <div className="hidden md:block bg-white rounded-2xl shadow-xl shadow-slate-100/80 border border-slate-100 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm table-auto border-collapse text-left">
+              <thead className="bg-blue-600 text-white/95">
+                <tr>
+                  <th className="px-6 py-4 font-bold tracking-wide text-xs uppercase opacity-90">Patient Name</th>
+                  <th className="px-6 py-4 font-bold tracking-wide text-xs uppercase opacity-90">Clinical Symptoms</th>
+                  <th className="px-6 py-4 font-bold tracking-wide text-xs uppercase opacity-90">Urgency Level</th>
+                  <th className="px-6 py-4 font-bold tracking-wide text-xs uppercase opacity-90">Suggested Specialist</th>
+                  <th className="px-6 py-4 font-bold tracking-wide text-xs uppercase opacity-90">Status</th>
+                  <th className="px-6 py-4 font-bold tracking-wide text-xs uppercase opacity-90">Follow-up Date</th>
+                  <th className="px-6 py-4 font-bold tracking-wide text-xs uppercase opacity-90 text-right">Management</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100/70">
+                {paginatedData.map((c) => (
+                  <tr key={c._id} className="hover:bg-slate-50/70 transition-all duration-150 group">
+                    <td className="px-6 py-4.5 font-black text-blue-600 text-base">
+                      {getPatientName(c.patientId)}
+                    </td>
+                    <td className="px-6 py-4.5 text-slate-500 max-w-[200px] truncate font-medium" title={c.symptoms.join(', ')}>
+                      {c.symptoms.join(', ')}
+                    </td>
+                    <td className="px-6 py-4.5">
+                      <span className={`px-2.5 py-1 rounded-xl text-xs font-bold border capitalize tracking-wide shadow-sm ${getUrgencyBadge(c.urgencyLevel)}`}>
+                        {c.urgencyLevel}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4.5 text-slate-700 font-semibold">
+                      {c.suggestedSpecialist ? (
+                        <span className="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg text-xs font-medium border border-slate-200/40">
+                          {c.suggestedSpecialist}
+                        </span>
+                      ) : <span className="text-slate-300">—</span>}
+                    </td>
+                    <td className="px-6 py-4.5 capitalize font-bold">
+                      <span className="inline-flex items-center gap-2 text-slate-700 text-xs">
+                        <span className={`w-2.5 h-2.5 rounded-full ring-4 shadow-sm ${
+                          c.status?.toLowerCase() === 'completed' ? 'bg-emerald-500 ring-emerald-100' : 'bg-amber-400 ring-amber-100'
+                        }`}></span>
+                        {c.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4.5 text-slate-600 font-bold text-xs tracking-wide">
+                      {formatDate(c.followUpDate)}
+                    </td>
+                    <td className="px-6 py-4.5 text-right">
+                      <div className="flex gap-1.5 justify-end">
+                        <Link to={`/consultations/${c._id}`} className="inline-flex items-center justify-center bg-slate-100 hover:bg-blue-50 text-blue-600 border border-slate-200 p-2 rounded-xl transition shadow-sm" title="View Details">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                        </Link>
+                        <Link to={`/consultations/edit/${c._id}`} className="inline-flex items-center justify-center bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-600 hover:text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-sm transition">
+                          Edit
+                        </Link>
+                        <button onClick={() => handleDelete(c._id)} className="inline-flex items-center justify-center bg-rose-50 text-rose-600 border border-rose-100 hover:bg-red-600 hover:text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-sm transition">
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Mobile View: Cards Grid (Visible only on screens smaller than md) */}
+        <div className="block md:hidden space-y-4">
+          {paginatedData.map((c) => (
+            <div key={c._id} className="bg-white rounded-2xl p-5 shadow-md border border-slate-100 space-y-4">
+              
+              {/* Card Header: Patient Name & Status */}
+              <div className="flex items-start justify-between gap-2 border-b border-slate-50 pb-3">
+                <div>
+                  <h4 className="font-black text-blue-700 text-lg">
+                    {getPatientName(c.patientId)}
+                  </h4>
+                  <div className="flex items-center gap-1.5 mt-1">
+                    <span className={`w-2 h-2 rounded-full ${c.status?.toLowerCase() === 'completed' ? 'bg-emerald-500' : 'bg-amber-400'}`}></span>
+                    <span className="text-xs font-bold text-slate-500 capitalize">{c.status}</span>
                   </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                </div>
+                <span className={`px-2.5 py-1 rounded-xl text-xs font-bold border capitalize tracking-wide shadow-sm shrink-0 ${getUrgencyBadge(c.urgencyLevel)}`}>
+                  {c.urgencyLevel}
+                </span>
+              </div>
 
+              {/* Card Body: Details Stack */}
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <div className="col-span-2">
+                  <span className="text-slate-400 block font-medium mb-0.5">Clinical Symptoms:</span>
+                  <p className="text-slate-600 font-semibold bg-slate-50/60 p-2 rounded-lg border border-slate-100">{c.symptoms.join(', ')}</p>
+                </div>
+                <div>
+                  <span className="text-slate-400 block font-medium mb-0.5">Specialist:</span>
+                  <p className="text-slate-700 font-bold truncate">
+                    {c.suggestedSpecialist ? (
+                      <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded border border-slate-200/50">
+                        {c.suggestedSpecialist}
+                      </span>
+                    ) : '—'}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-slate-400 block font-medium mb-0.5">Follow-up Date:</span>
+                  <p className="text-slate-700 font-bold">{formatDate(c.followUpDate)}</p>
+                </div>
+              </div>
+
+              {/* Card Actions Container */}
+              <div className="flex gap-2 pt-2 border-t border-slate-50">
+                <Link to={`/consultations/${c._id}`} className="flex-1 inline-flex items-center justify-center bg-slate-100 text-slate-700 py-2.5 rounded-xl text-xs font-bold border border-slate-200 transition active:bg-slate-200 gap-1">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                  View
+                </Link>
+                <Link to={`/consultations/edit/${c._id}`} className="flex-1 inline-flex items-center justify-center bg-blue-50 text-blue-600 py-2.5 rounded-xl text-xs font-bold border border-blue-100 transition active:bg-blue-100">
+                  Edit
+                </Link>
+                <button onClick={() => handleDelete(c._id)} className="flex-1 inline-flex items-center justify-center bg-rose-50 text-rose-600 py-2.5 rounded-xl text-xs font-bold border border-rose-100 transition active:bg-rose-100">
+                  Delete
+                </button>
+              </div>
+
+            </div>
+          ))}
+        </div>
+
+        {/* Empty State */}
         {filtered.length === 0 && (
-          <div className="text-center py-12 text-gray-400">
-            <p>No consultations found</p>
+          <div className="text-center py-16 sm:py-20 bg-white rounded-2xl border border-slate-100 shadow-md">
+            <div className="w-14 h-14 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100 shadow-inner">
+              <svg className="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 12H4" />
+              </svg>
+            </div>
+            <p className="text-slate-500 font-bold text-base sm:text-lg">No consultations found</p>
+            <p className="text-slate-400 text-xs sm:text-sm mt-1 max-w-xs mx-auto px-4">Try refining your search query or add a new entry.</p>
+          </div>
+        )}
+
+        {/* Pagination Section */}
+        {totalPages > 1 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 px-2">
+            <p className="text-[10px] sm:text-xs text-slate-400 font-extrabold tracking-wider uppercase text-center sm:text-left">
+              Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} – {Math.min(currentPage * ITEMS_PER_PAGE, filtered.length)} of {filtered.length} records
+            </p>
+
+            <div className="flex items-center gap-1.5 w-full sm:w-auto justify-center flex-wrap">
+              <button
+                onClick={() => goToPage(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-3 py-2 rounded-xl text-xs font-bold bg-white border border-slate-200 text-slate-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 shadow-sm transition"
+              >
+                Prev
+              </button>
+
+              {/* Render dynamic limited pages on mobile if needed, or normal list */}
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => goToPage(page)}
+                  className={`w-8 h-8 rounded-xl text-xs font-black border transition-all ${
+                    page === currentPage
+                      ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-200 transform scale-105'
+                      : 'bg-white border-slate-200 hover:bg-slate-50 text-slate-600'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+
+              <button
+                onClick={() => goToPage(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="px-3 py-2 rounded-xl text-xs font-bold bg-white border border-slate-200 text-slate-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 shadow-sm transition"
+              >
+                Next
+              </button>
+            </div>
           </div>
         )}
       </div>
-
-      {/*  Pagination */}
-      {totalPages > 1 && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-5">
-          <p className="text-sm text-gray-500">
-            Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}–
-            {Math.min(currentPage * ITEMS_PER_PAGE, filtered.length)} of {filtered.length}
-          </p>
-
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => goToPage(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="px-3 py-1.5 rounded-md text-sm border border-gray-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50"
-            >
-              ← Prev
-            </button>
-
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <button
-                key={page}
-                onClick={() => goToPage(page)}
-                className={`px-3 py-1.5 rounded-md text-sm border ${
-                  page === currentPage
-                    ? 'bg-blue-600 text-white border-blue-600'
-                    : 'border-gray-300 hover:bg-gray-50 text-gray-700'
-                }`}
-              >
-                {page}
-              </button>
-            ))}
-
-            <button
-              onClick={() => goToPage(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className="px-3 py-1.5 rounded-md text-sm border border-gray-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50"
-            >
-              Next →
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
