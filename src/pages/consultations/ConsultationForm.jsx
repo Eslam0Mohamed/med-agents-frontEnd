@@ -141,10 +141,7 @@ useEffect(() => {
     };
 
     try {
-      console.log("ai te 1");
       const res = await getAIRecommendation(payload);
-      console.log(res);
-      
       setAiResult(res.data);
       setCreatedId(res.data._id);
       setIsSaved(true);
@@ -153,7 +150,6 @@ useEffect(() => {
       }
     } catch(err) {
       console.log(err.response?.data);
-      
       Swal.fire('Error', 'Failed to get AI recommendation', 'error');
     } finally {
       setIsGenerating(false);
@@ -383,10 +379,28 @@ useEffect(() => {
                     )}
                   </div>
                 </div>
+
+                {/* Save / Cancel buttons */}
+                <div className="flex gap-3 justify-end pt-2">
+                  <Link
+                    to="/consultations"
+                    className="text-center border border-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-50 text-sm"
+                  >
+                    Cancel
+                  </Link>
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="bg-blue-700 hover:bg-blue-800 text-white px-5 py-2 rounded-md font-medium text-sm disabled:opacity-50"
+                  >
+                    {isLoading ? 'Saving...' : isEditMode ? 'Update' : 'Save Record'}
+                  </button>
+                </div>
               </div>
             )}
-            {/* Actions */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-6 pt-5 border-t">
+
+            {/* Get AI Recommendation Action */}
+            <div className="flex justify-end mt-6 pt-5 border-t">
               <button
                 type="button"
                 onClick={handleGetAIRecommendation}
@@ -395,22 +409,6 @@ useEffect(() => {
               >
                 🤖 {isGenerating ? 'Analyzing...' : 'Get AI Recommendation'} →
               </button>
-
-              <div className="flex gap-3 w-full sm:w-auto justify-end">
-                <Link
-                  to="/consultations"
-                  className="w-1/2 sm:w-auto text-center border border-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-50 text-sm"
-                >
-                  Cancel
-                </Link>
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-1/2 sm:w-auto justify-center bg-blue-700 hover:bg-blue-800 text-white px-5 py-2 rounded-md font-medium text-sm disabled:opacity-50"
-                >
-                  {isLoading ? 'Saving...' : isEditMode ? 'Update' : 'Save Record'}
-                </button>
-              </div>
             </div>
           </form>
         </div>
