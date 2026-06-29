@@ -106,7 +106,7 @@ const ConsultationDetails = () => {
 
       <div className="w-full max-w-2xl mx-auto px-4 sm:px-6">
         
-        {/* Vibrant Blue Medical Header */}
+       
         <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 mb-6 border-b border-slate-200/50 gap-4 animate-premium-header">
           <div>
             <h2 className="text-xl sm:text-2xl font-extrabold text-blue-600 tracking-tight capitalize">Consultation details</h2>
