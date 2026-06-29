@@ -8,6 +8,8 @@ import { getAllPatients, getPatients } from '../../api/patient';
 import {createConsultation,getAIRecommendation,getConsultationById,updateConsultation,
 } from '../../api/consultation';
 import { createFollowUp } from '../../api/followup';
+import { getPrescriptionByConsultation } from '../../api/prescription';
+import PrescriptionModal from '../../components/prescriptions/PrescriptionModal';
 
 const ConsultationForm = () => {
   const { id, patientId } = useParams();
@@ -23,6 +25,11 @@ const ConsultationForm = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
 
+  // Prescription modal state — opens right after "Save Record" succeeds
+  const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
+  const [savedConsultationId, setSavedConsultationId] = useState('');
+  const [existingPrescription, setExistingPrescription] = useState(null);
+
   const {
     register,
     handleSubmit,
@@ -34,8 +41,11 @@ const ConsultationForm = () => {
     resolver: zodResolver(consultationSchema),
     defaultValues: {
       language: 'en',
+      isChronic: false,
     },
   });
+
+  const isChronicChecked = watch('isChronic');
 
   const loadConsultation = useCallback(
     async (patientsList) => {
@@ -60,6 +70,7 @@ const ConsultationForm = () => {
         );
         setValue('diagnosis', data.diagnosis || '');
         setValue('language', data.language || 'en');
+        setValue('isChronic', data.isChronic || false);
         setValue('followUpDate',
           data.followUpDate ? new Date(data.followUpDate).toISOString().split('T')[0] : ''
         );
@@ -133,6 +144,7 @@ useEffect(() => {
       rawInput: formValues.rawInput,
       diagnosis: formValues.diagnosis || '',
       language: formValues.language || 'en',
+      isChronic: formValues.isChronic || false,
       symptoms: formValues.symptoms
         .split(',')
         .map((s) => s.trim())
@@ -168,6 +180,7 @@ useEffect(() => {
       rawInput: formData.rawInput,
       diagnosis: formData.diagnosis,
       language: formData.language,
+      isChronic: formData.isChronic,
       symptoms: formData.symptoms
         .split(',')
         .map((s) => s.trim())
@@ -175,32 +188,20 @@ useEffect(() => {
       followUpDate: formData.followUpDate || undefined,
     };
 
-
     try {
+      let consultationId = id;
+
       if (isEditMode) {
         await updateConsultation(id, payload);
-      } else if (createdId) {
-        await createConsultation(payload);
-        if (formData.followUpDate) {
-          try {
-            await createFollowUp({
-              consultationId: createdId,
-              patientId: formData.patientId,
-              instructions: '-',
-              scheduledDate: formData.followUpDate,
-              language: formData.language || 'en',
-            });
-          } catch (followUpErr) {
-            console.error('Failed to automatically create follow-up:', followUpErr);
-          }
-        }
       } else {
         const res = await createConsultation(payload);
+        consultationId = res.data._id;
+
         if (formData.followUpDate) {
           try {
             await createFollowUp({
-              consultationId: res.data._id,
-              patientId: formData.patientId,
+              consultationId,
+              patientId: payload.patientId,
               instructions: '-',
               scheduledDate: formData.followUpDate,
               language: formData.language || 'en',
@@ -210,7 +211,28 @@ useEffect(() => {
           }
         }
       }
-      navigate('/consultations');
+
+      // Open the "Add Prescription" modal right after the record is saved,
+      // instead of navigating away immediately. If this consultation already
+      // has a prescription (edit mode), load it so the doctor edits in place.
+      Swal.fire({
+        title: 'Saved Successfully',
+        text: payload.isChronic
+          ? 'Consultation saved and diagnosis added to patient chronic diseases history.'
+          : 'Consultation record saved successfully.',
+        icon: 'success',
+        timer: 1800,
+        showConfirmButton: false,
+      });
+
+      setSavedConsultationId(consultationId);
+      try {
+        const presRes = await getPrescriptionByConsultation(consultationId);
+        setExistingPrescription(presRes.data);
+      } catch {
+        setExistingPrescription(null);
+      }
+      setShowPrescriptionModal(true);
     } catch {
       Swal.fire('Error', 'Failed to save consultation', 'error');
     } finally {
@@ -233,6 +255,25 @@ useEffect(() => {
       critical: 'text-red-600 bg-red-50 border-red-200',
     };
     return colors[level] || 'text-gray-600 bg-gray-50 border-gray-200';
+  };
+
+  // Full patient object (with allergies / dateOfBirth) for the prescription modal.
+  // Falls back to the prescription's populated patientId (covers edit mode where
+  // the patients list may not have loaded the exact match yet).
+  const currentPatient =
+    patients.find((p) => String(p._id) === String(selectedPatientId || watch('patientId'))) ||
+    (existingPrescription?.patientId && typeof existingPrescription.patientId === 'object'
+      ? existingPrescription.patientId
+      : null);
+
+  const handleClosePrescriptionModal = () => {
+    setShowPrescriptionModal(false);
+    navigate('/consultations');
+  };
+
+  const handlePrescriptionSaved = () => {
+    setShowPrescriptionModal(false);
+    navigate('/prescriptions');
   };
 
   return (
@@ -352,9 +393,22 @@ useEffect(() => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Diagnosis (Required) */}
                   <div>
-                    <label className="block text-sm font-medium text-blue-700 mb-1">
-                      Diagnosis <span className="text-red-500">*</span>
-                    </label>
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <label className="block text-sm font-medium text-blue-700">
+                        Diagnosis <span className="text-red-500">*</span>
+                      </label>
+
+                      <label className="inline-flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 cursor-pointer text-xs font-bold text-slate-600 transition-all duration-200 hover:bg-blue-50 hover:border-blue-200 select-none">
+                        <input
+                          type="checkbox"
+                          {...register('isChronic')}
+                          className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 cursor-pointer shrink-0"
+                        />
+                        <span className={`transition-colors duration-200 ${isChronicChecked ? 'text-blue-600 font-extrabold' : ''}`}>
+                          Chronic Disease
+                        </span>
+                      </label>
+                    </div>
                     <input
                       type="text"
                       {...register('diagnosis')}
@@ -385,28 +439,29 @@ useEffect(() => {
                 </div>
               </div>
             )}
+
             {/* Actions */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-6 pt-5 border-t">
+            <div className="flex flex-wrap items-center justify-between gap-3 mt-6 pt-5 border-t">
               <button
                 type="button"
                 onClick={handleGetAIRecommendation}
                 disabled={isGenerating}
-                className="w-full sm:w-auto justify-center bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-md font-medium text-sm transition flex items-center gap-2 disabled:opacity-50"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-md font-medium text-sm transition flex items-center gap-2 disabled:opacity-50"
               >
                 🤖 {isGenerating ? 'Analyzing...' : 'Get AI Recommendation'} →
               </button>
 
-              <div className="flex gap-3 w-full sm:w-auto justify-end">
+              <div className="flex gap-3 ms-auto">
                 <Link
                   to="/consultations"
-                  className="w-1/2 sm:w-auto text-center border border-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-50 text-sm"
+                  className="border border-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-50 text-sm"
                 >
                   Cancel
                 </Link>
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-1/2 sm:w-auto justify-center bg-blue-700 hover:bg-blue-800 text-white px-5 py-2 rounded-md font-medium text-sm disabled:opacity-50"
+                  className="bg-blue-700 hover:bg-blue-800 text-white px-5 py-2 rounded-md font-medium text-sm disabled:opacity-50"
                 >
                   {isLoading ? 'Saving...' : isEditMode ? 'Update' : 'Save Record'}
                 </button>
@@ -489,6 +544,16 @@ useEffect(() => {
           </div>
         </div>
       </div>
+
+      <PrescriptionModal
+        isOpen={showPrescriptionModal}
+        onClose={handleClosePrescriptionModal}
+        consultationId={savedConsultationId}
+        patient={currentPatient}
+        language={watch('language') || 'en'}
+        existingPrescription={existingPrescription}
+        onSaved={handlePrescriptionSaved}
+      />
     </div>
   );
 }

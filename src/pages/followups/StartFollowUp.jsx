@@ -1,19 +1,21 @@
-import React, { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import Swal from 'sweetalert2';
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import Swal from "sweetalert2";
 import {
   createFollowUp,
   getFollowUpById,
   updateFollowUp,
-} from '../../api/followup';
-import { createConsultation } from '../../api/consultation';
+} from "../../api/followup";
+import { createConsultation } from "../../api/consultation";
+import { getPrescriptionByConsultation } from "../../api/prescription";
+import PrescriptionModal from "../../components/prescriptions/PrescriptionModal";
 
 const initialForm = {
-  rawInput: '',
-  symptoms: '',
-  diagnosis: '',
-  language: 'en',
-  followUpDate: '',
+  rawInput: "",
+  symptoms: "",
+  diagnosis: "",
+  language: "en",
+  followUpDate: "",
 };
 
 const StartFollowUp = () => {
@@ -25,21 +27,28 @@ const StartFollowUp = () => {
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  // Prescription modal state — opens right after "Complete Follow-up" succeeds
+  const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
+  const [savedConsultationId, setSavedConsultationId] = useState("");
+  const [existingPrescription, setExistingPrescription] = useState(null);
+
   const getId = (value) => {
-    if (!value) return '';
-    if (typeof value === 'string') return value;
-    return value._id || value.id || '';
+    if (!value) return "";
+    if (typeof value === "string") return value;
+    return value._id || value.id || "";
   };
 
-  const formatDate = (date) => {
+
+
+  function formatDate(date) {
     if (!date) return 'No date';
 
-    return new Date(date).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
+    return new Date(date).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
     });
-  };
+  }
 
   const loadFollowUp = async () => {
     try {
@@ -49,13 +58,14 @@ const StartFollowUp = () => {
       const data = res?.data;
 
       setFollowUp(data);
+
       setForm((prev) => ({
         ...prev,
-        language: data?.language || 'en',
+        language: data?.language || "en",
       }));
     } catch (error) {
       console.error(error);
-      Swal.fire('Error', 'Failed to load follow-up details', 'error');
+      Swal.fire("Error", "Failed to load follow-up details", "error");
     } finally {
       setLoading(false);
     }
@@ -75,7 +85,7 @@ const StartFollowUp = () => {
   };
 
   const getPatientName = () => {
-    return followUp?.patientId?.name || 'Unknown Patient';
+    return followUp?.patientId?.name || "Unknown Patient";
   };
 
   const getPatientId = () => {
@@ -89,10 +99,10 @@ const StartFollowUp = () => {
   const getPreviousSymptoms = () => {
     const consultation = getPreviousConsultation();
 
-    if (!consultation?.symptoms) return 'No symptoms recorded';
+    if (!consultation?.symptoms) return "No symptoms recorded";
 
     if (Array.isArray(consultation.symptoms)) {
-      return consultation.symptoms.join(', ');
+      return consultation.symptoms.join(", ");
     }
 
     return consultation.symptoms;
@@ -101,13 +111,13 @@ const StartFollowUp = () => {
   const getPreviousNotes = () => {
     const consultation = getPreviousConsultation();
 
-    return consultation?.rawInput || 'No previous notes recorded';
+    return consultation?.rawInput || "No previous notes recorded";
   };
 
   const getPreviousDiagnosis = () => {
     const consultation = getPreviousConsultation();
 
-    return consultation?.diagnosis || 'No diagnosis recorded';
+    return consultation?.diagnosis || "No diagnosis recorded";
   };
 
   const handleSubmit = async (event) => {
@@ -115,9 +125,9 @@ const StartFollowUp = () => {
 
     if (!form.rawInput || !form.symptoms || !form.diagnosis) {
       Swal.fire(
-        'Missing data',
-        'Doctor notes, symptoms, and diagnosis are required.',
-        'warning'
+        "Missing data",
+        "Doctor notes, symptoms, and diagnosis are required.",
+        "warning",
       );
       return;
     }
@@ -125,12 +135,19 @@ const StartFollowUp = () => {
     const patientId = getPatientId();
 
     if (!patientId) {
-      Swal.fire('Error', 'Patient data is missing from this follow-up.', 'error');
+      Swal.fire(
+        "Error",
+        "Patient data is missing from this follow-up.",
+        "error",
+      );
       return;
     }
 
     try {
       setSubmitting(true);
+
+
+
 
       const consultationPayload = {
         patientId,
@@ -138,22 +155,25 @@ const StartFollowUp = () => {
         diagnosis: form.diagnosis.trim(),
         language: form.language,
         symptoms: form.symptoms
-          .split(',')
+          .split(",")
           .map((item) => item.trim())
           .filter(Boolean),
         followUpDate: form.followUpDate || undefined,
-
-        // دول لو الباك عندكم بيدعمهم هيبقوا مفيدين للـ history label
+        // بيربط الكونسلتيشن الجديدة بالفولو أب اللي جاية منه (للهيستوري وعرض المصدر في صفحة البريسكربشن)
+        followupId,
         visitType: 'followup',
         sourceFollowupId: followupId,
         parentConsultationId: getId(followUp?.consultationId),
       };
 
+
+
+
       const consultationRes = await createConsultation(consultationPayload);
       const newConsultation = consultationRes?.data;
 
       await updateFollowUp(followupId, {
-        status: 'done',
+        status: 'confirmed',
       });
 
       if (form.followUpDate && newConsultation?._id) {
@@ -162,30 +182,45 @@ const StartFollowUp = () => {
           patientId,
           instructions: `Follow-up after ${form.diagnosis}`,
           scheduledDate: form.followUpDate,
-          status: 'pending',
+          status: "pending",
           language: form.language,
         });
       }
 
-      Swal.fire({
-        title: 'Follow-up completed',
-        text: 'The follow-up session was saved successfully.',
-        icon: 'success',
-        timer: 1600,
-        showConfirmButton: false,
-      });
-
-      navigate('/followups');
+      // عايز نفتح مودال إضافة الروشتة بعد ما الفولو أب يتحفظ، زي ما بنعمل في الكونسلتيشن
+      setSavedConsultationId(newConsultation._id);
+      try {
+        const presRes = await getPrescriptionByConsultation(
+          newConsultation._id,
+        );
+        setExistingPrescription(presRes.data);
+      } catch {
+        setExistingPrescription(null);
+      }
+      setShowPrescriptionModal(true);
     } catch (error) {
-      console.error(error);
-      Swal.fire(
-        'Error',
-        error?.response?.data?.message || 'Failed to save follow-up session',
+      console.error('FULL ERROR:', error);
+      console.error('BACKEND RESPONSE:', error?.response?.data);
+
+      Swal.fire('Error',
+        error?.response?.data?.error ||
+          error?.response?.data?.message ||
+          'Failed to save follow-up session',
         'error'
       );
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleClosePrescriptionModal = () => {
+    setShowPrescriptionModal(false);
+    navigate("/followups");
+  };
+
+  const handlePrescriptionSaved = () => {
+    setShowPrescriptionModal(false);
+    navigate("/prescriptions");
   };
 
   if (loading) {
@@ -230,13 +265,13 @@ const StartFollowUp = () => {
               </p>
 
               <p>
-                <strong>Scheduled Follow-up:</strong>{' '}
+                <strong>Scheduled Follow-up:</strong>{" "}
                 {formatDate(followUp.scheduledDate)}
               </p>
 
               <p>
-                <strong>Previous Instructions:</strong>{' '}
-                {followUp.instructions || 'No instructions recorded'}
+                <strong>Previous Instructions:</strong>{" "}
+                {followUp.instructions || "No instructions recorded"}
               </p>
 
               <p>
@@ -351,7 +386,7 @@ const StartFollowUp = () => {
                 disabled={submitting}
                 className="bg-blue-700 hover:bg-blue-800 text-white px-5 py-2 rounded-md font-medium text-sm disabled:opacity-50"
               >
-                {submitting ? 'Saving...' : 'Complete Follow-up'}
+                {submitting ? "Saving..." : "Complete Follow-up"}
               </button>
             </div>
           </form>
@@ -366,9 +401,7 @@ const StartFollowUp = () => {
             </div>
 
             <div className="p-5 space-y-3 text-sm text-gray-700">
-              <p>
-                This form will save a new follow-up consultation record.
-              </p>
+              <p>This form will save a new follow-up consultation record.</p>
 
               <p>
                 After saving, the original follow-up will move to Completed.
@@ -376,7 +409,7 @@ const StartFollowUp = () => {
 
               {form.followUpDate && (
                 <p>
-                  A new pending follow-up will be scheduled for{' '}
+                  A new pending follow-up will be scheduled for{" "}
                   {formatDate(form.followUpDate)}.
                 </p>
               )}
@@ -384,6 +417,16 @@ const StartFollowUp = () => {
           </div>
         </div>
       </div>
+
+      <PrescriptionModal
+        isOpen={showPrescriptionModal}
+        onClose={handleClosePrescriptionModal}
+        consultationId={savedConsultationId}
+        patient={followUp?.patientId}
+        language={form.language}
+        existingPrescription={existingPrescription}
+        onSaved={handlePrescriptionSaved}
+      />
     </div>
   );
 };

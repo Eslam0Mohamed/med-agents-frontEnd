@@ -11,6 +11,7 @@ import Settings from '../pages/settings/Settings';
 
 import ConsultationList from '../pages/consultations/ConsultationList';
 import ConsultationForm from '../pages/consultations/ConsultationForm';
+import ConsultationDetails from '../pages/consultations/ConsultationDetails'; // 1. تم إضافة استيراد صفحة التفاصيل هنا
 import PatientSearch from '../pages/consultations/PatientSearch';
 import PatientHistory from '../pages/patients/PatientHistory';
 import PatientReport from '../pages/patients/PatientReport';
@@ -19,6 +20,7 @@ import FollowUps from '../pages/followups/FollowUps';
 import PatientsList from '../pages/patients/PatientsList';
 import PatientForm from '../pages/patients/PatientForm';
 import StartFollowUp from '../pages/followups/StartFollowUp';
+import Prescriptions from '../pages/prescriptions/Prescriptions';
 
 const router = createBrowserRouter([
   {
@@ -37,7 +39,6 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <Navigate to="/patients" replace /> },
 
-      // Patients
       { path: 'patients', element: <PatientsList /> },
       { path: 'patients/add', element: <PatientForm /> },
       { path: 'patients/edit/:id', element: <PatientForm /> },
@@ -46,31 +47,30 @@ const router = createBrowserRouter([
 
       // Consultations
       { path: 'consultations', element: <ConsultationList /> },
+      
+      // 2. تم إضافة مسار تفاصيل الاستشارة هنا ليعمل زر العين بشكل صحيح
+      { path: 'consultations/:id', element: <ConsultationDetails /> },
 
       // Add Consultation Workflow
       { path: 'consultations/search-patient', element: <PatientSearch /> },
-
       { path: 'consultations/patient/:id/history', element: <PatientHistory /> },
-
       { path: 'consultations/add/:patientId', element: <ConsultationForm /> },
-
       { path: 'consultations/edit/:id', element: <ConsultationForm /> },
 
       // Prescriptions
-      { path: 'prescriptions', element: <div>Prescriptions page</div> },
+      { path: 'prescriptions', element: <Prescriptions /> },
 
       { path: 'ai-chat', element: <AiChat/> },
-     { path: 'profile', element: <Profile /> },
-
+      { path: 'profile', element: <Profile /> },
 
       // Follow Ups
       { path: 'followups', element: <FollowUps /> },
-{ path: 'followups/start/:followupId', element: <StartFollowUp /> },
+      { path: 'followups/start/:followupId', element: <StartFollowUp /> },
+      
       // AI Chat
       { path: 'ai-chat', element: <AiChat /> },
 
       // Drug Safety
-
       { path: 'drug-safety', element: <DrugSafety /> },
       { path: 'settings', element: <Settings /> },
     ],
