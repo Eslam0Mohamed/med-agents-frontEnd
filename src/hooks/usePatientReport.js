@@ -91,8 +91,7 @@ export function usePatientReport(patientId) {
           ...med,
           consultationDate: item.date,
           consultationId: item.consultationId,
-          interactions: item.prescription.interactions || [],
-          warnings: item.prescription.warnings || [],
+          quickCheckMessage: med.quickCheckMessage || null,
         }))
       );
 

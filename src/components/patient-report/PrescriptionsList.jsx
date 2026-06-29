@@ -33,14 +33,9 @@ export default function PrescriptionsList({ prescriptions }) {
               </div>
               <span className="text-xs text-gray-400 shrink-0">{formatDate(med.consultationDate)}</span>
             </div>
-            {med.warnings?.length > 0 && (
-              <div className="mt-2 bg-red-50 border border-red-100 rounded-lg p-2 text-xs text-red-700">
-                <strong>Warnings:</strong> {med.warnings.join('; ')}
-              </div>
-            )}
-            {med.interactions?.length > 0 && (
+            {med.quickCheckMessage && (
               <div className="mt-2 bg-amber-50 border border-amber-100 rounded-lg p-2 text-xs text-amber-800">
-                <strong>Interactions:</strong> {med.interactions.join('; ')}
+                <strong>⚠ </strong>{med.quickCheckMessage}
               </div>
             )}
           </div>
