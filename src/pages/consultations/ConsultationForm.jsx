@@ -4,14 +4,12 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Swal from 'sweetalert2';
 import { consultationSchema } from '../../schemas/consultation';
-import { getAllPatients } from '../../api/patient';
-import {
-  createConsultation,
-  getAIRecommendation,
-  getConsultationById,
-  updateConsultation,
+import { getAllPatients, getPatients } from '../../api/patient';
+import {createConsultation,getAIRecommendation,getConsultationById,updateConsultation,
 } from '../../api/consultation';
 import { createFollowUp } from '../../api/followup';
+import { getPrescriptionByConsultation } from '../../api/prescription';
+import PrescriptionModal from '../../components/prescriptions/PrescriptionModal';
 
 const ConsultationForm = () => {
   const { id, patientId } = useParams();
@@ -26,6 +24,11 @@ const ConsultationForm = () => {
   const [aiResult, setAiResult] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+
+  // Prescription modal state — opens right after "Save Record" succeeds
+  const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
+  const [savedConsultationId, setSavedConsultationId] = useState('');
+  const [existingPrescription, setExistingPrescription] = useState(null);
 
   const {
     register,
@@ -78,7 +81,6 @@ const ConsultationForm = () => {
     },
     [id, setValue]
   );
-
   useEffect(() => {
     const loadPatients = async () => {
       try {
@@ -91,17 +93,17 @@ const ConsultationForm = () => {
         }
 
         if (patientId) {
-          const patient = list.find(
-            (p) => String(p._id) === String(patientId)
-          );
+  const patient = list.find(
+    (p) => String(p._id) === String(patientId)
+  );
 
-          if (patient) {
-            setSelectedPatientId(patient._id);
-            setPatientSearch(patient.name);
-            setValue('patientId', patient._id);
-            setShowDropdown(false);
-          }
-        }
+  if (patient) {
+    setSelectedPatientId(patient._id);
+    setPatientSearch(patient.name);
+    setValue('patientId', patient._id);
+    setShowDropdown(false);
+  }
+}
       } catch (err) {
         console.error('Failed to load patients', err);
       }
@@ -110,17 +112,18 @@ const ConsultationForm = () => {
     loadPatients();
   }, [isEditMode, patientId, loadConsultation, setValue]);
 
-  useEffect(() => {
-    if (!isEditMode && !patientId && patients.length > 0) {
-      setShowDropdown(true);
-    }
-  }, [patients, isEditMode, patientId]);
+useEffect(() => {
+  if (!isEditMode && !patientId && patients.length > 0) {
+    setShowDropdown(true);
+  }
+}, [patients, isEditMode, patientId]);
 
   const filteredPatients = patients.filter((p) =>
     p.name.toLowerCase().includes(patientSearch.toLowerCase())
   );
 
   const handlePatientSelect = (patient) => {
+    
     setPatientSearch(patient.name);
     setSelectedPatientId(patient._id);
     setValue('patientId', patient._id, { shouldValidate: true, shouldDirty: true });
@@ -150,7 +153,10 @@ const ConsultationForm = () => {
     };
 
     try {
+      console.log("ai te 1");
       const res = await getAIRecommendation(payload);
+      console.log(res);
+      
       setAiResult(res.data);
       setCreatedId(res.data._id);
       setIsSaved(true);
@@ -159,6 +165,7 @@ const ConsultationForm = () => {
       }
     } catch(err) {
       console.log(err.response?.data);
+      
       Swal.fire('Error', 'Failed to get AI recommendation', 'error');
     } finally {
       setIsGenerating(false);
@@ -182,30 +189,19 @@ const ConsultationForm = () => {
     };
 
     try {
+      let consultationId = id;
+
       if (isEditMode) {
         await updateConsultation(id, payload);
-      } else if (createdId) {
-        await createConsultation(payload);
-        if (formData.followUpDate) {
-          try {
-            await createFollowUp({
-              consultationId: createdId,
-              patientId: formData.patientId,
-              instructions: '-',
-              scheduledDate: formData.followUpDate,
-              language: formData.language || 'en',
-            });
-          } catch (followUpErr) {
-            console.error('Failed to automatically create follow-up:', followUpErr);
-          }
-        }
       } else {
         const res = await createConsultation(payload);
+        consultationId = res.data._id;
+
         if (formData.followUpDate) {
           try {
             await createFollowUp({
-              consultationId: res.data._id,
-              patientId: formData.patientId,
+              consultationId,
+              patientId: payload.patientId,
               instructions: '-',
               scheduledDate: formData.followUpDate,
               language: formData.language || 'en',
@@ -215,18 +211,28 @@ const ConsultationForm = () => {
           }
         }
       }
-      
+
+      // Open the "Add Prescription" modal right after the record is saved,
+      // instead of navigating away immediately. If this consultation already
+      // has a prescription (edit mode), load it so the doctor edits in place.
       Swal.fire({
         title: 'Saved Successfully',
-        text: formData.isChronic 
-          ? 'Consultation saved and diagnosis added to patient chronic diseases history.' 
+        text: payload.isChronic
+          ? 'Consultation saved and diagnosis added to patient chronic diseases history.'
           : 'Consultation record saved successfully.',
         icon: 'success',
-        timer: 3000,
-        showConfirmButton: false
+        timer: 1800,
+        showConfirmButton: false,
       });
 
-      navigate('/consultations');
+      setSavedConsultationId(consultationId);
+      try {
+        const presRes = await getPrescriptionByConsultation(consultationId);
+        setExistingPrescription(presRes.data);
+      } catch {
+        setExistingPrescription(null);
+      }
+      setShowPrescriptionModal(true);
     } catch {
       Swal.fire('Error', 'Failed to save consultation', 'error');
     } finally {
@@ -251,12 +257,31 @@ const ConsultationForm = () => {
     return colors[level] || 'text-gray-600 bg-gray-50 border-gray-200';
   };
 
+  // Full patient object (with allergies / dateOfBirth) for the prescription modal.
+  // Falls back to the prescription's populated patientId (covers edit mode where
+  // the patients list may not have loaded the exact match yet).
+  const currentPatient =
+    patients.find((p) => String(p._id) === String(selectedPatientId || watch('patientId'))) ||
+    (existingPrescription?.patientId && typeof existingPrescription.patientId === 'object'
+      ? existingPrescription.patientId
+      : null);
+
+  const handleClosePrescriptionModal = () => {
+    setShowPrescriptionModal(false);
+    navigate('/consultations');
+  };
+
+  const handlePrescriptionSaved = () => {
+    setShowPrescriptionModal(false);
+    navigate('/prescriptions');
+  };
+
   return (
-    <div className="p-2 sm:p-4 max-w-6xl mx-auto w-full box-border">
+    <div className="p-4 max-w-6xl mx-auto">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
         {/* Main Form */}
-        <div className="lg:col-span-2 bg-white rounded-xl shadow p-4 sm:p-8">
+        <div className="lg:col-span-2 bg-white rounded-xl shadow p-6 sm:p-8">
           <h2 className="text-xl font-bold text-blue-700 mb-1">
             {isEditMode ? 'Edit Consultation' : 'New Consultation'}
           </h2>
@@ -264,56 +289,56 @@ const ConsultationForm = () => {
             Document patient encounter and receive real-time clinical decision support.
           </p>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-1 gap-4">
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
               {/* Patient */}
-              <div className="relative">
-                <label className="block text-sm font-medium text-blue-700 mb-1">
-                  Patient
-                </label>
-                <input
-                  type="text"
-                  value={patientSearch}
-                  disabled={isEditMode || !!patientId}
-                  onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
-                  onChange={(e) => {
-                    setPatientSearch(e.target.value);
-                    setSelectedPatientId('');
-                    setValue('patientId', '', { shouldValidate: true });
-                    setShowDropdown(true);
-                  }}
-                  onFocus={() => {
-                    if (!isEditMode && !patientId) setShowDropdown(true);
-                  }}
-                  placeholder="Type patient name..."
-                  className={`w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    (isEditMode || patientId) ? 'bg-gray-100' : ''
-                  }`}
-                />
-                <input type="hidden" {...register('patientId')} />
+  <div className="md:col-span-2 relative">
+  <label className="block text-sm font-medium text-blue-700 mb-1">
+    Patient
+  </label>
+  <input
+    type="text"
+    value={patientSearch}
+    disabled={isEditMode || !!patientId}
+    onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
+    onChange={(e) => {
+      setPatientSearch(e.target.value);
+      setSelectedPatientId('');
+      setValue('patientId', '', { shouldValidate: true });
+      setShowDropdown(true);
+    }}
+    onFocus={() => {
+      if (!isEditMode && !patientId) setShowDropdown(true);
+    }}
+    placeholder="Type patient name..."
+    className={`w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+      (isEditMode || patientId) ? 'bg-gray-100' : ''
+    }`}
+  />
+  <input type="hidden" {...register('patientId')} />
 
-                {!isEditMode && patientId && showDropdown && filteredPatients.length > 0 && (
-                  <ul className="absolute z-10 w-full bg-white border border-gray-200 rounded-md mt-1 max-h-48 overflow-y-auto shadow-lg">
-                    {filteredPatients.map((p) => (
-                      <li
-                        key={p._id}
-                        onClick={() => handlePatientSelect(p)}
-                        className="px-3 py-2 hover:bg-blue-50 cursor-pointer text-sm"
-                      >
-                        {p.name}
-                      </li>
-                    ))}
-                  </ul>
-                )}
+  {!isEditMode && patientId && showDropdown && filteredPatients.length > 0 && (
+    <ul className="absolute z-10 w-full bg-white border border-gray-200 rounded-md mt-1 max-h-48 overflow-y-auto shadow-lg">
+      {filteredPatients.map((p) => (
+        <li
+          key={p._id}
+          onClick={() => handlePatientSelect(p)}
+          className="px-3 py-2 hover:bg-blue-50 cursor-pointer text-sm"
+        >
+          {p.name}
+        </li>
+      ))}
+    </ul>
+  )}
 
-                {errors.patientId && (
-                  <p className="text-red-500 text-xs mt-1">{errors.patientId.message}</p>
-                )}
-              </div>
+  {errors.patientId && (
+    <p className="text-red-500 text-xs mt-1">{errors.patientId.message}</p>
+  )}
+</div>
 
               {/* Doctor's Notes */}
-              <div>
+              <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-blue-700 mb-1">Doctor's Notes</label>
                 <textarea
                   {...register('rawInput')}
@@ -326,7 +351,7 @@ const ConsultationForm = () => {
               </div>
 
               {/* Symptoms */}
-              <div>
+              <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-blue-700 mb-1">
                   Symptoms (comma separated)
                 </label>
@@ -342,7 +367,7 @@ const ConsultationForm = () => {
               </div>
 
               {/* Language */}
-              <div>
+              <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-blue-700 mb-1">Language</label>
                 <select
                   {...register('language')}
@@ -355,41 +380,35 @@ const ConsultationForm = () => {
 
             </div>
 
-            {/* AI Recommendation Result - Fully Responsive Grid & Card Layout */}
+            {/* AI Recommendation Result - Separate Card for Diagnosis & Follow-up Date */}
             {(aiResult || isEditMode) && (
-              <div className="mt-6 p-4 sm:p-6 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-xl shadow-sm space-y-5">
-                <div className="space-y-1">
-                  <h3 className="text-base font-bold text-blue-800 flex items-center gap-2">
-                    <span>📋 Clinical Decision Support & Follow-up</span>
-                  </h3>
-                  <p className="text-xs text-gray-500">
-                    Please finalize the diagnosis and set a follow-up date if required.
-                  </p>
-                </div>
+              <div className="mt-6 p-6 bg-linear-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-xl shadow-sm space-y-4">
+                <h3 className="text-base font-bold text-blue-800 flex items-center gap-2">
+                  <span>📋 Clinical Decision Support & Follow-up</span>
+                </h3>
+                <p className="text-xs text-gray-500">
+                  Please finalize the diagnosis and set a follow-up date if required.
+                </p>
 
-                {/* Grid Inputs Wrapper */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
-                  
-                  {/* Diagnosis Column */}
-                  <div className="space-y-2">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Diagnosis (Required) */}
+                  <div>
+                    <div className="flex items-center justify-between gap-2 mb-1">
                       <label className="block text-sm font-medium text-blue-700">
                         Diagnosis <span className="text-red-500">*</span>
                       </label>
-                      
-                      {/* Responsive Checkbox Wrapper */}
-                      <label className="inline-flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 cursor-pointer text-xs font-bold text-slate-600 transition-all duration-200 hover:bg-blue-50 hover:border-blue-200 select-none w-max max-w-full">
-                        <input 
-                          type="checkbox" 
+
+                      <label className="inline-flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 cursor-pointer text-xs font-bold text-slate-600 transition-all duration-200 hover:bg-blue-50 hover:border-blue-200 select-none">
+                        <input
+                          type="checkbox"
                           {...register('isChronic')}
                           className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 cursor-pointer shrink-0"
                         />
-                        <span className={`transition-colors duration-200 truncate ${isChronicChecked ? "text-blue-600 font-extrabold" : ""}`}>
+                        <span className={`transition-colors duration-200 ${isChronicChecked ? 'text-blue-600 font-extrabold' : ''}`}>
                           Chronic Disease
                         </span>
                       </label>
                     </div>
-                    
                     <input
                       type="text"
                       {...register('diagnosis')}
@@ -401,9 +420,9 @@ const ConsultationForm = () => {
                     )}
                   </div>
 
-                  {/* Follow-up Date Column */}
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-blue-700 sm:h-[28px] sm:flex sm:items-center">
+                  {/* Follow-up Date */}
+                  <div>
+                    <label className="block text-sm font-medium text-blue-700 mb-1">
                       Follow-up Date
                     </label>
                     <input
@@ -418,42 +437,43 @@ const ConsultationForm = () => {
                     )}
                   </div>
                 </div>
-
-                {/* Save / Cancel Action Buttons Block */}
-                <div className="flex flex-col sm:flex-row gap-2.5 sm:justify-end pt-3 border-t border-blue-100/60">
-                  <Link
-                    to="/consultations"
-                    className="text-center border border-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-50 text-sm font-medium block w-full sm:w-auto order-2 sm:order-1"
-                  >
-                    Cancel
-                  </Link>
-                  <button
-                    type="submit"
-                    disabled={isLoading}
-                    className="bg-blue-700 hover:bg-blue-800 text-white px-5 py-2 rounded-md font-semibold text-sm disabled:opacity-50 block w-full sm:w-auto order-1 sm:order-2"
-                  >
-                    {isLoading ? 'Saving...' : isEditMode ? 'Update' : 'Save Record'}
-                  </button>
-                </div>
               </div>
             )}
 
-            {/* AI Action Button Wrapper */}
-            <div className="flex justify-end mt-6 pt-5 border-t">
+            {/* Actions */}
+            <div className="flex flex-wrap items-center justify-between gap-3 mt-6 pt-5 border-t">
               <button
                 type="button"
                 onClick={handleGetAIRecommendation}
                 disabled={isGenerating}
-                className="w-full sm:w-auto justify-center bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-md font-medium text-sm transition flex items-center gap-2 disabled:opacity-50"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-md font-medium text-sm transition flex items-center gap-2 disabled:opacity-50"
               >
                 🤖 {isGenerating ? 'Analyzing...' : 'Get AI Recommendation'} →
               </button>
+
+              <div className="flex gap-3 ms-auto">
+                <Link
+                  to="/consultations"
+                  className="border border-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-50 text-sm"
+                >
+                  Cancel
+                </Link>
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="bg-blue-700 hover:bg-blue-800 text-white px-5 py-2 rounded-md font-medium text-sm disabled:opacity-50"
+                >
+                  {isLoading ? 'Saving...' : isEditMode ? 'Update' : 'Save Record'}
+                </button>
+              </div>
             </div>
           </form>
         </div>
 
         {/* Right Sidebar */}
         <div className="space-y-5">
+
+          {/* Clinical Insights Card */}
           <div className="bg-white rounded-xl shadow overflow-hidden">
             <div className="bg-blue-50 px-5 py-3 flex items-center justify-between border-b border-blue-100">
               <span className="font-semibold text-blue-800 text-sm flex items-center gap-1.5">
@@ -524,6 +544,16 @@ const ConsultationForm = () => {
           </div>
         </div>
       </div>
+
+      <PrescriptionModal
+        isOpen={showPrescriptionModal}
+        onClose={handleClosePrescriptionModal}
+        consultationId={savedConsultationId}
+        patient={currentPatient}
+        language={watch('language') || 'en'}
+        existingPrescription={existingPrescription}
+        onSaved={handlePrescriptionSaved}
+      />
     </div>
   );
 }

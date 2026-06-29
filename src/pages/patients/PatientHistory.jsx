@@ -214,24 +214,6 @@ console.log(consultations);
                     </div>
                   ))}
                 </div>
-
-                {item.prescription.interactions?.length > 0 && (
-                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-2 text-xs text-amber-800">
-                    <strong>Interactions:</strong>
-                    <ul className="list-disc ml-4 mt-1">
-                      {item.prescription.interactions.map((i, idx) => <li key={idx}>{i}</li>)}
-                    </ul>
-                  </div>
-                )}
-
-                {item.prescription.warnings?.length > 0 && (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-3 mt-2 text-xs text-red-800">
-                    <strong>Warnings:</strong>
-                    <ul className="list-disc ml-4 mt-1">
-                      {item.prescription.warnings.map((w, idx) => <li key={idx}>{w}</li>)}
-                    </ul>
-                  </div>
-                )}
               </div>
             )}
           </div>
