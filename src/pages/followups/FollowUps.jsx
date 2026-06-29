@@ -1,37 +1,37 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   FiAlertTriangle,
   FiCalendar,
   FiClock,
   FiPlayCircle,
   FiCheckCircle,
-} from 'react-icons/fi';
-import Swal from 'sweetalert2';
-import { getFollowUps } from '../../api/followup';
-import './followups.css';
+} from "react-icons/fi";
+import Swal from "sweetalert2";
+import { getFollowUps } from "../../api/followup";
+import "./followups.css";
 
-const weekDays = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+const weekDays = ["S", "M", "T", "W", "T", "F", "S"];
 const monthNames = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
 const FollowUps = () => {
   const navigate = useNavigate();
 
   const [followUps, setFollowUps] = useState([]);
-  const [activeTab, setActiveTab] = useState('upcoming');
+  const [activeTab, setActiveTab] = useState("upcoming");
   const [loading, setLoading] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState(() => {
     const today = new Date();
@@ -47,7 +47,7 @@ const FollowUps = () => {
       setFollowUps(res?.data || []);
     } catch (error) {
       console.error(error);
-      Swal.fire('Error', 'Failed to load follow-ups', 'error');
+      Swal.fire("Error", "Failed to load follow-ups", "error");
     } finally {
       setLoading(false);
     }
@@ -58,20 +58,20 @@ const FollowUps = () => {
   }, []);
 
   const getId = (value) => {
-    if (!value) return '';
-    if (typeof value === 'string') return value;
-    return value._id || value.id || '';
+    if (!value) return "";
+    if (typeof value === "string") return value;
+    return value._id || value.id || "";
   };
 
   const toDateKey = (date) => {
-    if (!date) return '';
+    if (!date) return "";
 
     const d = new Date(date);
-    if (Number.isNaN(d.getTime())) return '';
+    if (Number.isNaN(d.getTime())) return "";
 
     const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
 
     return `${year}-${month}-${day}`;
   };
@@ -79,7 +79,7 @@ const FollowUps = () => {
   const todayKey = toDateKey(new Date());
 
   const isPastDue = (item) => {
-    if (item.status === 'done') return false;
+    if (item.status === "confirmed") return false;
     if (!item.scheduledDate) return false;
 
     return toDateKey(item.scheduledDate) < todayKey;
@@ -113,11 +113,11 @@ const FollowUps = () => {
   const filteredFollowUps = useMemo(() => {
     return validFollowUps.filter((item) => {
       const matchesTab =
-        activeTab === 'completed'
-          ? item.status === 'done'
-          : activeTab === 'pastDue'
+        activeTab === "completed"
+          ? item.status === "confirmed"
+          : activeTab === "pastDue"
             ? isPastDue(item)
-            : item.status !== 'done' && !isPastDue(item);
+            : item.status !== "confirmed" && !isPastDue(item);
 
       const matchesSelectedDate = selectedDate
         ? toDateKey(item.scheduledDate) === toDateKey(selectedDate)
@@ -129,25 +129,27 @@ const FollowUps = () => {
 
   const todayCount = useMemo(() => {
     return validFollowUps.filter(
-      (item) => item.status !== 'done' && toDateKey(item.scheduledDate) === todayKey
+      (item) =>
+        item.status !== "confirmed" &&
+        toDateKey(item.scheduledDate) === todayKey,
     ).length;
   }, [validFollowUps, todayKey]);
 
   const pastDueCount = useMemo(() => {
     return validFollowUps.filter(
-      (item) => item.status !== 'done' && isPastDue(item)
+      (item) => item.status !== "confirmed" && isPastDue(item),
     ).length;
   }, [validFollowUps]);
 
   const completedCount = useMemo(() => {
-    return validFollowUps.filter((item) => item.status === 'done').length;
+    return validFollowUps.filter((item) => item.status === "confirmed").length;
   }, [validFollowUps]);
 
   const selectedDateCount = useMemo(() => {
     if (!selectedDate) return 0;
 
     return validFollowUps.filter(
-      (item) => toDateKey(item.scheduledDate) === toDateKey(selectedDate)
+      (item) => toDateKey(item.scheduledDate) === toDateKey(selectedDate),
     ).length;
   }, [validFollowUps, selectedDate]);
 
@@ -156,12 +158,13 @@ const FollowUps = () => {
 
     const key = toDateKey(date);
 
-    return validFollowUps.filter((item) => toDateKey(item.scheduledDate) === key)
-      .length;
+    return validFollowUps.filter(
+      (item) => toDateKey(item.scheduledDate) === key,
+    ).length;
   };
 
   const getPatientName = (item) => {
-    return item.patientId?.name || 'Unknown Patient';
+    return item.patientId?.name || "Unknown Patient";
   };
 
   const getPatientId = (item) => {
@@ -169,40 +172,43 @@ const FollowUps = () => {
   };
 
   const getInitials = (name) => {
-    if (!name || name === 'Unknown Patient') return 'P';
+    if (!name || name === "Unknown Patient") return "P";
 
     return name
-      .split(' ')
+      .split(" ")
       .map((part) => part[0])
       .slice(0, 2)
-      .join('')
+      .join("")
       .toUpperCase();
   };
 
   const formatDate = (date) => {
-    if (!date) return 'No date';
+    if (!date) return "No date";
 
-    return new Date(date).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
+    return new Date(date).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
     });
   };
 
   const getConsultationSummary = (item) => {
     const consultation = item.consultationId;
 
-    if (!consultation) return 'No consultation details';
+    if (!consultation) return "No consultation details";
 
     if (consultation.diagnosis) return consultation.diagnosis;
 
-    if (Array.isArray(consultation.symptoms) && consultation.symptoms.length > 0) {
-      return consultation.symptoms.join(', ');
+    if (
+      Array.isArray(consultation.symptoms) &&
+      consultation.symptoms.length > 0
+    ) {
+      return consultation.symptoms.join(", ");
     }
 
     if (consultation.rawInput) return consultation.rawInput;
 
-    return 'Consultation details unavailable';
+    return "Consultation details unavailable";
   };
 
   const handlePreviousMonth = () => {
@@ -224,12 +230,12 @@ const FollowUps = () => {
   const handleInsightAction = () => {
     if (pastDueCount > 0) {
       setSelectedDate(null);
-      setActiveTab('pastDue');
+      setActiveTab("pastDue");
       return;
     }
 
     setSelectedDate(new Date());
-    setActiveTab('upcoming');
+    setActiveTab("upcoming");
   };
 
   return (
@@ -237,7 +243,9 @@ const FollowUps = () => {
       <div className="followups-header">
         <div>
           <h1>Patient Follow-ups</h1>
-          <p>Manage scheduled reviews and continuity of care for your clinic.</p>
+          <p>
+            Manage scheduled reviews and continuity of care for your clinic.
+          </p>
         </div>
 
         <div className="header-note">
@@ -247,22 +255,22 @@ const FollowUps = () => {
 
       <div className="followups-tabs">
         <button
-          className={activeTab === 'upcoming' ? 'active' : ''}
-          onClick={() => setActiveTab('upcoming')}
+          className={activeTab === "upcoming" ? "active" : ""}
+          onClick={() => setActiveTab("upcoming")}
         >
           Upcoming
         </button>
 
         <button
-          className={activeTab === 'pastDue' ? 'active' : ''}
-          onClick={() => setActiveTab('pastDue')}
+          className={activeTab === "pastDue" ? "active" : ""}
+          onClick={() => setActiveTab("pastDue")}
         >
           Past Due
         </button>
 
         <button
-          className={activeTab === 'completed' ? 'active' : ''}
-          onClick={() => setActiveTab('completed')}
+          className={activeTab === "completed" ? "active" : ""}
+          onClick={() => setActiveTab("completed")}
         >
           Completed
         </button>
@@ -277,7 +285,8 @@ const FollowUps = () => {
               </button>
 
               <span>
-                {monthNames[calendarMonth.getMonth()]} {calendarMonth.getFullYear()}
+                {monthNames[calendarMonth.getMonth()]}{" "}
+                {calendarMonth.getFullYear()}
               </span>
 
               <button type="button" onClick={handleNextMonth}>
@@ -294,7 +303,9 @@ const FollowUps = () => {
 
               {calendarDays.map((day, index) => {
                 if (!day) {
-                  return <span key={`empty-${index}`} className="calendar-empty" />;
+                  return (
+                    <span key={`empty-${index}`} className="calendar-empty" />
+                  );
                 }
 
                 const count = getFollowUpsCountForDate(day);
@@ -308,11 +319,11 @@ const FollowUps = () => {
                     key={toDateKey(day)}
                     onClick={() => setSelectedDate(day)}
                     className={[
-                      'calendar-day',
-                      isSelected ? 'selected' : '',
-                      isToday ? 'today' : '',
-                      count > 0 ? 'has-followups' : '',
-                    ].join(' ')}
+                      "calendar-day",
+                      isSelected ? "selected" : "",
+                      isToday ? "today" : "",
+                      count > 0 ? "has-followups" : "",
+                    ].join(" ")}
                   >
                     <span>{day.getDate()}</span>
                     {count > 0 && <small>{count}</small>}
@@ -325,7 +336,7 @@ const FollowUps = () => {
               {selectedDate ? (
                 <>
                   <p>
-                    Showing {selectedDateCount} follow-up(s) for{' '}
+                    Showing {selectedDateCount} follow-up(s) for{" "}
                     {formatDate(selectedDate)}
                   </p>
 
@@ -349,19 +360,23 @@ const FollowUps = () => {
             </div>
 
             <button type="button" onClick={handleInsightAction}>
-              {pastDueCount > 0 ? 'Review Past Due' : "View Today's Follow-ups"}
+              {pastDueCount > 0 ? "Review Past Due" : "View Today's Follow-ups"}
             </button>
           </div>
         </aside>
 
         <main className="followups-content">
           <div className="section-title">
-            {activeTab === 'completed' ? <FiCheckCircle /> : <FiAlertTriangle />}
+            {activeTab === "completed" ? (
+              <FiCheckCircle />
+            ) : (
+              <FiAlertTriangle />
+            )}
 
             <span>
-              {activeTab === 'upcoming' && 'Upcoming Follow-ups'}
-              {activeTab === 'pastDue' && 'Past Due Follow-ups'}
-              {activeTab === 'completed' && 'Completed Follow-ups'}
+              {activeTab === "upcoming" && "Upcoming Follow-ups"}
+              {activeTab === "pastDue" && "Past Due Follow-ups"}
+              {activeTab === "completed" && "Completed Follow-ups"}
             </span>
           </div>
 
@@ -389,14 +404,14 @@ const FollowUps = () => {
 
                     <span
                       className={
-                        isPastDue(item) ? 'urgent-badge danger' : 'urgent-badge'
+                        isPastDue(item) ? "urgent-badge danger" : "urgent-badge"
                       }
                     >
-                      {item.status === 'done'
-                        ? 'Completed'
+                      {item.status === "confirmed"
+                        ? "Completed"
                         : isPastDue(item)
-                          ? 'Past Due'
-                          : 'Pending'}
+                          ? "Past Due"
+                          : "Pending"}
                     </span>
                   </div>
 
@@ -408,7 +423,7 @@ const FollowUps = () => {
 
                     <p>
                       <FiClock />
-                      {item.instructions || 'No follow-up instructions'}
+                      {item.instructions || "No follow-up instructions"}
                     </p>
                   </div>
 
@@ -418,7 +433,7 @@ const FollowUps = () => {
                   </div>
 
                   <div className="card-actions">
-                    {item.status !== 'done' ? (
+                    {item.status !== "confirmed" ? (
                       <button
                         className="start-btn"
                         onClick={() => handleStartFollowUp(item)}

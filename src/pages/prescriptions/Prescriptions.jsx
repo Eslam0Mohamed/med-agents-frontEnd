@@ -2,13 +2,14 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import Swal from 'sweetalert2';
 import { getAllPrescriptions, deletePrescription, getPrescriptionDates } from '../../api/prescription';
 import PrescriptionModal from '../../components/prescriptions/PrescriptionModal';
+import '../followups/followups.css';
 
 const PAGE_LIMIT = 10;
-const MONTH_NAMES = [
+const weekDays = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+const monthNames = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December',
 ];
-const WEEKDAY_LABELS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
 function calculateAge(dob) {
   if (!dob) return null;
@@ -31,104 +32,101 @@ function initials(name) {
 }
 
 function toDateKey(date) {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
+  if (!date) return '';
+  const d = new Date(date);
+  if (Number.isNaN(d.getTime())) return '';
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 }
 
-// Small self-contained month-view calendar (no external date-picker
-// dependency) for searching prescriptions issued on a specific day.
-function PrescriptionCalendar({ selectedDate, onSelectDate, highlightedDates }) {
-  const [viewDate, setViewDate] = useState(() => selectedDate ? new Date(selectedDate) : new Date());
-
-  const year = viewDate.getFullYear();
-  const month = viewDate.getMonth();
-
-  const firstDayOfMonth = new Date(year, month, 1);
-  const startWeekday = firstDayOfMonth.getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-  const cells = [];
-  for (let i = 0; i < startWeekday; i++) cells.push(null);
-  for (let day = 1; day <= daysInMonth; day++) cells.push(day);
+// Same mini-calendar markup/styling as the Follow-ups page (followups.css),
+// used here to search prescriptions by the day they were issued.
+function PrescriptionCalendar({ selectedDate, onSelectDate, dateCounts }) {
+  const [calendarMonth, setCalendarMonth] = useState(() => {
+    const today = new Date();
+    return new Date(today.getFullYear(), today.getMonth(), 1);
+  });
 
   const todayKey = toDateKey(new Date());
 
-  const goToMonth = (delta) => {
-    setViewDate(new Date(year, month + delta, 1));
+  const calendarDays = useMemo(() => {
+    const year = calendarMonth.getFullYear();
+    const month = calendarMonth.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const startWeekDay = firstDay.getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    const days = [];
+    for (let i = 0; i < startWeekDay; i += 1) days.push(null);
+    for (let day = 1; day <= daysInMonth; day += 1) days.push(new Date(year, month, day));
+    return days;
+  }, [calendarMonth]);
+
+  const handlePreviousMonth = () => {
+    setCalendarMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+  };
+
+  const handleNextMonth = () => {
+    setCalendarMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 w-full sm:w-72">
-      <div className="flex items-center justify-between mb-3">
-        <button
-          type="button"
-          onClick={() => goToMonth(-1)}
-          className="text-gray-400 hover:text-gray-700 px-2"
-          aria-label="Previous month"
-        >
-          ‹
-        </button>
-        <span className="text-sm font-semibold text-gray-800">
-          {MONTH_NAMES[month]} {year}
+    <div className="mini-calendar-card">
+      <div className="calendar-title">
+        <button type="button" onClick={handlePreviousMonth}>‹</button>
+        <span>
+          {monthNames[calendarMonth.getMonth()]} {calendarMonth.getFullYear()}
         </span>
-        <button
-          type="button"
-          onClick={() => goToMonth(1)}
-          className="text-gray-400 hover:text-gray-700 px-2"
-          aria-label="Next month"
-        >
-          ›
-        </button>
+        <button type="button" onClick={handleNextMonth}>›</button>
       </div>
 
-      <div className="grid grid-cols-7 gap-1 text-center text-[11px] text-gray-400 mb-1.5">
-        {WEEKDAY_LABELS.map((d) => (
-          <span key={d}>{d}</span>
+      <div className="calendar-grid">
+        {weekDays.map((day, index) => (
+          <span key={`${day}-${index}`} className="calendar-day-name">{day}</span>
         ))}
-      </div>
 
-      <div className="grid grid-cols-7 gap-1">
-        {cells.map((day, i) => {
-          if (!day) return <div key={`empty-${i}`} />;
-          const cellDate = new Date(year, month, day);
-          const key = toDateKey(cellDate);
-          const isSelected = key === selectedDate;
+        {calendarDays.map((day, index) => {
+          if (!day) return <span key={`empty-${index}`} className="calendar-empty" />;
+
+          const key = toDateKey(day);
+          const count = dateCounts?.[key] || 0;
+          const isSelected = selectedDate && key === toDateKey(selectedDate);
           const isToday = key === todayKey;
-          const hasPrescriptions = highlightedDates?.has(key);
 
           return (
             <button
-              key={key}
               type="button"
-              onClick={() => onSelectDate(isSelected ? null : key)}
-              className={`relative h-8 rounded-md text-xs flex items-center justify-center transition-colors ${
-                isSelected
-                  ? 'bg-blue-600 text-white font-semibold'
-                  : isToday
-                    ? 'border border-blue-400 text-blue-700'
-                    : 'text-gray-700 hover:bg-blue-50'
-              }`}
+              key={key}
+              onClick={() => onSelectDate(isSelected ? null : day)}
+              className={[
+                'calendar-day',
+                isSelected ? 'selected' : '',
+                isToday ? 'today' : '',
+                count > 0 ? 'has-followups' : '',
+              ].join(' ')}
             >
-              {day}
-              {hasPrescriptions && !isSelected && (
-                <span className="absolute bottom-1 w-1 h-1 rounded-full bg-blue-500" />
-              )}
+              <span>{day.getDate()}</span>
+              {count > 0 && <small>{count}</small>}
             </button>
           );
         })}
       </div>
 
-      {selectedDate && (
-        <button
-          type="button"
-          onClick={() => onSelectDate(null)}
-          className="mt-3 text-xs text-blue-600 hover:underline w-full text-center"
-        >
-          Clear date filter
-        </button>
-      )}
+      <div className="calendar-footer">
+        {selectedDate ? (
+          <>
+            <p>
+              Showing prescriptions for{' '}
+              {selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+            </p>
+            <button type="button" onClick={() => onSelectDate(null)}>Show all</button>
+          </>
+        ) : (
+          <p>Click a day to filter prescriptions.</p>
+        )}
+      </div>
     </div>
   );
 }
@@ -162,6 +160,7 @@ function PatientPrescriptionCard({ prescription, onEdit, onDelete }) {
   const patient = prescription.patientId;
   const age = calculateAge(patient?.dateOfBirth);
   const medications = (prescription.medications || []).filter(Boolean);
+  const isFromFollowup = !!prescription.consultationId?.followupId;
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-5">
@@ -172,7 +171,16 @@ function PatientPrescriptionCard({ prescription, onEdit, onDelete }) {
             {initials(patient?.name)}
           </div>
           <div>
-            <p className="text-sm font-semibold text-gray-900">{patient?.name || 'Unknown patient'}</p>
+            <p className="text-sm font-semibold text-gray-900 flex items-center gap-2 flex-wrap">
+              {patient?.name || 'Unknown patient'}
+              <span
+                className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                  isFromFollowup ? 'bg-purple-50 text-purple-700' : 'bg-blue-50 text-blue-700'
+                }`}
+              >
+                {isFromFollowup ? 'Follow-up' : 'Consultation'}
+              </span>
+            </p>
             <p className="text-xs text-gray-500">
               ID: #{patient?._id?.slice(-6) || '—'}
               {age !== null && <> • Age: {age}</>}
@@ -215,6 +223,9 @@ function PatientPrescriptionCard({ prescription, onEdit, onDelete }) {
               <tr key={i}>
                 <td className="px-5 py-4 align-top">
                   <p className="text-sm font-semibold text-gray-900">{med.name || 'Unknown medication'}</p>
+                  {med.activeIngredient && (
+                    <p className="text-xs text-gray-400">{med.activeIngredient}</p>
+                  )}
                   {med.isChronic && (
                     <p className="text-xs text-gray-400">Chronic</p>
                   )}
@@ -241,6 +252,9 @@ function PatientPrescriptionCard({ prescription, onEdit, onDelete }) {
           <div key={i} className="px-4 py-4">
             <div className="mb-1">
               <p className="text-sm font-semibold text-gray-900">{med.name || 'Unknown medication'}</p>
+              {med.activeIngredient && (
+                <p className="text-xs text-gray-400">{med.activeIngredient}</p>
+              )}
               <p className="text-xs text-gray-500">{med.dose || '—'}</p>
             </div>
             <p className="text-xs text-gray-500 mb-2">
@@ -260,7 +274,7 @@ export default function Prescriptions() {
   const [prescriptions, setPrescriptions] = useState([]);
   const [search, setSearch] = useState('');
   const [selectedDate, setSelectedDate] = useState(null);
-  const [highlightedDates, setHighlightedDates] = useState(new Set());
+  const [dateCounts, setDateCounts] = useState({});
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
@@ -274,7 +288,7 @@ export default function Prescriptions() {
       setLoading(true);
       const res = await getAllPrescriptions({
         search: searchValue,
-        date: dateValue || '',
+        date: dateValue ? toDateKey(dateValue) : '',
         page: pageValue,
         limit: PAGE_LIMIT,
       });
@@ -288,18 +302,22 @@ export default function Prescriptions() {
     }
   }, []);
 
-  const loadHighlightedDates = useCallback(async () => {
+  const loadDateCounts = useCallback(async () => {
     try {
       const res = await getPrescriptionDates();
-      setHighlightedDates(new Set(res.data || []));
+      const counts = {};
+      (res.data || []).forEach((key) => {
+        counts[key] = (counts[key] || 0) + 1;
+      });
+      setDateCounts(counts);
     } catch {
-      setHighlightedDates(new Set());
+      setDateCounts({});
     }
   }, []);
 
   useEffect(() => {
     loadPrescriptions('', null, 1);
-    loadHighlightedDates();
+    loadDateCounts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -315,10 +333,6 @@ export default function Prescriptions() {
   const handlePageChange = (next) => {
     setPage(next);
     loadPrescriptions(search, selectedDate, next);
-  };
-
-  const handleSelectDate = (dateKey) => {
-    setSelectedDate(dateKey);
   };
 
   const handleEdit = (prescription) => {
@@ -342,7 +356,7 @@ export default function Prescriptions() {
       await deletePrescription(prescription._id);
       Swal.fire('Deleted', 'Prescription deleted successfully', 'success');
       loadPrescriptions(search, selectedDate, page);
-      loadHighlightedDates();
+      loadDateCounts();
     } catch (err) {
       Swal.fire('Error', err.response?.data?.message || 'Failed to delete prescription', 'error');
     }
@@ -352,22 +366,13 @@ export default function Prescriptions() {
     setShowEditModal(false);
     setEditingPrescription(null);
     loadPrescriptions(search, selectedDate, page);
+    loadDateCounts();
   };
 
   const handleModalClose = () => {
     setShowEditModal(false);
     setEditingPrescription(null);
   };
-
-  const selectedDateLabel = useMemo(() => {
-    if (!selectedDate) return null;
-    return new Date(selectedDate).toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-  }, [selectedDate]);
 
   return (
     <div className="max-w-6xl mx-auto px-3 sm:px-6 py-6">
@@ -379,28 +384,23 @@ export default function Prescriptions() {
         </p>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-5 mb-5">
-        {/* Search (full width) */}
-        <div className="flex-1">
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by patient name or national ID..."
-            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-          />
-          {selectedDateLabel && (
-            <p className="text-xs text-blue-700 mt-2">
-              Showing prescriptions from <strong>{selectedDateLabel}</strong>
-            </p>
-          )}
-        </div>
-
-        {/* Calendar */}
+      {/* Calendar (above the search bar) */}
+      <div className="mb-5">
         <PrescriptionCalendar
           selectedDate={selectedDate}
-          onSelectDate={handleSelectDate}
-          highlightedDates={highlightedDates}
+          onSelectDate={setSelectedDate}
+          dateCounts={dateCounts}
+        />
+      </div>
+
+      {/* Search (full width) */}
+      <div className="mb-5">
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search by patient name or national ID..."
+          className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
         />
       </div>
 

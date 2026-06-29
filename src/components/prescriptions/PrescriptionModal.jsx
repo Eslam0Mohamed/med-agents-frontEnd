@@ -14,6 +14,7 @@ const DURATION_UNITS = ['days', 'weeks', 'months'];
 const emptyMedication = () => ({
   _key: Math.random().toString(36).slice(2),
   name: '',
+  activeIngredient: '',
   dosageAmount: '',
   dosageUnit: 'mg',
   frequencyCount: '',
@@ -28,6 +29,7 @@ const emptyMedication = () => ({
 const medicationToFormState = (med) => ({
   _key: Math.random().toString(36).slice(2),
   name: med.name || '',
+  activeIngredient: med.activeIngredient || '',
   dosageAmount: med.dosageAmount ?? '',
   dosageUnit: med.dosageUnit || 'mg',
   frequencyCount: med.frequencyCount ?? '',
@@ -56,7 +58,8 @@ function MedicationRow({ medication, index, onChange, onRemove, canRemove }) {
   const blurTimeoutRef = useRef(null);
 
   const handleNameChange = (value) => {
-    onChange(index, { ...medication, name: value });
+    // لو الدكتور بدأ يعدل الاسم يدويًا، المادة الفعالة المحفوظة قبل كدة مش مضمون تكون صحيحة لسة
+    onChange(index, { ...medication, name: value, activeIngredient: '' });
     setShowSuggestions(true);
 
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -78,7 +81,11 @@ function MedicationRow({ medication, index, onChange, onRemove, canRemove }) {
   };
 
   const handleSelectSuggestion = (drug) => {
-    onChange(index, { ...medication, name: drug.displayName });
+    const activeIngredient =
+      drug.genericName && drug.genericName !== 'N/A' && drug.genericName.toLowerCase() !== drug.displayName.toLowerCase()
+        ? drug.genericName
+        : '';
+    onChange(index, { ...medication, name: drug.displayName, activeIngredient });
     setShowSuggestions(false);
     setSuggestions([]);
   };
@@ -116,6 +123,11 @@ function MedicationRow({ medication, index, onChange, onRemove, canRemove }) {
           placeholder="Start typing a drug name..."
           className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
         />
+        {medication.activeIngredient && (
+          <p className="text-xs text-gray-400 mt-1">
+            Active ingredient: <span className="text-gray-600">{medication.activeIngredient}</span>
+          </p>
+        )}
         {showSuggestions && (searching || suggestions.length > 0) && (
           <ul className="absolute z-20 w-full bg-white border border-gray-200 rounded-md mt-1 max-h-48 overflow-y-auto shadow-lg">
             {searching && (
@@ -129,6 +141,9 @@ function MedicationRow({ medication, index, onChange, onRemove, canRemove }) {
                   className="px-3 py-2 hover:bg-blue-50 cursor-pointer text-sm border-b border-gray-50 last:border-0"
                 >
                   <span className="font-medium text-gray-900">{drug.displayName}</span>
+                  {drug.genericName !== 'N/A' && drug.genericName?.toLowerCase() !== drug.displayName.toLowerCase() && (
+                    <span className="text-gray-400 text-xs"> ({drug.genericName})</span>
+                  )}
                   {drug.route !== 'N/A' && (
                     <span className="text-gray-400 text-xs"> · {drug.route}</span>
                   )}
@@ -346,7 +361,7 @@ export default function PrescriptionModal({
       setCheckingSafety(true);
       const res = await checkPrescriptionSafety({
         patientId: patient._id,
-        medications: validMeds.map((m) => ({ name: m.name })),
+        medications: validMeds.map((m) => ({ name: m.name, activeIngredient: m.activeIngredient || null })),
         excludePrescriptionId: existingPrescription?._id,
       });
       setCheckedMedications(res.data?.medications || []);
@@ -396,6 +411,7 @@ export default function PrescriptionModal({
   const buildPayloadMedications = () =>
     medications.map((m) => ({
       name: m.name.trim(),
+      activeIngredient: m.activeIngredient?.trim() || null,
       dosageAmount: Number(m.dosageAmount),
       dosageUnit: m.dosageUnit,
       frequencyCount: Number(m.frequencyCount),
