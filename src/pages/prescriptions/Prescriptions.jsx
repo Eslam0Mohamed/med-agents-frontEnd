@@ -1,14 +1,28 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import Swal from 'sweetalert2';
-import { getAllPrescriptions, deletePrescription, getPrescriptionDates } from '../../api/prescription';
-import PrescriptionModal from '../../components/prescriptions/PrescriptionModal';
-import '../followups/followups.css';
+import { useState, useEffect, useCallback, useMemo } from "react";
+import Swal from "sweetalert2";
+import {
+  getAllPrescriptions,
+  deletePrescription,
+  getPrescriptionDates,
+} from "../../api/prescription";
+import PrescriptionModal from "../../components/prescriptions/PrescriptionModal";
+import "../followups/followups.css";
 
 const PAGE_LIMIT = 10;
-const weekDays = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+const weekDays = ["S", "M", "T", "W", "T", "F", "S"];
 const monthNames = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
 function calculateAge(dob) {
@@ -22,22 +36,22 @@ function calculateAge(dob) {
 }
 
 function initials(name) {
-  return (name || '?')
-    .split(' ')
+  return (name || "?")
+    .split(" ")
     .filter(Boolean)
     .map((n) => n[0])
-    .join('')
+    .join("")
     .slice(0, 2)
     .toUpperCase();
 }
 
 function toDateKey(date) {
-  if (!date) return '';
+  if (!date) return "";
   const d = new Date(date);
-  if (Number.isNaN(d.getTime())) return '';
+  if (Number.isNaN(d.getTime())) return "";
   const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
 }
 
@@ -48,7 +62,7 @@ function PrescriptionCalendar({ selectedDate, onSelectDate, dateCounts }) {
     const today = new Date();
     return new Date(today.getFullYear(), today.getMonth(), 1);
   });
-
+  // error
   const todayKey = toDateKey(new Date());
 
   const calendarDays = useMemo(() => {
@@ -60,35 +74,47 @@ function PrescriptionCalendar({ selectedDate, onSelectDate, dateCounts }) {
 
     const days = [];
     for (let i = 0; i < startWeekDay; i += 1) days.push(null);
-    for (let day = 1; day <= daysInMonth; day += 1) days.push(new Date(year, month, day));
+    for (let day = 1; day <= daysInMonth; day += 1)
+      days.push(new Date(year, month, day));
     return days;
   }, [calendarMonth]);
 
   const handlePreviousMonth = () => {
-    setCalendarMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+    setCalendarMonth(
+      (prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1),
+    );
   };
 
   const handleNextMonth = () => {
-    setCalendarMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+    setCalendarMonth(
+      (prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1),
+    );
   };
 
   return (
     <div className="mini-calendar-card">
       <div className="calendar-title">
-        <button type="button" onClick={handlePreviousMonth}>‹</button>
+        <button type="button" onClick={handlePreviousMonth}>
+          ‹
+        </button>
         <span>
           {monthNames[calendarMonth.getMonth()]} {calendarMonth.getFullYear()}
         </span>
-        <button type="button" onClick={handleNextMonth}>›</button>
+        <button type="button" onClick={handleNextMonth}>
+          ›
+        </button>
       </div>
 
       <div className="calendar-grid">
         {weekDays.map((day, index) => (
-          <span key={`${day}-${index}`} className="calendar-day-name">{day}</span>
+          <span key={`${day}-${index}`} className="calendar-day-name">
+            {day}
+          </span>
         ))}
 
         {calendarDays.map((day, index) => {
-          if (!day) return <span key={`empty-${index}`} className="calendar-empty" />;
+          if (!day)
+            return <span key={`empty-${index}`} className="calendar-empty" />;
 
           const key = toDateKey(day);
           const count = dateCounts?.[key] || 0;
@@ -101,11 +127,11 @@ function PrescriptionCalendar({ selectedDate, onSelectDate, dateCounts }) {
               key={key}
               onClick={() => onSelectDate(isSelected ? null : day)}
               className={[
-                'calendar-day',
-                isSelected ? 'selected' : '',
-                isToday ? 'today' : '',
-                count > 0 ? 'has-followups' : '',
-              ].join(' ')}
+                "calendar-day",
+                isSelected ? "selected" : "",
+                isToday ? "today" : "",
+                count > 0 ? "has-followups" : "",
+              ].join(" ")}
             >
               <span>{day.getDate()}</span>
               {count > 0 && <small>{count}</small>}
@@ -118,10 +144,16 @@ function PrescriptionCalendar({ selectedDate, onSelectDate, dateCounts }) {
         {selectedDate ? (
           <>
             <p>
-              Showing prescriptions for{' '}
-              {selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+              Showing prescriptions for{" "}
+              {selectedDate.toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              })}
             </p>
-            <button type="button" onClick={() => onSelectDate(null)}>Show all</button>
+            <button type="button" onClick={() => onSelectDate(null)}>
+              Show all
+            </button>
           </>
         ) : (
           <p>Click a day to filter prescriptions.</p>
@@ -172,22 +204,26 @@ function PatientPrescriptionCard({ prescription, onEdit, onDelete }) {
           </div>
           <div>
             <p className="text-sm font-semibold text-gray-900 flex items-center gap-2 flex-wrap">
-              {patient?.name || 'Unknown patient'}
+              {patient?.name || "Unknown patient"}
               <span
                 className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                  isFromFollowup ? 'bg-purple-50 text-purple-700' : 'bg-blue-50 text-blue-700'
+                  isFromFollowup
+                    ? "bg-purple-50 text-purple-700"
+                    : "bg-blue-50 text-blue-700"
                 }`}
               >
-                {isFromFollowup ? 'Follow-up' : 'Consultation'}
+                {isFromFollowup ? "Follow-up" : "Consultation"}
               </span>
             </p>
             <p className="text-xs text-gray-500">
-              ID: #{patient?._id?.slice(-6) || '—'}
+              ID: #{patient?._id?.slice(-6) || "—"}
               {age !== null && <> • Age: {age}</>}
-              {' • '}
-              Allergies:{' '}
-              {patient?.allergies?.length > 0 ? patient.allergies.join(', ') : 'None Reported'}
-              {' • '}
+              {" • "}
+              Allergies:{" "}
+              {patient?.allergies?.length > 0
+                ? patient.allergies.join(", ")
+                : "None Reported"}
+              {" • "}
               {new Date(prescription.createdAt).toLocaleDateString()}
             </p>
           </div>
@@ -222,18 +258,22 @@ function PatientPrescriptionCard({ prescription, onEdit, onDelete }) {
             {medications.map((med, i) => (
               <tr key={i}>
                 <td className="px-5 py-4 align-top">
-                  <p className="text-sm font-semibold text-gray-900">{med.name || 'Unknown medication'}</p>
+                  <p className="text-sm font-semibold text-gray-900">
+                    {med.name || "Unknown medication"}
+                  </p>
                   {med.activeIngredient && (
-                    <p className="text-xs text-gray-400">{med.activeIngredient}</p>
+                    <p className="text-xs text-gray-400">
+                      {med.activeIngredient}
+                    </p>
                   )}
                   {med.isChronic && (
                     <p className="text-xs text-gray-400">Chronic</p>
                   )}
                 </td>
                 <td className="px-5 py-4 align-top">
-                  <p className="text-sm text-gray-700">{med.dose || '—'}</p>
+                  <p className="text-sm text-gray-700">{med.dose || "—"}</p>
                   <p className="text-sm text-gray-500">
-                    {med.frequency || '—'}
+                    {med.frequency || "—"}
                     {!med.isChronic && med.duration && <> · {med.duration}</>}
                   </p>
                 </td>
@@ -251,14 +291,16 @@ function PatientPrescriptionCard({ prescription, onEdit, onDelete }) {
         {medications.map((med, i) => (
           <div key={i} className="px-4 py-4">
             <div className="mb-1">
-              <p className="text-sm font-semibold text-gray-900">{med.name || 'Unknown medication'}</p>
+              <p className="text-sm font-semibold text-gray-900">
+                {med.name || "Unknown medication"}
+              </p>
               {med.activeIngredient && (
                 <p className="text-xs text-gray-400">{med.activeIngredient}</p>
               )}
-              <p className="text-xs text-gray-500">{med.dose || '—'}</p>
+              <p className="text-xs text-gray-500">{med.dose || "—"}</p>
             </div>
             <p className="text-xs text-gray-500 mb-2">
-              {med.frequency || '—'}
+              {med.frequency || "—"}
               {!med.isChronic && med.duration && <> · {med.duration}</>}
               {med.isChronic && <> · Chronic</>}
             </p>
@@ -272,7 +314,7 @@ function PatientPrescriptionCard({ prescription, onEdit, onDelete }) {
 
 export default function Prescriptions() {
   const [prescriptions, setPrescriptions] = useState([]);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [selectedDate, setSelectedDate] = useState(null);
   const [dateCounts, setDateCounts] = useState({});
   const [page, setPage] = useState(1);
@@ -283,24 +325,27 @@ export default function Prescriptions() {
   const [editingPrescription, setEditingPrescription] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
 
-  const loadPrescriptions = useCallback(async (searchValue, dateValue, pageValue) => {
-    try {
-      setLoading(true);
-      const res = await getAllPrescriptions({
-        search: searchValue,
-        date: dateValue ? toDateKey(dateValue) : '',
-        page: pageValue,
-        limit: PAGE_LIMIT,
-      });
-      setPrescriptions(res.data || []);
-      setTotalPages(res.pagination?.totalPages || 1);
-      setTotal(res.pagination?.total || 0);
-    } catch {
-      Swal.fire('Error', 'Failed to load prescriptions', 'error');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const loadPrescriptions = useCallback(
+    async (searchValue, dateValue, pageValue) => {
+      try {
+        setLoading(true);
+        const res = await getAllPrescriptions({
+          search: searchValue,
+          date: dateValue ? toDateKey(dateValue) : "",
+          page: pageValue,
+          limit: PAGE_LIMIT,
+        });
+        setPrescriptions(res.data || []);
+        setTotalPages(res.pagination?.totalPages || 1);
+        setTotal(res.pagination?.total || 0);
+      } catch {
+        Swal.fire("Error", "Failed to load prescriptions", "error");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [],
+  );
 
   const loadDateCounts = useCallback(async () => {
     try {
@@ -316,7 +361,7 @@ export default function Prescriptions() {
   }, []);
 
   useEffect(() => {
-    loadPrescriptions('', null, 1);
+    loadPrescriptions("", null, 1);
     loadDateCounts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -342,23 +387,27 @@ export default function Prescriptions() {
 
   const handleDelete = async (prescription) => {
     const result = await Swal.fire({
-      title: 'Delete this prescription?',
-      text: 'This will remove the prescription record permanently.',
-      icon: 'warning',
+      title: "Delete this prescription?",
+      text: "This will remove the prescription record permanently.",
+      icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Yes, delete it',
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it",
     });
     if (!result.isConfirmed) return;
 
     try {
       await deletePrescription(prescription._id);
-      Swal.fire('Deleted', 'Prescription deleted successfully', 'success');
+      Swal.fire("Deleted", "Prescription deleted successfully", "success");
       loadPrescriptions(search, selectedDate, page);
       loadDateCounts();
     } catch (err) {
-      Swal.fire('Error', err.response?.data?.message || 'Failed to delete prescription', 'error');
+      Swal.fire(
+        "Error",
+        err.response?.data?.message || "Failed to delete prescription",
+        "error",
+      );
     }
   };
 
@@ -378,7 +427,9 @@ export default function Prescriptions() {
     <div className="max-w-6xl mx-auto px-3 sm:px-6 py-6">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-lg sm:text-xl font-bold text-gray-900">Prescriptions</h1>
+        <h1 className="text-lg sm:text-xl font-bold text-gray-900">
+          Prescriptions
+        </h1>
         <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
           All prescriptions you've issued, with live safety screening.
         </p>
@@ -406,7 +457,9 @@ export default function Prescriptions() {
 
       {/* List */}
       {loading && (
-        <div className="text-center text-gray-400 py-16">Loading prescriptions...</div>
+        <div className="text-center text-gray-400 py-16">
+          Loading prescriptions...
+        </div>
       )}
 
       {!loading && prescriptions.length === 0 && (
@@ -446,7 +499,9 @@ export default function Prescriptions() {
                   key={p}
                   onClick={() => handlePageChange(p)}
                   className={`w-8 h-8 rounded-md text-sm font-medium ${
-                    p === page ? 'bg-blue-600 text-white' : 'border border-gray-300 text-gray-600 hover:bg-gray-50'
+                    p === page
+                      ? "bg-blue-600 text-white"
+                      : "border border-gray-300 text-gray-600 hover:bg-gray-50"
                   }`}
                 >
                   {p}
@@ -469,12 +524,12 @@ export default function Prescriptions() {
           isOpen={showEditModal}
           onClose={handleModalClose}
           consultationId={
-            typeof editingPrescription.consultationId === 'object'
+            typeof editingPrescription.consultationId === "object"
               ? editingPrescription.consultationId?._id
               : editingPrescription.consultationId
           }
           patient={editingPrescription.patientId}
-          language={editingPrescription.language || 'en'}
+          language={editingPrescription.language || "en"}
           existingPrescription={editingPrescription}
           onSaved={handleModalSaved}
         />

@@ -35,6 +35,8 @@ export default function PatientHistory() {
 
   const initials = (name) =>
     name?.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase();
+// console.log(history.history[0]);
+
 
   if (isHistoryLoading) {
     return <div className="text-center text-gray-400 py-10">Loading...</div>;
@@ -47,6 +49,8 @@ export default function PatientHistory() {
   if (!history) return null;
 
   const { patient, history: consultations } = history;
+  console.log("consultations");
+console.log(consultations);
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -143,6 +147,8 @@ export default function PatientHistory() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {consultations.map((item) => (
+          
+          
           <div key={item.consultationId} className="bg-white rounded-xl shadow-sm p-5">
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs text-gray-400">
@@ -155,8 +161,9 @@ export default function PatientHistory() {
                 {item.urgencyLevel}
               </span>
             </div>
-
-            <div className="flex flex-wrap gap-1.5 mb-3">
+<div className=''>
+                <p className="text-xs font-semibold text-gray-400 uppercase mb-2">symptoms</p>
+       <div className="flex flex-wrap gap-1.5 mb-3">
               {item.symptoms.map((s, i) => (
                 <span key={i} className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
                   {s}
@@ -164,6 +171,7 @@ export default function PatientHistory() {
               ))}
             </div>
 
+              </div>
             <div className="grid grid-cols-2 gap-3 mb-3">
               <div>
                 <p className="text-xs font-semibold text-gray-400 uppercase">Diagnosis</p>

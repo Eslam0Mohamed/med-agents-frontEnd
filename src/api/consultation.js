@@ -1,7 +1,7 @@
 import apiInstance from '../config/apiInstance';
 
 export const getConsultations = async () => {
-  const res = await apiInstance.get('/consultations');
+  const res = await apiInstance.get('/consultations/doctor');
   return res.data;
 };
 
