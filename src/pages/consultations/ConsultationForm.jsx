@@ -7,7 +7,6 @@ import { consultationSchema } from '../../schemas/consultation';
 import { getAllPatients, getPatients } from '../../api/patient';
 import {createConsultation,getAIRecommendation,getConsultationById,updateConsultation,
 } from '../../api/consultation';
-import { createFollowUp } from '../../api/followup';
 import { getPrescriptionByConsultation } from '../../api/prescription';
 import PrescriptionModal from '../../components/prescriptions/PrescriptionModal';
 
@@ -172,74 +171,58 @@ useEffect(() => {
     }
   };
 
-  const onSubmit = async (formData) => {
-    setIsLoading(true);
+const onSubmit = async (formData) => {
+  setIsLoading(true);
 
-    const payload = {
-      patientId: selectedPatientId || formData.patientId,
-      rawInput: formData.rawInput,
-      diagnosis: formData.diagnosis,
-      language: formData.language,
-      isChronic: formData.isChronic,
-      symptoms: formData.symptoms
-        .split(',')
-        .map((s) => s.trim())
-        .filter((s) => s.length > 0),
-      followUpDate: formData.followUpDate || undefined,
-    };
-
-    try {
-      let consultationId = id;
-
-      if (isEditMode) {
-        await updateConsultation(id, payload);
-      } else {
-        const res = await createConsultation(payload);
-        consultationId = res.data._id;
-
-        if (formData.followUpDate) {
-          try {
-            await createFollowUp({
-              consultationId,
-              patientId: payload.patientId,
-              instructions: '-',
-              scheduledDate: formData.followUpDate,
-              language: formData.language || 'en',
-            });
-          } catch (followUpErr) {
-            console.error('Failed to automatically create follow-up:', followUpErr);
-          }
-        }
-      }
-
-      // Open the "Add Prescription" modal right after the record is saved,
-      // instead of navigating away immediately. If this consultation already
-      // has a prescription (edit mode), load it so the doctor edits in place.
-      Swal.fire({
-        title: 'Saved Successfully',
-        text: payload.isChronic
-          ? 'Consultation saved and diagnosis added to patient chronic diseases history.'
-          : 'Consultation record saved successfully.',
-        icon: 'success',
-        timer: 1800,
-        showConfirmButton: false,
-      });
-
-      setSavedConsultationId(consultationId);
-      try {
-        const presRes = await getPrescriptionByConsultation(consultationId);
-        setExistingPrescription(presRes.data);
-      } catch {
-        setExistingPrescription(null);
-      }
-      setShowPrescriptionModal(true);
-    } catch {
-      Swal.fire('Error', 'Failed to save consultation', 'error');
-    } finally {
-      setIsLoading(false);
-    }
+  const payload = {
+    patientId: selectedPatientId || formData.patientId,
+    rawInput: formData.rawInput,
+    diagnosis: formData.diagnosis,
+    language: formData.language,
+    isChronic: formData.isChronic,
+    symptoms: formData.symptoms
+      .split(',')
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0),
+    followUpDate: formData.followUpDate || undefined,
   };
 
+  try {
+    let consultationId = id;
+
+    if (isEditMode) {
+      await updateConsultation(id, payload);
+    } else {
+      const res = await createConsultation(payload);
+      consultationId = res.data._id;
+    }
+
+    Swal.fire({
+      title: 'Saved Successfully',
+      text: payload.isChronic
+        ? 'Consultation saved and diagnosis added to patient chronic diseases history.'
+        : 'Consultation record saved successfully.',
+      icon: 'success',
+      timer: 1800,
+      showConfirmButton: false,
+    });
+
+    setSavedConsultationId(consultationId);
+
+    try {
+      const presRes = await getPrescriptionByConsultation(consultationId);
+      setExistingPrescription(presRes.data);
+    } catch {
+      setExistingPrescription(null);
+    }
+
+    setShowPrescriptionModal(true);
+  } catch {
+    Swal.fire('Error', 'Failed to save consultation', 'error');
+  } finally {
+    setIsLoading(false);
+  }
+};
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   const minDate = tomorrow.toISOString().split('T')[0];

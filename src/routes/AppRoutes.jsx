@@ -11,7 +11,7 @@ import Settings from '../pages/settings/Settings';
 
 import ConsultationList from '../pages/consultations/ConsultationList';
 import ConsultationForm from '../pages/consultations/ConsultationForm';
-import ConsultationDetails from '../pages/consultations/ConsultationDetails'; // 1. تم إضافة استيراد صفحة التفاصيل هنا
+import ConsultationDetails from '../pages/consultations/ConsultationDetails'; 
 import PatientSearch from '../pages/consultations/PatientSearch';
 import PatientHistory from '../pages/patients/PatientHistory';
 import PatientReport from '../pages/patients/PatientReport';
@@ -22,7 +22,7 @@ import PatientForm from '../pages/patients/PatientForm';
 import StartFollowUp from '../pages/followups/StartFollowUp';
 import Prescriptions from '../pages/prescriptions/Prescriptions';
 import Subscriptions from '../pages/suscriptions/Subscriptions';
-
+import FollowUpDetails from '../pages/followups/FollowUpDetails';
 const router = createBrowserRouter([
   {
     path: '/login',
@@ -66,7 +66,9 @@ const router = createBrowserRouter([
       { path: 'profile', element: <Profile /> },
 
       // Follow Ups
-      { path: 'followups', element: <FollowUps /> },
+{ path: 'followups', element: <FollowUps /> },
+{ path: 'followups/:followupId', element: <FollowUpDetails /> },
+{ path: 'followups/start/:followupId', element: <StartFollowUp /> },
       { path: 'followups/start/:followupId', element: <StartFollowUp /> },
       
       // AI Chat
