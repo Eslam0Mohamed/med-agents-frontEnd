@@ -62,7 +62,6 @@ function PrescriptionCalendar({ selectedDate, onSelectDate, dateCounts }) {
     const today = new Date();
     return new Date(today.getFullYear(), today.getMonth(), 1);
   });
-  // error
   const todayKey = toDateKey(new Date());
 
   const calendarDays = useMemo(() => {
