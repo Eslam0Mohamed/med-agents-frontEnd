@@ -10,7 +10,7 @@ import {
 import Swal from "sweetalert2";
 import { getFollowUps } from "../../api/followup";
 import "./followups.css";
-
+import apiInstance from '../../config/apiInstance';
 const weekDays = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
 const monthNames = [
@@ -74,19 +74,39 @@ const FollowUps = () => {
     return item.status === 'pending' && toDateKey(item.scheduledDate) < todayKey;
   };
 
-  const loadFollowUps = async () => {
-    try {
-      setLoading(true);
-      const res = await getFollowUps();
-      setFollowUps(res?.data || []);
-    } catch (error) {
-      console.error(error);
-      Swal.fire("Error", "Failed to load follow-ups", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
+const loadFollowUps = async () => {
+  try {
+    setLoading(true);
 
+    const [followupsRes, consultationsRes] = await Promise.all([
+      getFollowUps(),
+      apiInstance.get('/consultations/doctor'),
+    ]);
+
+    const allFollowups = followupsRes?.data || [];
+    const doctorConsultations = consultationsRes?.data?.data || [];
+
+    const doctorConsultationIds = new Set(
+      doctorConsultations.map((consultation) => String(consultation._id))
+    );
+
+    const filteredFollowups = allFollowups.filter((followup) => {
+      const followupConsultationId =
+        typeof followup.consultationId === 'object'
+          ? followup.consultationId?._id
+          : followup.consultationId;
+
+      return doctorConsultationIds.has(String(followupConsultationId));
+    });
+
+    setFollowUps(filteredFollowups);
+  } catch (error) {
+    console.error(error);
+    Swal.fire('Error', 'Failed to load follow-ups', 'error');
+  } finally {
+    setLoading(false);
+  }
+};
   useEffect(() => {
     loadFollowUps();
   }, []);
@@ -188,6 +208,9 @@ const FollowUps = () => {
   const handleStartFollowUp = (item) => {
     navigate(`/followups/start/${item._id}`);
   };
+  const handleViewDetails = (item) => {
+  navigate(`/followups/${item._id}`);
+};
 
   const handleInsightAction = () => {
     if (pastDueCount > 0) {
@@ -316,13 +339,23 @@ const FollowUps = () => {
                   </div>
 
                   <div className="card-actions">
-                    {!isCompleted(item) ? (
-                      <button className="start-btn" onClick={() => handleStartFollowUp(item)}>
-                        <FiPlayCircle />Start Follow-up
-                      </button>
-                    ) : (
-                      <div className="completed-note">Completed after follow-up session</div>
-                    )}
+                   {!isCompleted(item) ? (
+  <button
+    className="start-btn"
+    onClick={() => handleStartFollowUp(item)}
+  >
+    <FiPlayCircle />
+    Start Follow-up
+  </button>
+) : (
+  <button
+    className="start-btn"
+    onClick={() => handleViewDetails(item)}
+  >
+    <FiCheckCircle />
+    View Details
+  </button>
+)}
                   </div>
                 </article>
               );
