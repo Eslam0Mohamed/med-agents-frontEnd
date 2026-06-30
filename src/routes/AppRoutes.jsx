@@ -21,6 +21,7 @@ import PatientsList from '../pages/patients/PatientsList';
 import PatientForm from '../pages/patients/PatientForm';
 import StartFollowUp from '../pages/followups/StartFollowUp';
 import Prescriptions from '../pages/prescriptions/Prescriptions';
+import Subscriptions from '../pages/suscriptions/Subscriptions';
 
 const router = createBrowserRouter([
   {
@@ -59,6 +60,7 @@ const router = createBrowserRouter([
 
       // Prescriptions
       { path: 'prescriptions', element: <Prescriptions /> },
+      { path: 'subscriptions', element: <Subscriptions /> },
 
       { path: 'ai-chat', element: <AiChat/> },
       { path: 'profile', element: <Profile /> },

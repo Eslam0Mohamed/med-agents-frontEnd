@@ -10,6 +10,7 @@ const navItems = [
   { label: 'Follow-ups', path: '/followups' },
   { label: 'AI Chat', path: '/ai-chat' },
   { label: 'Drug Safety', path: '/drug-safety' },
+  { label: 'Subscriptions', path: '/Subscriptions' },
 ];
 
 export default function Navbar() {
