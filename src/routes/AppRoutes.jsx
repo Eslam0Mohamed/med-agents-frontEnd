@@ -23,6 +23,7 @@ import StartFollowUp from '../pages/followups/StartFollowUp';
 import Prescriptions from '../pages/prescriptions/Prescriptions';
 import Subscriptions from '../pages/suscriptions/Subscriptions';
 import FollowUpDetails from '../pages/followups/FollowUpDetails';
+import PaymentCallback from '../pages/payment/PaymentCallback';
 const router = createBrowserRouter([
   {
     path: '/login',
@@ -45,6 +46,7 @@ const router = createBrowserRouter([
       { path: 'patients/edit/:id', element: <PatientForm /> },
       { path: 'patients/history/:id', element: <PatientHistory /> },
       { path: 'patients/report/:id', element: <PatientReport /> },
+      { path: 'payment/callback', element: <PaymentCallback /> },
 
       // Consultations
       { path: 'consultations', element: <ConsultationList /> },
