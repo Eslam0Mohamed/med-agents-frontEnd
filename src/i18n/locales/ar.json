@@ -52,7 +52,13 @@
     "noConsultations": "لا توجد استشارات مسجلة حتى الآن.",
     "viewReport": "عرض التقرير",
     "newConsultation": "استشارة جديدة",
-    "age": "العمر"
+    "age": "العمر",
+    "patientInformation": "بيانات المريض",
+"manageInfo": "إدارة البيانات الديموغرافية والتاريخ الطبي للمرضى.",
+"addAllergy": "إضافة حساسية...",
+"addCondition": "إضافة مرض مزمن...",
+"privacyTitle": "حماية الخصوصية",
+"privacyText": "جميع البيانات المدخلة هنا مشفّرة ومحفوظة وفقًا للوائح الرعاية الصحية المحلية."
   },
   "consultations": {
     "title": "الاستشارات",
@@ -61,7 +67,11 @@
       "low": "منخفضة",
       "medium": "متوسطة",
       "high": "عالية",
-      "critical": "حرجة"
+      "critical": "حرجة",
+      "followUpDate": "تاريخ المتابعة",
+"specialist": "الأخصائي",
+"aiClinicalNote": "ملاحظة سريرية من الذكاء الاصطناعي",
+"prescription": "الروشتة"
     }
   },
   "followups": {

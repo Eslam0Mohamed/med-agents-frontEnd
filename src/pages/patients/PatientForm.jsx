@@ -1,16 +1,15 @@
 import { useEffect, useState } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import { patientSchema } from '../../schemas/patientSchema';
-import {
-  createPatient,
-  updatePatient,
-  fetchPatientById,
-} from '../../api/patient';
-import {clearSelectedPatient} from "../../slices/patientsSlice"
+import { createPatient, updatePatient, fetchPatientById } from '../../api/patient';
+import { clearSelectedPatient } from '../../slices/patientsSlice';
+
 export default function PatientForm() {
+  const { t } = useTranslation();
   const { id } = useParams();
   const isEditMode = !!id;
   const navigate = useNavigate();
@@ -25,7 +24,6 @@ export default function PatientForm() {
   const {
     register,
     handleSubmit,
-    control,
     reset,
     watch,
     setValue,
@@ -103,10 +101,8 @@ export default function PatientForm() {
   return (
     <div className="max-w-3xl mx-auto">
       <div className="bg-white rounded-xl shadow-sm p-8">
-        <h1 className="text-xl font-bold text-gray-900">Patient Information</h1>
-        <p className="text-sm text-gray-500 mt-1 mb-6">
-          Manage demographics and medical history for new or existing patients.
-        </p>
+        <h1 className="text-xl font-bold text-gray-900">{t('patients.patientInformation')}</h1>
+        <p className="text-sm text-gray-500 mt-1 mb-6">{t('patients.manageInfo')}</p>
 
         {serverError && (
           <div className="bg-red-50 text-red-600 text-sm rounded-md p-3 mb-4">{serverError}</div>
@@ -115,7 +111,9 @@ export default function PatientForm() {
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('patients.fullName')}
+              </label>
               <input
                 {...register('name')}
                 placeholder="e.g. Sarah Jenkins"
@@ -127,7 +125,9 @@ export default function PatientForm() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">National ID</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('patients.nationalId')}
+              </label>
               <input
                 {...register('nationalID')}
                 placeholder="14 digit number"
@@ -144,7 +144,9 @@ export default function PatientForm() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('patients.dateOfBirth')}
+              </label>
               <input
                 type="date"
                 {...register('dateOfBirth')}
@@ -158,29 +160,35 @@ export default function PatientForm() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('patients.gender')}
+              </label>
               <select
                 {...register('gender')}
                 className={`w-full border rounded-lg px-3 py-2.5 text-sm outline-none focus:border-blue-500 ${
                   errors.gender ? 'border-red-400' : 'border-gray-300'
                 }`}
               >
-                <option value="">Select Gender</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
+                <option value="">{t('patients.gender')}</option>
+                <option value="male">{t('patients.male')}</option>
+                <option value="female">{t('patients.female')}</option>
               </select>
-              {errors.gender && <p className="text-red-500 text-xs mt-1">{errors.gender.message}</p>}
+              {errors.gender && (
+                <p className="text-red-500 text-xs mt-1">{errors.gender.message}</p>
+              )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Blood Type</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('patients.bloodType')}
+              </label>
               <select
                 {...register('bloodType')}
                 className={`w-full border rounded-lg px-3 py-2.5 text-sm outline-none focus:border-blue-500 ${
                   errors.bloodType ? 'border-red-400' : 'border-gray-300'
                 }`}
               >
-                <option value="">Select</option>
+                <option value="">{t('patients.bloodType')}</option>
                 {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map((bt) => (
                   <option key={bt} value={bt}>{bt}</option>
                 ))}
@@ -191,15 +199,13 @@ export default function PatientForm() {
             </div>
           </div>
 
-          {/* Allergies */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Allergies</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              {t('patients.allergies')}
+            </label>
             <div className="flex flex-wrap items-center gap-2 border border-gray-300 rounded-lg px-3 py-2.5">
               {allergies.map((a, i) => (
-                <span
-                  key={i}
-                  className="flex items-center gap-1 bg-blue-100 text-blue-700 text-xs px-2.5 py-1 rounded-full"
-                >
+                <span key={i} className="flex items-center gap-1 bg-blue-100 text-blue-700 text-xs px-2.5 py-1 rounded-full">
                   {a}
                   <button type="button" onClick={() => removeAllergy(i)} className="font-bold">×</button>
                 </span>
@@ -209,21 +215,19 @@ export default function PatientForm() {
                 value={allergyInput}
                 onChange={(e) => setAllergyInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addAllergy())}
-                placeholder="Add allergy..."
+                placeholder={t('patients.addAllergy')}
                 className="flex-1 min-w-30 outline-none text-sm"
               />
             </div>
           </div>
 
-          {/* Chronic Conditions */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Chronic Conditions</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              {t('patients.chronicConditions')}
+            </label>
             <div className="flex flex-wrap items-center gap-2 border border-gray-300 rounded-lg px-3 py-2.5">
               {chronicConditions.map((c, i) => (
-                <span
-                  key={i}
-                  className="flex items-center gap-1 bg-blue-100 text-blue-700 text-xs px-2.5 py-1 rounded-full"
-                >
+                <span key={i} className="flex items-center gap-1 bg-blue-100 text-blue-700 text-xs px-2.5 py-1 rounded-full">
                   {c}
                   <button type="button" onClick={() => removeCondition(i)} className="font-bold">×</button>
                 </span>
@@ -233,7 +237,7 @@ export default function PatientForm() {
                 value={conditionInput}
                 onChange={(e) => setConditionInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addCondition())}
-                placeholder="Add condition..."
+                placeholder={t('patients.addCondition')}
                 className="flex-1 min-w-30 outline-none text-sm"
               />
             </div>
@@ -245,14 +249,14 @@ export default function PatientForm() {
               onClick={() => navigate('/patients')}
               className="px-5 py-2.5 text-sm text-gray-600 hover:text-gray-900"
             >
-              Cancel
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
               className="bg-blue-800 text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-blue-900 disabled:bg-gray-400 transition"
             >
-              {isSubmitting ? 'Saving...' : 'Save Patient Record'}
+              {isSubmitting ? t('common.saving') : t('patients.saveRecord')}
             </button>
           </div>
         </form>
@@ -261,11 +265,8 @@ export default function PatientForm() {
       <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mt-4 flex gap-3">
         <span className="text-blue-500">ℹ️</span>
         <div>
-          <p className="text-sm font-medium text-gray-900">Privacy Compliance</p>
-          <p className="text-sm text-gray-600 mt-0.5">
-            All data entered here is encrypted and stored in compliance with local healthcare
-            regulations. This record will be accessible to authorized medical personnel only.
-          </p>
+          <p className="text-sm font-medium text-gray-900">{t('patients.privacyTitle')}</p>
+          <p className="text-sm text-gray-600 mt-0.5">{t('patients.privacyText')}</p>
         </div>
       </div>
     </div>

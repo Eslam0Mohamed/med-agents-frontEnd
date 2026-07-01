@@ -52,7 +52,13 @@
     "noConsultations": "No consultations recorded yet.",
     "viewReport": "View Report",
     "newConsultation": "New Consultation",
-    "age": "Age"
+    "age": "Age",
+    "patientInformation": "Patient Information",
+"manageInfo": "Manage demographics and medical history for new or existing patients.",
+"addAllergy": "Add allergy...",
+"addCondition": "Add condition...",
+"privacyTitle": "Privacy Compliance",
+"privacyText": "All data entered here is encrypted and stored in compliance with local healthcare regulations."
   },
   "consultations": {
     "title": "Consultations",
@@ -61,7 +67,11 @@
       "low": "Low",
       "medium": "Medium",
       "high": "High",
-      "critical": "Critical"
+      "critical": "Critical",
+      "followUpDate": "Follow-up Date",
+"specialist": "Specialist",
+"aiClinicalNote": "AI Clinical Note",
+"prescription": "Prescription"
     }
   },
   "followups": {
