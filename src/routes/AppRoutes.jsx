@@ -22,14 +22,25 @@ import PatientForm from '../pages/patients/PatientForm';
 import StartFollowUp from '../pages/followups/StartFollowUp';
 import Prescriptions from '../pages/prescriptions/Prescriptions';
 import FollowUpDetails from '../pages/followups/FollowUpDetails';
+import Home from '../pages/puplic/home/Home';
+import Contact from '../pages/puplic/contact/Contact';
 const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <Home />,
+  },
+  {
+    path: '/contact',
+    element: <Contact />,
+  },
+
   {
     path: '/login',
     element: <Login />,
   },
 
   {
-    path: '/',
+    // path: '/',
     element: (
       <ProtectedRoute>
         <Layout />
@@ -37,7 +48,7 @@ const router = createBrowserRouter([
     ),
 
     children: [
-      { index: true, element: <Navigate to="/patients" replace /> },
+      // { index: true, element: <Navigate to="/patients" replace /> },
 
       { path: 'patients', element: <PatientsList /> },
       { path: 'patients/add', element: <PatientForm /> },
@@ -47,7 +58,7 @@ const router = createBrowserRouter([
 
       // Consultations
       { path: 'consultations', element: <ConsultationList /> },
-      
+
       // 2. تم إضافة مسار تفاصيل الاستشارة هنا ليعمل زر العين بشكل صحيح
       { path: 'consultations/:id', element: <ConsultationDetails /> },
 
@@ -60,15 +71,15 @@ const router = createBrowserRouter([
       // Prescriptions
       { path: 'prescriptions', element: <Prescriptions /> },
 
-      { path: 'ai-chat', element: <AiChat/> },
+      { path: 'ai-chat', element: <AiChat /> },
       { path: 'profile', element: <Profile /> },
 
       // Follow Ups
-{ path: 'followups', element: <FollowUps /> },
-{ path: 'followups/:followupId', element: <FollowUpDetails /> },
-{ path: 'followups/start/:followupId', element: <StartFollowUp /> },
+      { path: 'followups', element: <FollowUps /> },
+      { path: 'followups/:followupId', element: <FollowUpDetails /> },
       { path: 'followups/start/:followupId', element: <StartFollowUp /> },
-      
+      { path: 'followups/start/:followupId', element: <StartFollowUp /> },
+
       // AI Chat
       { path: 'ai-chat', element: <AiChat /> },
 
