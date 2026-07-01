@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
-import { getConsultations, deleteConsultation } from '../../api/consultation';
+import { getConsultations } from '../../api/consultation'; 
 
 const ITEMS_PER_PAGE = 10;
 
@@ -63,48 +63,6 @@ const Consultations = () => {
     });
 
     setFiltered(result);
-  };
-
-  const handleDelete = async (id) => {
-    const result = await Swal.fire({
-      title: 'Are you sure?',
-      text: 'You will not be able to revert this!',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#f43f5e',
-      cancelButtonColor: '#64748b',
-      confirmButtonText: 'Yes, delete it!',
-      customClass: {
-        popup: 'rounded-2xl',
-        confirmButton: 'rounded-xl px-4 py-2 font-bold',
-        cancelButton: 'rounded-xl px-4 py-2 font-bold'
-      }
-    });
-
-    if (result.isConfirmed) {
-      try {
-        Swal.fire({
-          title: 'Deleting...',
-          allowOutsideClick: false,
-          didOpen: () => Swal.showLoading(),
-        });
-
-        await deleteConsultation(id);
-
-        setConsultations((prev) => prev.filter((c) => c._id !== id));
-        setFiltered((prev) => prev.filter((c) => c._id !== id));
-
-        Swal.fire({
-          title: 'Deleted!',
-          text: 'Consultation deleted successfully.',
-          icon: 'success',
-          timer: 2000,
-          showConfirmButton: false,
-        });
-      } catch {
-        Swal.fire('Error', 'Delete failed', 'error');
-      }
-    }
   };
 
   const getUrgencyBadge = (level) => {
@@ -193,7 +151,7 @@ const Consultations = () => {
           />
         </div>
 
-        {/* Desktop View: Table (Visible only on md screens and up) */}
+        {/* Desktop View: Table */}
         <div className="hidden md:block bg-white rounded-2xl shadow-xl shadow-slate-100/80 border border-slate-100 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm table-auto border-collapse text-left">
@@ -248,12 +206,10 @@ const Consultations = () => {
                             <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                           </svg>
                         </Link>
-                        <Link to={`/consultations/edit/${c._id}`} className="inline-flex items-center justify-center bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-600 hover:text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-sm transition">
+                        
+                        <Link to={`/consultations/edit/${c._id}`} className="inline-flex items-center justify-center bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-600 hover:text-white px-4 py-1.5 rounded-xl text-xs font-bold shadow-sm transition">
                           Edit
                         </Link>
-                        <button onClick={() => handleDelete(c._id)} className="inline-flex items-center justify-center bg-rose-50 text-rose-600 border border-rose-100 hover:bg-red-600 hover:text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-sm transition">
-                          Delete
-                        </button>
                       </div>
                     </td>
                   </tr>
@@ -263,12 +219,11 @@ const Consultations = () => {
           </div>
         </div>
 
-        {/* Mobile View: Cards Grid (Visible only on screens smaller than md) */}
+        {/* Mobile View: Cards Grid */}
         <div className="block md:hidden space-y-4">
           {paginatedData.map((c) => (
             <div key={c._id} className="bg-white rounded-2xl p-5 shadow-md border border-slate-100 space-y-4">
               
-              {/* Card Header: Patient Name & Status */}
               <div className="flex items-start justify-between gap-2 border-b border-slate-50 pb-3">
                 <div>
                   <h4 className="font-black text-blue-700 text-lg">
@@ -284,7 +239,6 @@ const Consultations = () => {
                 </span>
               </div>
 
-              {/* Card Body: Details Stack */}
               <div className="grid grid-cols-2 gap-3 text-xs">
                 <div className="col-span-2">
                   <span className="text-slate-400 block font-medium mb-0.5">Clinical Symptoms:</span>
@@ -306,7 +260,7 @@ const Consultations = () => {
                 </div>
               </div>
 
-              {/* Card Actions Container */}
+              {}
               <div className="flex gap-2 pt-2 border-t border-slate-50">
                 <Link to={`/consultations/${c._id}`} className="flex-1 inline-flex items-center justify-center bg-slate-100 text-slate-700 py-2.5 rounded-xl text-xs font-bold border border-slate-200 transition active:bg-slate-200 gap-1">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
@@ -318,9 +272,6 @@ const Consultations = () => {
                 <Link to={`/consultations/edit/${c._id}`} className="flex-1 inline-flex items-center justify-center bg-blue-50 text-blue-600 py-2.5 rounded-xl text-xs font-bold border border-blue-100 transition active:bg-blue-100">
                   Edit
                 </Link>
-                <button onClick={() => handleDelete(c._id)} className="flex-1 inline-flex items-center justify-center bg-rose-50 text-rose-600 py-2.5 rounded-xl text-xs font-bold border border-rose-100 transition active:bg-rose-100">
-                  Delete
-                </button>
               </div>
 
             </div>
@@ -356,7 +307,6 @@ const Consultations = () => {
                 Prev
               </button>
 
-              {/* Render dynamic limited pages on mobile if needed, or normal list */}
               {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                 <button
                   key={page}
