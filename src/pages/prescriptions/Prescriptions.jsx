@@ -423,7 +423,7 @@ export default function Prescriptions() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-3 sm:px-6 py-6">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 py-6">
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-lg sm:text-xl font-bold text-gray-900">
@@ -434,90 +434,95 @@ export default function Prescriptions() {
         </p>
       </div>
 
-      {/* Calendar (above the search bar) */}
-      <div className="mb-5">
-        <PrescriptionCalendar
-          selectedDate={selectedDate}
-          onSelectDate={setSelectedDate}
-          dateCounts={dateCounts}
-        />
-      </div>
-
-      {/* Search (full width) */}
-      <div className="mb-5">
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by patient name or national ID..."
-          className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-        />
-      </div>
-
-      {/* List */}
-      {loading && (
-        <div className="text-center text-gray-400 py-16">
-          Loading prescriptions...
-        </div>
-      )}
-
-      {!loading && prescriptions.length === 0 && (
-        <div className="text-center text-gray-400 py-16 bg-white rounded-xl shadow-sm border border-gray-100">
-          No prescriptions found.
-        </div>
-      )}
-
-      {!loading &&
-        prescriptions.map((prescription) => (
-          <PatientPrescriptionCard
-            key={prescription._id}
-            prescription={prescription}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-          />
-        ))}
-
-      {/* Pagination */}
-      {!loading && total > 0 && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-2 px-1">
-          <p className="text-xs text-gray-500">
-            Showing {prescriptions.length} of {total} prescriptions
-          </p>
-          <div className="flex items-center gap-1.5">
-            <button
-              onClick={() => handlePageChange(Math.max(1, page - 1))}
-              disabled={page === 1}
-              className="px-3 py-1.5 rounded-md text-sm border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-40"
-            >
-              Previous
-            </button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1)
-              .slice(Math.max(0, page - 3), Math.max(0, page - 3) + 5)
-              .map((p) => (
-                <button
-                  key={p}
-                  onClick={() => handlePageChange(p)}
-                  className={`w-8 h-8 rounded-md text-sm font-medium ${
-                    p === page
-                      ? "bg-blue-600 text-white"
-                      : "border border-gray-300 text-gray-600 hover:bg-gray-50"
-                  }`}
-                >
-                  {p}
-                </button>
-              ))}
-            <button
-              onClick={() => handlePageChange(Math.min(totalPages, page + 1))}
-              disabled={page === totalPages}
-              className="px-3 py-1.5 rounded-md text-sm border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-40"
-            >
-              Next
-            </button>
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6 items-start">
+        {/* Left column: search + list + pagination */}
+        <div>
+          <div className="mb-5">
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by patient name or national ID..."
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white shadow-sm"
+            />
           </div>
-        </div>
-      )}
 
-      {/* Edit modal */}
+          {loading && (
+            <div className="text-center text-gray-400 py-16">
+              Loading prescriptions...
+            </div>
+          )}
+
+          {!loading && prescriptions.length === 0 && (
+            <div className="text-center text-gray-400 py-16 bg-white rounded-xl shadow-sm border border-gray-100">
+              No prescriptions found.
+            </div>
+          )}
+
+          {!loading &&
+            prescriptions.map((prescription) => (
+              <PatientPrescriptionCard
+                key={prescription._id}
+                prescription={prescription}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
+            ))}
+
+          {!loading && total > 0 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-2 px-1">
+              <p className="text-xs text-gray-500">
+                Showing {prescriptions.length} of {total} prescriptions
+              </p>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => handlePageChange(Math.max(1, page - 1))}
+                  disabled={page === 1}
+                  className="px-3 py-1.5 rounded-md text-sm border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-40"
+                >
+                  Previous
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .slice(Math.max(0, page - 3), Math.max(0, page - 3) + 5)
+                  .map((p) => (
+                    <button
+                      key={p}
+                      onClick={() => handlePageChange(p)}
+                      className={`w-8 h-8 rounded-md text-sm font-medium ${
+                        p === page
+                          ? "bg-blue-600 text-white"
+                          : "border border-gray-300 text-gray-600 hover:bg-gray-50"
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                <button
+                  onClick={() =>
+                    handlePageChange(Math.min(totalPages, page + 1))
+                  }
+                  disabled={page === totalPages}
+                  className="px-3 py-1.5 rounded-md text-sm border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-40"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Right column: calendar — sticky so it stays visible while scrolling
+            through the prescription cards, and never overlaps them since
+            they're in a separate grid column. */}
+        <aside className="lg:sticky lg:top-4">
+          <PrescriptionCalendar
+            selectedDate={selectedDate}
+            onSelectDate={setSelectedDate}
+            dateCounts={dateCounts}
+          />
+        </aside>
+      </div>
+
       {editingPrescription && (
         <PrescriptionModal
           isOpen={showEditModal}
