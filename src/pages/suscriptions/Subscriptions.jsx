@@ -77,7 +77,6 @@ useEffect(()=>{
             </div>
         );
     }
-
     if (!subscription) {
         return (
             <div className="text-center mt-20">
@@ -159,55 +158,50 @@ useEffect(()=>{
                 </p>
             </div>
 
-            <div className="mt-8 rounded-xl border border-gray-200 p-6">
-                <h3 className="font-semibold text-lg text-gray-800 mb-4">
-                    {subscription.status === "active" ? "تجديد الاشتراك" : "اشترك الآن"}
-                </h3>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-
-                    <div>
-                        <label className="block text-sm text-gray-500 mb-1">الخطة</label>
-                        <select
-                            value={selectedPlan}
-                            onChange={(e) => setSelectedPlan(e.target.value)}
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                        >
-                            <option value="Basic">Basic - {PLAN_PRICES.Basic} جنيه / شهر</option>
-                            <option value="Pro">Pro - {PLAN_PRICES.Pro} جنيه / شهر</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label className="block text-sm text-gray-500 mb-1">المدة</label>
-                        <select
-                            value={selectedMonths}
-                            onChange={(e) => setSelectedMonths(Number(e.target.value))}
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                        >
-                            {MONTHS_OPTIONS.map((m) => (
-                                <option key={m} value={m}>
-                                    {m === 1 ? "شهر واحد" : `${m} شهور`}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <button
-                        onClick={handleUpgrade}
-                        disabled={payLoading}
-                        className="bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white px-5 py-2 rounded-lg transition font-semibold"
-                    >
-                        {payLoading
-                            ? "جاري التحويل..."
-                            : `ادفع ${PLAN_PRICES[selectedPlan] * selectedMonths} جنيه`}
-                    </button>
-                </div>
-
-                {payError && (
-                    <p className="text-red-600 text-sm mt-3">{payError}</p>
-                )}
-            </div>
+     <div className="mt-8 rounded-xl border border-gray-200 p-6">
+    <h3 className="font-semibold text-lg text-gray-800 mb-4">
+        {subscription.status === "active" ? "Renew Subscription" : "Subscribe Now"}
+    </h3>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+        <div>
+            <label className="block text-sm text-gray-500 mb-1">Plan</label>
+            <select
+                value={selectedPlan}
+                onChange={(e) => setSelectedPlan(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2"
+            >
+                <option value="Basic">Basic - {PLAN_PRICES.Basic} EGP / month</option>
+                <option value="Pro">Pro - {PLAN_PRICES.Pro} EGP / month</option>
+            </select>
+        </div>
+        <div>
+            <label className="block text-sm text-gray-500 mb-1">Duration</label>
+            <select
+                value={selectedMonths}
+                onChange={(e) => setSelectedMonths(Number(e.target.value))}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2"
+            >
+                {MONTHS_OPTIONS.map((m) => (
+                    <option key={m} value={m}>
+                        {m === 1 ? "1 month" : `${m} months`}
+                    </option>
+                ))}
+            </select>
+        </div>
+        <button
+            onClick={handleUpgrade}
+            disabled={payLoading}
+            className="bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white px-5 py-2 rounded-lg transition font-semibold"
+        >
+            {payLoading
+                ? "Redirecting..."
+                : `Pay ${PLAN_PRICES[selectedPlan] * selectedMonths} EGP`}
+        </button>
+    </div>
+    {payError && (
+        <p className="text-red-600 text-sm mt-3">{payError}</p>
+    )}
+</div>
 
         </div>
     );
