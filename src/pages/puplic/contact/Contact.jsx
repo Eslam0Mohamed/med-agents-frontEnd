@@ -21,7 +21,8 @@ const Contact = () => {
       await sendContactMessage(form);
       setSubmitted(true);
     } catch (err) {
-      setError(
+      console.log(err);
+        setError(
         err.response?.data?.message ||
           "Something went wrong, please try again"
       );
