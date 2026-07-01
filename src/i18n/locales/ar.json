@@ -1,0 +1,82 @@
+{
+  "nav": {
+    "patients": "المرضى",
+    "consultations": "الاستشارات",
+    "addConsultation": "إضافة استشارة",
+    "prescriptions": "الروشتات",
+    "followups": "المتابعات",
+    "aiChat": "محادثة الذكاء الاصطناعي",
+    "drugSafety": "سلامة الأدوية",
+    "profile": "الملف الشخصي",
+    "settings": "الإعدادات",
+    "logout": "تسجيل الخروج"
+  },
+  "auth": {
+    "welcomeBack": "مرحبًا بعودتك",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "loginButton": "دخول",
+    "loggingIn": "جاري تسجيل الدخول...",
+    "invalidCredentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة"
+  },
+  "common": {
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "edit": "تعديل",
+    "delete": "حذف",
+    "search": "بحث",
+    "clear": "مسح",
+    "loading": "جاري التحميل...",
+    "noData": "لا توجد بيانات",
+    "back": "رجوع",
+    "actions": "الإجراءات",
+    "submit": "إرسال",
+    "saving": "جاري الحفظ..."
+  },
+  "patients": {
+    "title": "المرضى",
+    "addPatient": "إضافة مريض",
+    "fullName": "الاسم بالكامل",
+    "nationalId": "الرقم القومي",
+    "dateOfBirth": "تاريخ الميلاد",
+    "gender": "النوع",
+    "male": "ذكر",
+    "female": "أنثى",
+    "bloodType": "فصيلة الدم",
+    "allergies": "الحساسية",
+    "chronicConditions": "الأمراض المزمنة",
+    "none": "لا يوجد",
+    "saveRecord": "حفظ بيانات المريض",
+    "backToPatients": "الرجوع إلى المرضى",
+    "consultationHistory": "سجل الاستشارات",
+    "noConsultations": "لا توجد استشارات مسجلة حتى الآن.",
+    "viewReport": "عرض التقرير",
+    "newConsultation": "استشارة جديدة",
+    "age": "العمر"
+  },
+  "consultations": {
+    "title": "الاستشارات",
+    "diagnosis": "التشخيص",
+    "urgency": {
+      "low": "منخفضة",
+      "medium": "متوسطة",
+      "high": "عالية",
+      "critical": "حرجة"
+    }
+  },
+  "followups": {
+    "title": "المتابعات",
+    "scheduledDate": "تاريخ المتابعة",
+    "status": {
+      "pending": "قيد الانتظار",
+      "confirmed": "مؤكد",
+      "cancelled": "ملغي"
+    }
+  },
+  "settings": {
+    "title": "الإعدادات",
+    "language": "اللغة",
+    "english": "الإنجليزية",
+    "arabic": "العربية"
+  }
+}
