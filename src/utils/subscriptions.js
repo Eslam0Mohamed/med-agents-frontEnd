@@ -1,5 +1,17 @@
- export const getSubscriptionMessage = (subscription) => {
+export const getSubscriptionMessage = (subscription) => {
       if (!subscription) return null;
+
+  if (subscription.status === "expired") {
+    return {
+      title: "Subscription Expired",
+      message:
+        "Your subscription has expired. Renew now to regain access to all features.",
+      bg: "bg-red-50",
+      border: "border-red-500",
+      titleColor: "text-red-600",
+    };
+  }
+
   if (subscription.daysLeft <= 3) {
     return {
       title: "Subscription Expiring Soon",
@@ -31,4 +43,3 @@
     titleColor: "text-green-700",
   };
 };
-

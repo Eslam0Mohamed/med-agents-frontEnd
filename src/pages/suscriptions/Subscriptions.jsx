@@ -1,5 +1,6 @@
 import React from 'react'
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { getMySubscription } from "../../api/subscription";
 import { initiatePayment } from "../../api/payment";
 import { getSubscriptionMessage } from '../../utils/subscriptions';
@@ -7,6 +8,9 @@ import { getSubscriptionMessage } from '../../utils/subscriptions';
 const PLAN_PRICES = { Basic: 200, Pro: 350 };
 const MONTHS_OPTIONS = [1, 3, 6, 12];
 const Subscriptions = () => {
+    const [searchParams] = useSearchParams();
+    const redirectedDueToExpiry = searchParams.get("expired") === "1";
+
     const [subscription, setSubscription] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -21,12 +25,12 @@ const Subscriptions = () => {
             setPayLoading(true);
             setPayError(null);
             const res = await initiatePayment(selectedPlan, selectedMonths);
-            // بنوديه على صفحة باي موب يكمل الدفع فيها
+            // Redirect the doctor to the Paymob checkout page to complete payment
             window.location.href = res.data.paymentUrl;
         } catch (err) {
             console.error(err);
             setPayError(
-                err.response?.data?.message || "تعذر بدء عملية الدفع، حاول مرة أخرى"
+                err.response?.data?.message || "Failed to start payment, please try again"
             );
             setPayLoading(false);
         }
@@ -77,6 +81,7 @@ useEffect(()=>{
             </div>
         );
     }
+
     if (!subscription) {
         return (
             <div className="text-center mt-20">
@@ -99,6 +104,13 @@ useEffect(()=>{
     return (
         <div className="max-w-5xl mx-auto mt-10 rounded-2xl bg-white shadow-lg p-10">
 
+            {redirectedDueToExpiry && (
+                <div className="mb-6 rounded-lg bg-red-50 border border-red-200 p-4 text-red-700 text-sm">
+                    You were redirected here because your subscription has expired.
+                    Please renew below to continue using MedAgents.
+                </div>
+            )}
+
             <div className="flex justify-between items-center">
 
                 <h1 className="text-3xl font-bold">
@@ -109,10 +121,16 @@ useEffect(()=>{
   className={`px-4 py-1 rounded-full font-semibold ${
     subscription.status === "active"
       ? "bg-green-100 text-green-700"
+      : subscription.status === "expired"
+      ? "bg-red-100 text-red-700"
       : "bg-yellow-100 text-yellow-700"
   }`}
 >
-  {subscription.status === "active" ? "Premium" : "Trial"}
+  {subscription.status === "active"
+    ? "Premium"
+    : subscription.status === "expired"
+    ? "Expired"
+    : "Trial"}
 </span>
 
             </div>
@@ -158,50 +176,55 @@ useEffect(()=>{
                 </p>
             </div>
 
-     <div className="mt-8 rounded-xl border border-gray-200 p-6">
-    <h3 className="font-semibold text-lg text-gray-800 mb-4">
-        {subscription.status === "active" ? "Renew Subscription" : "Subscribe Now"}
-    </h3>
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-        <div>
-            <label className="block text-sm text-gray-500 mb-1">Plan</label>
-            <select
-                value={selectedPlan}
-                onChange={(e) => setSelectedPlan(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2"
-            >
-                <option value="Basic">Basic - {PLAN_PRICES.Basic} EGP / month</option>
-                <option value="Pro">Pro - {PLAN_PRICES.Pro} EGP / month</option>
-            </select>
-        </div>
-        <div>
-            <label className="block text-sm text-gray-500 mb-1">Duration</label>
-            <select
-                value={selectedMonths}
-                onChange={(e) => setSelectedMonths(Number(e.target.value))}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2"
-            >
-                {MONTHS_OPTIONS.map((m) => (
-                    <option key={m} value={m}>
-                        {m === 1 ? "1 month" : `${m} months`}
-                    </option>
-                ))}
-            </select>
-        </div>
-        <button
-            onClick={handleUpgrade}
-            disabled={payLoading}
-            className="bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white px-5 py-2 rounded-lg transition font-semibold"
-        >
-            {payLoading
-                ? "Redirecting..."
-                : `Pay ${PLAN_PRICES[selectedPlan] * selectedMonths} EGP`}
-        </button>
-    </div>
-    {payError && (
-        <p className="text-red-600 text-sm mt-3">{payError}</p>
-    )}
-</div>
+            <div className="mt-8 rounded-xl border border-gray-200 p-6">
+                <h3 className="font-semibold text-lg text-gray-800 mb-4">
+                    {subscription.status === "active" ? "Renew Subscription" : "Subscribe Now"}
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+
+                    <div>
+                        <label className="block text-sm text-gray-500 mb-1">Plan</label>
+                        <select
+                            value={selectedPlan}
+                            onChange={(e) => setSelectedPlan(e.target.value)}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                        >
+                            <option value="Basic">Basic - {PLAN_PRICES.Basic} EGP / month</option>
+                            <option value="Pro">Pro - {PLAN_PRICES.Pro} EGP / month</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm text-gray-500 mb-1">Duration</label>
+                        <select
+                            value={selectedMonths}
+                            onChange={(e) => setSelectedMonths(Number(e.target.value))}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                        >
+                            {MONTHS_OPTIONS.map((m) => (
+                                <option key={m} value={m}>
+                                    {m === 1 ? "1 month" : `${m} months`}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <button
+                        onClick={handleUpgrade}
+                        disabled={payLoading}
+                        className="bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white px-5 py-2 rounded-lg transition font-semibold"
+                    >
+                        {payLoading
+                            ? "Redirecting..."
+                            : `Pay ${PLAN_PRICES[selectedPlan] * selectedMonths} EGP`}
+                    </button>
+                </div>
+
+                {payError && (
+                    <p className="text-red-600 text-sm mt-3">{payError}</p>
+                )}
+            </div>
 
         </div>
     );

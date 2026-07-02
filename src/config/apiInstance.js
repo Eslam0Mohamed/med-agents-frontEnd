@@ -18,7 +18,16 @@ apiInstance.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       window.location.href = '/login';
+      return Promise.reject(error);
     }
+
+    if (error.response?.data?.error === 'SUBSCRIPTION_EXPIRED') {
+      if (window.location.pathname !== '/subscriptions') {
+        window.location.href = '/subscriptions?expired=1';
+      }
+      return Promise.reject(error);
+    }
+
     return Promise.reject(error);
   }
 );
