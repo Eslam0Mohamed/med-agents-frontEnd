@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '../../context/AuthContext'
 import { loginSchema } from '../../schemas/loginSchema';
-
+import PublicNavbar from "../puplic/puplicNavbar/PuplicNavbar"
 export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [serverError, setServerError] = useState('');
@@ -35,6 +35,9 @@ export default function Login() {
   };
 
   return (
+  <>
+  
+    <PuplicNavbar/>
     <div className="flex items-center justify-center h-screen bg-gray-50">
       <div className="bg-white rounded-xl shadow-md p-8 w-full max-w-sm">
         <div className="text-center mb-6">
@@ -90,6 +93,6 @@ export default function Login() {
           </button>
         </form>
       </div>
-    </div>
+    </div></>
   );
 }
