@@ -125,7 +125,7 @@ useEffect(() => {
     
     setPatientSearch(patient.name);
     setSelectedPatientId(patient._id);
-    setValue('patientId', patient._id, { shouldValidate: true, shouldDirty: true });
+    setValue('patientId', patient._id, { dValidate: true, shouldDirty: true });
     setShowDropdown(false);
   };
 
