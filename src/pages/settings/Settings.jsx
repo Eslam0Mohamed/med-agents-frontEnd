@@ -23,12 +23,12 @@ export default function Settings() {
     setSuccess('');
 
     if (!confirmEmail.trim()) {
-      setError('Please confirm your account email.');
+      setError(t('settings.errorConfirmEmail'));
       return;
     }
 
     if (newPassword && newPassword !== confirmPassword) {
-      setError('Passwords do not match.');
+      setError(t('settings.errorPasswordMatch'));
       return;
     }
 
@@ -49,15 +49,14 @@ export default function Settings() {
 
       localStorage.setItem('user', JSON.stringify(updatedUser));
       setUser?.(updatedUser);
-
       i18n.changeLanguage(language);
 
-      setSuccess('Profile updated successfully.');
+      setSuccess(t('settings.successUpdate'));
       setConfirmEmail('');
       setNewPassword('');
       setConfirmPassword('');
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to update profile.');
+      setError(err.response?.data?.message || t('settings.failedUpdate'));
     } finally {
       setIsLoading(false);
     }
@@ -94,7 +93,7 @@ export default function Settings() {
               type="text"
               value={specialty}
               onChange={(e) => setSpecialty(e.target.value)}
-              placeholder="e.g. Cardiology"
+              placeholder={t('settings.specialtyPlaceholder')}
               className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm outline-none focus:border-blue-500"
             />
           </div>
@@ -113,21 +112,21 @@ export default function Settings() {
 
           <div className="border-t border-gray-100 pt-4 sm:pt-5">
             <h2 className="text-sm font-semibold text-gray-700 mb-3">
-              Change password (optional)
+              {t('settings.changePassword')}
             </h2>
             <div className="space-y-3">
               <input
                 type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="New password"
+                placeholder={t('settings.newPassword')}
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm outline-none focus:border-blue-500"
               />
               <input
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Confirm new password"
+                placeholder={t('settings.confirmPassword')}
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm outline-none focus:border-blue-500"
               />
             </div>
@@ -135,13 +134,13 @@ export default function Settings() {
 
           <div className="border-t border-gray-100 pt-4 sm:pt-5">
             <label className="block text-sm text-gray-600 mb-1">
-              Confirm your account email to save
+              {t('settings.confirmEmail')}
             </label>
             <input
               type="email"
               value={confirmEmail}
               onChange={(e) => setConfirmEmail(e.target.value)}
-              placeholder="your-email@example.com"
+              placeholder={t('settings.emailPlaceholder')}
               className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm outline-none focus:border-blue-500"
             />
           </div>
