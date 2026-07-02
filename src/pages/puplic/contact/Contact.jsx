@@ -22,9 +22,9 @@ const Contact = () => {
       setSubmitted(true);
     } catch (err) {
       console.log(err);
-        setError(
+      setError(
         err.response?.data?.message ||
-          "Something went wrong, please try again"
+        "Something went wrong, please try again"
       );
     } finally {
       setLoading(false);
@@ -54,6 +54,8 @@ const Contact = () => {
               </p>
             </div>
           ) : (
+
+
             <form onSubmit={handleSubmit} className="flex flex-col gap-5">
               <div>
                 <label className="block text-sm text-gray-600 mb-1">
@@ -116,13 +118,14 @@ const Contact = () => {
         </div>
 
         <div className="text-center mt-8 text-sm text-gray-500">
-          Or email us directly at{" "}
+   <p>       Or email us directly at{" "}
           <a
             href="mailto:support@medagents.com"
             className="text-blue-600 font-medium"
           >
             support@medagents.com
-          </a>
+          </a> and our whatsapp <a href="https://wa.me/+201154258252" className="text-blue-600 font-medium">01154258252</a>
+          </p>
         </div>
       </section>
     </div>
