@@ -38,7 +38,7 @@ export default function Login() {
   };
 
   return <>
-   <PuplicNavbar/>
+   <PublicNavbar/>
     <div className="flex items-center justify-center h-screen bg-gray-50 relative">
       <div className="absolute top-4 end-4">
         <LanguageSwitcher />

@@ -107,14 +107,14 @@ export default function Navbar() {
                   onClick={() => { setMenuOpen(false); navigate('/'); }}
                   className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 border-b cursor-pointer"
                 >
-                  Home
+                  {t('nav.home')}
                 </button>
 
                 <button
                   onClick={() => { setMenuOpen(false); navigate('/contact'); }}
                   className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 border-b cursor-pointer"
                 >
-                  Contact Us
+                  {t('nav.contactUs')}
                 </button>
 
                 <button

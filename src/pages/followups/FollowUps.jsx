@@ -1,38 +1,36 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import {
-  FiAlertTriangle,
-  FiCalendar,
-  FiClock,
-  FiPlayCircle,
-  FiCheckCircle,
-} from "react-icons/fi";
+import { FiAlertTriangle, FiCalendar, FiClock, FiPlayCircle, FiCheckCircle } from "react-icons/fi";
 import Swal from "sweetalert2";
 import { getFollowUps } from "../../api/followup";
 import "./followups.css";
 import apiInstance from "../../config/apiInstance";
 
-const weekDays = ["S", "M", "T", "W", "T", "F", "S"];
-
-const monthNames = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
-];
-
 const FollowUps = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
+  const monthNames = [
+    t("followups.months.january"), t("followups.months.february"), t("followups.months.march"),
+    t("followups.months.april"), t("followups.months.may"), t("followups.months.june"),
+    t("followups.months.july"), t("followups.months.august"), t("followups.months.september"),
+    t("followups.months.october"), t("followups.months.november"), t("followups.months.december"),
+  ];
+
+  const weekDays = [
+    t("followups.weekDays.sun"), t("followups.weekDays.mon"), t("followups.weekDays.tue"),
+    t("followups.weekDays.wed"), t("followups.weekDays.thu"), t("followups.weekDays.fri"),
+    t("followups.weekDays.sat"),
+  ];
+
   const [followUps, setFollowUps] = useState([]);
   const [activeTab, setActiveTab] = useState("upcoming");
   const [loading, setLoading] = useState(false);
-
   const [calendarMonth, setCalendarMonth] = useState(() => {
     const today = new Date();
     return new Date(today.getFullYear(), today.getMonth(), 1);
   });
-
   const [selectedDate, setSelectedDate] = useState(null);
 
   const getId = (value) => {
@@ -41,29 +39,19 @@ const FollowUps = () => {
     return value._id || value.id || "";
   };
 
-  const isCompleted = (item) =>
-    item.status === "confirmed" || item.status === "done";
-
-  const isCancelled = (item) =>
-    item.status === "cancelled" || item.status === "canceled";
+  const isCompleted = (item) => item.status === "confirmed" || item.status === "done";
+  const isCancelled = (item) => item.status === "cancelled" || item.status === "canceled";
 
   const toDateKey = (date) => {
     if (!date) return "";
     const d = new Date(date);
     if (Number.isNaN(d.getTime())) return "";
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   };
 
   const formatDate = (date) => {
-    if (!date) return "No date";
-    return new Date(date).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+    if (!date) return "—";
+    return new Date(date).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
   };
 
   const todayKey = toDateKey(new Date());
@@ -82,37 +70,25 @@ const FollowUps = () => {
         getFollowUps(),
         apiInstance.get("/consultations/doctor"),
       ]);
-
       const allFollowups = followupsRes?.data || [];
       const doctorConsultations = consultationsRes?.data?.data || [];
-
-      const doctorConsultationIds = new Set(
-        doctorConsultations.map((c) => String(c._id))
-      );
-
+      const doctorConsultationIds = new Set(doctorConsultations.map((c) => String(c._id)));
       const filteredFollowups = allFollowups.filter((followup) => {
-        const followupConsultationId =
-          typeof followup.consultationId === "object"
-            ? followup.consultationId?._id
-            : followup.consultationId;
+        const followupConsultationId = typeof followup.consultationId === "object"
+          ? followup.consultationId?._id : followup.consultationId;
         return doctorConsultationIds.has(String(followupConsultationId));
       });
-
       setFollowUps(filteredFollowups);
-    } catch (error) {
-      Swal.fire("Error", "Failed to load follow-ups", "error");
+    } catch {
+      Swal.fire(t("common.error"), t("followups.loadError"), "error");
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    loadFollowUps();
-  }, []);
+  useEffect(() => { loadFollowUps(); }, []);
 
-  const validFollowUps = useMemo(() => {
-    return followUps.filter((item) => item.patientId && item.consultationId);
-  }, [followUps]);
+  const validFollowUps = useMemo(() => followUps.filter((item) => item.patientId && item.consultationId), [followUps]);
 
   const calendarDays = useMemo(() => {
     const year = calendarMonth.getFullYear();
@@ -122,124 +98,72 @@ const FollowUps = () => {
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const days = [];
     for (let i = 0; i < startWeekDay; i += 1) days.push(null);
-    for (let day = 1; day <= daysInMonth; day += 1)
-      days.push(new Date(year, month, day));
+    for (let day = 1; day <= daysInMonth; day += 1) days.push(new Date(year, month, day));
     return days;
   }, [calendarMonth]);
 
   const filteredFollowUps = useMemo(() => {
     return validFollowUps.filter((item) => {
-      const matchesTab =
-        activeTab === "completed"
-          ? isCompleted(item)
-          : activeTab === "pastDue"
-          ? isPastDue(item)
-          : !isCompleted(item) && !isPastDue(item);
-
-      const matchesSelectedDate = selectedDate
-        ? toDateKey(item.scheduledDate) === toDateKey(selectedDate)
-        : true;
-
+      const matchesTab = activeTab === "completed" ? isCompleted(item) : activeTab === "pastDue" ? isPastDue(item) : !isCompleted(item) && !isPastDue(item);
+      const matchesSelectedDate = selectedDate ? toDateKey(item.scheduledDate) === toDateKey(selectedDate) : true;
       return matchesTab && matchesSelectedDate;
     });
   }, [validFollowUps, activeTab, selectedDate]);
 
-  const pastDueCount = useMemo(
-    () => validFollowUps.filter((item) => !isCompleted(item) && isPastDue(item)).length,
-    [validFollowUps]
-  );
-
-  const completedCount = useMemo(
-    () => validFollowUps.filter((item) => isCompleted(item)).length,
-    [validFollowUps]
-  );
-
+  const pastDueCount = useMemo(() => validFollowUps.filter((item) => !isCompleted(item) && isPastDue(item)).length, [validFollowUps]);
+  const completedCount = useMemo(() => validFollowUps.filter((item) => isCompleted(item)).length, [validFollowUps]);
   const selectedDateCount = useMemo(() => {
     if (!selectedDate) return 0;
-    return validFollowUps.filter(
-      (item) => toDateKey(item.scheduledDate) === toDateKey(selectedDate)
-    ).length;
+    return validFollowUps.filter((item) => toDateKey(item.scheduledDate) === toDateKey(selectedDate)).length;
   }, [validFollowUps, selectedDate]);
 
   const insightDateCount = useMemo(() => {
     const targetDate = selectedDate || new Date();
-    return validFollowUps.filter(
-      (item) =>
-        !isCompleted(item) &&
-        toDateKey(item.scheduledDate) === toDateKey(targetDate)
-    ).length;
+    return validFollowUps.filter((item) => !isCompleted(item) && toDateKey(item.scheduledDate) === toDateKey(targetDate)).length;
   }, [validFollowUps, selectedDate]);
 
-  const insightDateLabel = selectedDate
-    ? `on ${formatDate(selectedDate)}`
-    : "today";
+  const insightDateLabel = selectedDate ? `${t("followups.on")} ${formatDate(selectedDate)}` : t("followups.today");
 
   const getFollowUpsCountForDate = (date) => {
     if (!date) return 0;
-    const key = toDateKey(date);
-    return validFollowUps.filter(
-      (item) => toDateKey(item.scheduledDate) === key
-    ).length;
+    return validFollowUps.filter((item) => toDateKey(item.scheduledDate) === toDateKey(date)).length;
   };
 
-  const getPatientName = (item) =>
-    item.patientId?.name || "Unknown Patient";
-
+  const getPatientName = (item) => item.patientId?.name || t("followups.unknownPatient");
   const getPatientId = (item) => getId(item.patientId);
 
   const getInitials = (name) => {
-    if (!name || name === "Unknown Patient") return "P";
-    return name
-      .split(" ")
-      .map((part) => part[0])
-      .slice(0, 2)
-      .join("")
-      .toUpperCase();
+    if (!name || name === t("followups.unknownPatient")) return "P";
+    return name.split(" ").map((part) => part[0]).slice(0, 2).join("").toUpperCase();
   };
 
   const getConsultationSummary = (item) => {
     const consultation = item.consultationId;
-    if (!consultation) return "No consultation details";
+    if (!consultation) return "—";
     if (consultation.diagnosis) return consultation.diagnosis;
-    if (Array.isArray(consultation.symptoms) && consultation.symptoms.length > 0)
-      return consultation.symptoms.join(", ");
+    if (Array.isArray(consultation.symptoms) && consultation.symptoms.length > 0) return consultation.symptoms.join(", ");
     if (consultation.rawInput) return consultation.rawInput;
-    return "Consultation details unavailable";
+    return "—";
   };
 
-  const handlePreviousMonth = () => {
-    setCalendarMonth(
-      (prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1)
-    );
-  };
-
-  const handleNextMonth = () => {
-    setCalendarMonth(
-      (prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1)
-    );
-  };
-
-  const handleTabChange = (tab) => {
-    setActiveTab(tab);
-    setSelectedDate(null);
-  };
-
-  const handleStartFollowUp = (item) => {
-    navigate(`/followups/start/${item._id}`);
-  };
-
-  const handleViewDetails = (item) => {
-    navigate(`/followups/${item._id}`);
-  };
-
+  const handleTabChange = (tab) => { setActiveTab(tab); setSelectedDate(null); };
+  const handleStartFollowUp = (item) => navigate(`/followups/start/${item._id}`);
+  const handleViewDetails = (item) => navigate(`/followups/${item._id}`);
   const handleInsightAction = () => {
-    if (pastDueCount > 0) {
-      setSelectedDate(null);
-      setActiveTab("pastDue");
-      return;
-    }
-    setSelectedDate(new Date());
-    setActiveTab("upcoming");
+    if (pastDueCount > 0) { setSelectedDate(null); setActiveTab("pastDue"); return; }
+    setSelectedDate(new Date()); setActiveTab("upcoming");
+  };
+
+  const getSectionTitle = () => {
+    if (activeTab === "upcoming") return t("followups.upcomingTitle");
+    if (activeTab === "pastDue") return t("followups.pastDueTitle");
+    return t("followups.completedTitle");
+  };
+
+  const getStatusLabel = (item) => {
+    if (isCompleted(item)) return t("followups.status.confirmed");
+    if (isPastDue(item)) return isCancelled(item) ? t("followups.status.cancelled") : t("followups.status.pastDue");
+    return t("followups.status.pending");
   };
 
   return (
@@ -247,29 +171,20 @@ const FollowUps = () => {
       <div className="followups-header">
         <div>
           <h1>{t("followups.title")}</h1>
-          <p>Manage scheduled reviews and continuity of care for your clinic.</p>
+          <p>{t("followups.subtitle")}</p>
         </div>
-        <div className="header-note">Created automatically from consultations</div>
+        <div className="header-note">{t("followups.createdAuto")}</div>
       </div>
 
       <div className="followups-tabs">
-        <button
-          className={activeTab === "upcoming" ? "active" : ""}
-          onClick={() => handleTabChange("upcoming")}
-        >
-          Upcoming
+        <button className={activeTab === "upcoming" ? "active" : ""} onClick={() => handleTabChange("upcoming")}>
+          {t("followups.upcoming")}
         </button>
-        <button
-          className={activeTab === "pastDue" ? "active" : ""}
-          onClick={() => handleTabChange("pastDue")}
-        >
-          Past Due
+        <button className={activeTab === "pastDue" ? "active" : ""} onClick={() => handleTabChange("pastDue")}>
+          {t("followups.pastDue")}
         </button>
-        <button
-          className={activeTab === "completed" ? "active" : ""}
-          onClick={() => handleTabChange("completed")}
-        >
-          {t("followups.status.confirmed")}
+        <button className={activeTab === "completed" ? "active" : ""} onClick={() => handleTabChange("completed")}>
+          {t("followups.completed")}
         </button>
       </div>
 
@@ -277,39 +192,23 @@ const FollowUps = () => {
         <aside className="followups-sidebar">
           <div className="mini-calendar-card">
             <div className="calendar-title">
-              <button type="button" onClick={handlePreviousMonth}>‹</button>
-              <span>
-                {monthNames[calendarMonth.getMonth()]}{" "}
-                {calendarMonth.getFullYear()}
-              </span>
-              <button type="button" onClick={handleNextMonth}>›</button>
+              <button type="button" onClick={() => setCalendarMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))}>‹</button>
+              <span>{monthNames[calendarMonth.getMonth()]} {calendarMonth.getFullYear()}</span>
+              <button type="button" onClick={() => setCalendarMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))}>›</button>
             </div>
 
             <div className="calendar-grid">
               {weekDays.map((day, index) => (
-                <span key={`${day}-${index}`} className="calendar-day-name">
-                  {day}
-                </span>
+                <span key={`${day}-${index}`} className="calendar-day-name">{day}</span>
               ))}
               {calendarDays.map((day, index) => {
-                if (!day)
-                  return <span key={`empty-${index}`} className="calendar-empty" />;
+                if (!day) return <span key={`empty-${index}`} className="calendar-empty" />;
                 const count = getFollowUpsCountForDate(day);
-                const isSelected =
-                  selectedDate && toDateKey(day) === toDateKey(selectedDate);
+                const isSelected = selectedDate && toDateKey(day) === toDateKey(selectedDate);
                 const isToday = toDateKey(day) === todayKey;
                 return (
-                  <button
-                    type="button"
-                    key={toDateKey(day)}
-                    onClick={() => setSelectedDate(day)}
-                    className={[
-                      "calendar-day",
-                      isSelected ? "selected" : "",
-                      isToday ? "today" : "",
-                      count > 0 ? "has-followups" : "",
-                    ].join(" ")}
-                  >
+                  <button type="button" key={toDateKey(day)} onClick={() => setSelectedDate(day)}
+                    className={["calendar-day", isSelected ? "selected" : "", isToday ? "today" : "", count > 0 ? "has-followups" : ""].join(" ")}>
                     <span>{day.getDate()}</span>
                     {count > 0 && <small>{count}</small>}
                   </button>
@@ -320,29 +219,24 @@ const FollowUps = () => {
             <div className="calendar-footer">
               {selectedDate ? (
                 <>
-                  <p>
-                    Showing {selectedDateCount} follow-up(s) for{" "}
-                    {formatDate(selectedDate)}
-                  </p>
-                  <button type="button" onClick={() => setSelectedDate(null)}>
-                    Show all
-                  </button>
+                  <p>{selectedDateCount} {t("followups.showingCount").replace("{{count}}", "")} {formatDate(selectedDate)}</p>
+                  <button type="button" onClick={() => setSelectedDate(null)}>{t("followups.showAll")}</button>
                 </>
               ) : (
-                <p>Click a day to filter follow-ups.</p>
+                <p>{t("followups.clickToFilter")}</p>
               )}
             </div>
           </div>
 
           <div className="ai-insights-card">
-            <h3>AI Insights</h3>
+            <h3>{t("followups.aiInsights")}</h3>
             <div className="insight-list">
-              <p>{insightDateCount} follow-up(s) scheduled {insightDateLabel}.</p>
-              <p>{pastDueCount} pending follow-up(s) are past due.</p>
-              <p>{completedCount} follow-up(s) completed.</p>
+              <p>{insightDateCount} {t("followups.insightScheduled")} {insightDateLabel}.</p>
+              <p>{pastDueCount} {t("followups.insightPastDue")}</p>
+              <p>{completedCount} {t("followups.insightCompleted")}</p>
             </div>
             <button type="button" onClick={handleInsightAction}>
-              {pastDueCount > 0 ? "Review Past Due" : "View Today's Follow-ups"}
+              {pastDueCount > 0 ? t("followups.reviewPastDue") : t("followups.viewToday")}
             </button>
           </div>
         </aside>
@@ -350,19 +244,11 @@ const FollowUps = () => {
         <main className="followups-content">
           <div className="section-title">
             {activeTab === "completed" ? <FiCheckCircle /> : <FiAlertTriangle />}
-            <span>
-              {activeTab === "upcoming" && "Upcoming Follow-ups"}
-              {activeTab === "pastDue" && "Past Due Follow-ups"}
-              {activeTab === "completed" && "Completed Follow-ups"}
-            </span>
+            <span>{getSectionTitle()}</span>
           </div>
 
-          {loading && (
-            <p className="state-text">{t("common.loading")}</p>
-          )}
-          {!loading && filteredFollowUps.length === 0 && (
-            <p className="state-text">{t("common.noData")}</p>
-          )}
+          {loading && <p className="state-text">{t("common.loading")}</p>}
+          {!loading && filteredFollowUps.length === 0 && <p className="state-text">{t("common.noData")}</p>}
 
           <div className="followups-grid">
             {filteredFollowUps.map((item) => {
@@ -373,55 +259,31 @@ const FollowUps = () => {
                     <div className="patient-avatar">{getInitials(patientName)}</div>
                     <div>
                       <h3>{patientName}</h3>
-                      <p>Patient ID: {getPatientId(item)}</p>
+                      <p>{t("followups.patientId")}: {getPatientId(item)}</p>
                     </div>
-                    <span
-                      className={
-                        isPastDue(item) ? "urgent-badge danger" : "urgent-badge"
-                      }
-                    >
-                      {isCompleted(item)
-                        ? t("followups.status.confirmed")
-                        : isPastDue(item)
-                        ? isCancelled(item)
-                          ? t("followups.status.cancelled")
-                          : "Past Due"
-                        : t("followups.status.pending")}
+                    <span className={isPastDue(item) ? "urgent-badge danger" : "urgent-badge"}>
+                      {getStatusLabel(item)}
                     </span>
                   </div>
 
                   <div className="followup-meta">
-                    <p>
-                      <FiCalendar />
-                      {t("followups.scheduledDate")}: {formatDate(item.scheduledDate)}
-                    </p>
-                    <p>
-                      <FiClock />
-                      {item.instructions || "No follow-up instructions"}
-                    </p>
+                    <p><FiCalendar />{t("followups.scheduledDate")}: {formatDate(item.scheduledDate)}</p>
+                    <p><FiClock />{item.instructions || t("followups.noInstructions")}</p>
                   </div>
 
                   <div className="followup-context">
-                    <span>Linked consultation</span>
+                    <span>{t("followups.linkedConsultation")}</span>
                     <p>{getConsultationSummary(item)}</p>
                   </div>
 
                   <div className="card-actions">
                     {!isCompleted(item) ? (
-                      <button
-                        className="start-btn"
-                        onClick={() => handleStartFollowUp(item)}
-                      >
-                        <FiPlayCircle />
-                        Start Follow-up
+                      <button className="start-btn" onClick={() => handleStartFollowUp(item)}>
+                        <FiPlayCircle />{t("followups.startFollowUp")}
                       </button>
                     ) : (
-                      <button
-                        className="start-btn"
-                        onClick={() => handleViewDetails(item)}
-                      >
-                        <FiCheckCircle />
-                        View Details
+                      <button className="start-btn" onClick={() => handleViewDetails(item)}>
+                        <FiCheckCircle />{t("followups.viewDetails")}
                       </button>
                     )}
                   </div>
