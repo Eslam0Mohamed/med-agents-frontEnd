@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import { fetchPatientHistory } from '../../api/patient';
 import { clearHistory } from '../../slices/patientsSlice';
 
@@ -13,6 +14,7 @@ const urgencyStyles = {
 };
 
 export default function PatientHistory() {
+  const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -35,11 +37,9 @@ export default function PatientHistory() {
 
   const initials = (name) =>
     name?.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase();
-// console.log(history.history[0]);
-
 
   if (isHistoryLoading) {
-    return <div className="text-center text-gray-400 py-10">Loading...</div>;
+    return <div className="text-center text-gray-400 py-10">{t('common.loading')}</div>;
   }
 
   if (error) {
@@ -49,8 +49,6 @@ export default function PatientHistory() {
   if (!history) return null;
 
   const { patient, history: consultations } = history;
-  console.log("consultations");
-console.log(consultations);
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -58,12 +56,11 @@ console.log(consultations);
         onClick={() => navigate('/patients')}
         className="text-sm text-gray-500 hover:text-gray-900 mb-4"
       >
-        ← Back to Patients
+        ← {t('patients.backToPatients')}
       </button>
 
-      {/* Patient summary card */}
       <div className="bg-white rounded-xl shadow-sm p-6 flex flex-col md:flex-row gap-8 md:gap-0 items-start justify-between mb-6">
-        <div className="flex  items-start gap-4">
+        <div className="flex items-start gap-4">
           <div className="w-16 h-16 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xl font-semibold">
             {initials(patient.name)}
           </div>
@@ -71,10 +68,10 @@ console.log(consultations);
             <div className="flex items-center gap-2 mb-2">
               <h1 className="text-xl font-bold text-gray-900">{patient.name}</h1>
               <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-medium uppercase">
-                {patient.gender}
+                {patient.gender === 'male' ? t('patients.male') : t('patients.female')}
               </span>
               <span className="text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 font-medium">
-                Age: {calculateAge(patient.dateOfBirth)}
+                {t('patients.age')}: {calculateAge(patient.dateOfBirth)}
               </span>
               <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 font-medium">
                 {patient.bloodType}
@@ -83,7 +80,9 @@ console.log(consultations);
 
             <div className="grid grid-cols-2 gap-8 mt-3">
               <div>
-                <p className="text-xs font-semibold text-gray-400 uppercase mb-1">Allergies</p>
+                <p className="text-xs font-semibold text-gray-400 uppercase mb-1">
+                  {t('patients.allergies')}
+                </p>
                 <div className="flex flex-wrap gap-1.5">
                   {patient.allergies?.length > 0 ? (
                     patient.allergies.map((a, i) => (
@@ -92,12 +91,14 @@ console.log(consultations);
                       </span>
                     ))
                   ) : (
-                    <span className="text-xs text-gray-400">None</span>
+                    <span className="text-xs text-gray-400">{t('patients.none')}</span>
                   )}
                 </div>
               </div>
               <div>
-                <p className="text-xs font-semibold text-gray-400 uppercase mb-1">Chronic Conditions</p>
+                <p className="text-xs font-semibold text-gray-400 uppercase mb-1">
+                  {t('patients.chronicConditions')}
+                </p>
                 <div className="flex flex-wrap gap-1.5">
                   {patient.chronicConditions?.length > 0 ? (
                     patient.chronicConditions.map((c, i) => (
@@ -106,105 +107,112 @@ console.log(consultations);
                       </span>
                     ))
                   ) : (
-                    <span className="text-xs text-gray-400">None</span>
+                    <span className="text-xs text-gray-400">{t('patients.none')}</span>
                   )}
                 </div>
               </div>
             </div>
           </div>
         </div>
+
         <div className="flex items-center gap-2">
           <button
             onClick={() => navigate(`/patients/report/${patient._id}`)}
             className="flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50"
           >
-            📊 View Report
+            📊 {t('patients.viewReport')}
           </button>
           <button
             onClick={() => navigate(`/consultations/add/${patient._id}`)}
             className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700"
           >
-            + New Consultation
+            + {t('patients.newConsultation')}
           </button>
           <button
             onClick={() => navigate(`/patients/edit/${patient._id}`)}
             className="flex items-center gap-2 bg-blue-800 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-900"
           >
-            ✏️ Edit Record
+            ✏️ {t('patients.editRecord')}
           </button>
         </div>
       </div>
 
       <h2 className="text-lg font-bold text-gray-900 mb-4">
-        Consultation History ({consultations.length})
+        {t('patients.consultationHistory')} ({consultations.length})
       </h2>
 
       {consultations.length === 0 && (
         <div className="text-center text-gray-400 py-10 bg-white rounded-xl shadow-sm">
-          No consultations recorded yet.
+          {t('patients.noConsultations')}
         </div>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {consultations.map((item) => (
-          
-          
           <div key={item.consultationId} className="bg-white rounded-xl shadow-sm p-5">
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs text-gray-400">
                 {new Date(item.date).toLocaleString()}
               </span>
-              <span
-                className={`text-xs px-2.5 py-1 rounded-full font-semibold uppercase ${urgencyStyles[item.urgencyLevel?.toLowerCase()] || 'bg-gray-100 text-gray-700'
-                  }`}
-              >
+              <span className={`text-xs px-2.5 py-1 rounded-full font-semibold uppercase ${urgencyStyles[item.urgencyLevel?.toLowerCase()] || 'bg-gray-100 text-gray-700'}`}>
                 {item.urgencyLevel}
               </span>
             </div>
-<div className=''>
-                <p className="text-xs font-semibold text-gray-400 uppercase mb-2">symptoms</p>
-       <div className="flex flex-wrap gap-1.5 mb-3">
-              {item.symptoms.map((s, i) => (
-                <span key={i} className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
-                  {s}
-                </span>
-              ))}
+
+            <div>
+              <p className="text-xs font-semibold text-gray-400 uppercase mb-2">Symptoms</p>
+              <div className="flex flex-wrap gap-1.5 mb-3">
+                {item.symptoms.map((s, i) => (
+                  <span key={i} className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
+                    {s}
+                  </span>
+                ))}
+              </div>
             </div>
 
-              </div>
             <div className="grid grid-cols-2 gap-3 mb-3">
               <div>
-                <p className="text-xs font-semibold text-gray-400 uppercase">Diagnosis</p>
+                <p className="text-xs font-semibold text-gray-400 uppercase">
+                  {t('consultations.diagnosis')}
+                </p>
                 <p className="text-sm text-gray-900">{item.diagnosis || '—'}</p>
               </div>
               <div>
-                <p className="text-xs font-semibold text-gray-400 uppercase">Follow-up Date</p>
+                <p className="text-xs font-semibold text-gray-400 uppercase">
+                  {t('consultations.followUpDate')}
+                </p>
                 <p className="text-sm text-gray-900">
                   {item.followUpDate ? new Date(item.followUpDate).toLocaleDateString('en-US', {
                     month: 'short',
                     day: 'numeric',
-                    year: 'numeric'
+                    year: 'numeric',
                   }) : '—'}
                 </p>
               </div>
               {item.suggestedSpecialist && (
                 <div className="col-span-2">
-                  <p className="text-xs font-semibold text-gray-400 uppercase">Specialist</p>
+                  <p className="text-xs font-semibold text-gray-400 uppercase">
+                    {t('consultations.specialist')}
+                  </p>
                   <p className="text-sm text-gray-900">{item.suggestedSpecialist}</p>
                 </div>
               )}
             </div>
 
             {item.structuredNote && (
-              <div className="bg-blue-50 border-l-4 border-blue-400 rounded-r-lg p-3 mb-3">
-                <p className="text-xs font-semibold text-blue-700 mb-1">🤖 AI Clinical Note</p>
+              <div className="bg-blue-50 border-s-4 border-blue-400 rounded-e-lg p-3 mb-3">
+                <p className="text-xs font-semibold text-blue-700 mb-1">
+                  🤖 {t('consultations.aiClinicalNote')}
+                </p>
                 <p className="text-sm text-gray-700">{item.structuredNote}</p>
               </div>
             )}
 
             {item.prescription && (
               <div>
-                <p className="text-xs font-semibold text-gray-400 uppercase mb-1.5">Prescription</p>
+                <p className="text-xs font-semibold text-gray-400 uppercase mb-1.5">
+                  {t('consultations.prescription')}
+                </p>
                 <div className="flex flex-col gap-1.5">
                   {item.prescription.medications.map((med, i) => (
                     <div key={i} className="bg-gray-50 rounded-lg px-3 py-2 text-sm">
