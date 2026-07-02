@@ -5,8 +5,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import { loginSchema } from '../../schemas/loginSchema';
+import PublicNavbar from "../puplic/puplicNavbar/PuplicNavbar"
 import LanguageSwitcher from '../../components/LanguageSwitcher';
-
 export default function Login() {
   const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
@@ -37,7 +37,8 @@ export default function Login() {
     }
   };
 
-  return (
+  return <>
+   <PuplicNavbar/>
     <div className="flex items-center justify-center h-screen bg-gray-50 relative">
       <div className="absolute top-4 end-4">
         <LanguageSwitcher />
@@ -101,5 +102,5 @@ export default function Login() {
         </form>
       </div>
     </div>
-  );
+ </>
 }
