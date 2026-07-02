@@ -2,10 +2,13 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useAuth } from '../../context/AuthContext'
+import { useTranslation } from 'react-i18next';
+import { useAuth } from '../../context/AuthContext';
 import { loginSchema } from '../../schemas/loginSchema';
-
+import PublicNavbar from "../puplic/puplicNavbar/PuplicNavbar"
+import LanguageSwitcher from '../../components/LanguageSwitcher';
 export default function Login() {
+  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
   const [serverError, setServerError] = useState('');
 
@@ -28,20 +31,24 @@ export default function Login() {
       await login(data.email, data.password);
       navigate('/patients');
     } catch (err) {
-      setServerError('Invalid email or password');
+      setServerError(t('auth.invalidCredentials'));
     } finally {
       setIsLoading(false);
     }
   };
 
-  return (
-    <div className="flex items-center justify-center h-screen bg-gray-50">
+  return <>
+   <PuplicNavbar/>
+    <div className="flex items-center justify-center h-screen bg-gray-50 relative">
+      <div className="absolute top-4 end-4">
+        <LanguageSwitcher />
+      </div>
       <div className="bg-white rounded-xl shadow-md p-8 w-full max-w-sm">
         <div className="text-center mb-6">
           <h1 className="text-xl font-semibold text-gray-900">
             Med<span className="text-blue-600">Agents</span>
           </h1>
-          <p className="text-sm text-gray-500 mt-1">Doctor Portal</p>
+          <p className="text-sm text-gray-500 mt-1">{t('auth.welcomeBack')}</p>
         </div>
 
         {serverError && (
@@ -52,7 +59,9 @@ export default function Login() {
 
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
           <div>
-            <label className="block text-sm text-gray-600 mb-1">Email</label>
+            <label className="block text-sm text-gray-600 mb-1">
+              {t('auth.email')}
+            </label>
             <input
               type="email"
               {...register('email')}
@@ -67,7 +76,9 @@ export default function Login() {
           </div>
 
           <div>
-            <label className="block text-sm text-gray-600 mb-1">Password</label>
+            <label className="block text-sm text-gray-600 mb-1">
+              {t('auth.password')}
+            </label>
             <input
               type="password"
               {...register('password')}
@@ -86,10 +97,10 @@ export default function Login() {
             disabled={isLoading}
             className="bg-blue-600 text-white rounded-md py-2 text-sm font-medium hover:bg-blue-700 disabled:bg-gray-400 transition"
           >
-            {isLoading ? 'Logging in...' : 'Login'}
+            {isLoading ? t('auth.loggingIn') : t('auth.loginButton')}
           </button>
         </form>
       </div>
     </div>
-  );
+ </>
 }
