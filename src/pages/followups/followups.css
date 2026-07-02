@@ -305,6 +305,45 @@
   background: #003968;
 }
 
+.details-btn {
+  background: #004782;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 14px 20px;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.details-btn:hover {
+  background: #003968;
+}
+
+.edit-btn {
+  background: #ffffff;
+  color: #004782;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 14px 20px;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.edit-btn:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+
 .icon-btn {
   width: 56px;
   border: 1px solid #cbd5e1;
