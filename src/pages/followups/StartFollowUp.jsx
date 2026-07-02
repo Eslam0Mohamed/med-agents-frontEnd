@@ -1,29 +1,30 @@
-import React, { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import Swal from 'sweetalert2';
-import {
-  createFollowUp,
-  getFollowUpById,
-  updateFollowUp,
-} from '../../api/followup';
+import { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import Swal from "sweetalert2";
+import { getFollowUpById, updateFollowUp } from "../../api/followup";
 import {
   createConsultation,
   getAIRecommendation,
   updateConsultation,
-} from '../../api/consultation';
+} from "../../api/consultation";
+import apiInstance from "../../config/apiInstance";
 
 const initialForm = {
-  rawInput: '',
-  symptoms: '',
-  diagnosis: '',
-  language: 'en',
-  followUpDate: '',
+  rawInput: "",
+  symptoms: "",
+  diagnosis: "",
+  language: "en",
+  followUpDate: "",
   isChronic: false,
 };
 
 const StartFollowUp = () => {
   const { followupId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const passedFollowUp = location.state?.followUp || null;
+  const isEditMode = location.state?.mode === "edit";
 
   const [followUp, setFollowUp] = useState(null);
   const [form, setForm] = useState(initialForm);
@@ -34,32 +35,32 @@ const StartFollowUp = () => {
   const [submitting, setSubmitting] = useState(false);
 
   const getId = (value) => {
-    if (!value) return '';
-    if (typeof value === 'string') return value;
-    return value._id || value.id || '';
+    if (!value) return "";
+    if (typeof value === "string") return value;
+    return value._id || value.id || "";
   };
 
-  function formatDate(date) {
-    if (!date) return 'No date';
+  const formatDate = (date) => {
+    if (!date) return "No date";
 
-    return new Date(date).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
+    return new Date(date).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
     });
-  }
+  };
 
   const toInputDate = (date) => {
-    if (!date) return '';
+    if (!date) return "";
 
     const d = new Date(date);
-    if (Number.isNaN(d.getTime())) return '';
+    if (Number.isNaN(d.getTime())) return "";
 
-    return d.toISOString().split('T')[0];
+    return d.toISOString().split("T")[0];
   };
 
   const getPatientName = () => {
-    return followUp?.patientId?.name || 'Unknown Patient';
+    return followUp?.patientId?.name || "Unknown Patient";
   };
 
   const getPatientId = () => {
@@ -67,16 +68,23 @@ const StartFollowUp = () => {
   };
 
   const getPreviousConsultation = () => {
-    return followUp?.consultationId || null;
+    if (
+      typeof followUp?.consultationId === "object" &&
+      followUp?.consultationId !== null
+    ) {
+      return followUp.consultationId;
+    }
+
+    return null;
   };
 
   const getPreviousSymptoms = () => {
     const consultation = getPreviousConsultation();
 
-    if (!consultation?.symptoms) return 'No symptoms recorded';
+    if (!consultation?.symptoms) return "No symptoms recorded";
 
     if (Array.isArray(consultation.symptoms)) {
-      return consultation.symptoms.join(', ');
+      return consultation.symptoms.join(", ");
     }
 
     return consultation.symptoms;
@@ -84,12 +92,12 @@ const StartFollowUp = () => {
 
   const getPreviousNotes = () => {
     const consultation = getPreviousConsultation();
-    return consultation?.rawInput || 'No previous notes recorded';
+    return consultation?.rawInput || "No previous notes recorded";
   };
 
   const getPreviousDiagnosis = () => {
     const consultation = getPreviousConsultation();
-    return consultation?.diagnosis || 'No diagnosis recorded';
+    return consultation?.diagnosis || "No diagnosis recorded";
   };
 
   const normalizeAIResult = (response) => {
@@ -103,55 +111,149 @@ const StartFollowUp = () => {
         result.diagnosis ||
         result.suggestedDiagnosis ||
         result.finalDiagnosis ||
-        '',
+        "",
       structuredNote:
         result.structuredNote ||
         result.recommendation ||
         result.content ||
         result.message ||
-        '',
-      urgencyLevel:
-        result.urgencyLevel ||
-        result.urgency ||
-        result.priority ||
-        '',
-      suggestedSpecialist:
-        result.suggestedSpecialist ||
-        result.specialist ||
-        '',
-      followUpDate:
-        result.followUpDate ||
-        result.nextFollowUpDate ||
-        '',
+        "",
+      urgencyLevel: result.urgencyLevel || result.urgency || result.priority || "",
+      suggestedSpecialist: result.suggestedSpecialist || result.specialist || "",
+      followUpDate: result.followUpDate || result.nextFollowUpDate || "",
     };
   };
 
   const getUrgencyColor = (level) => {
     const colors = {
-      low: 'text-green-600 bg-green-50 border-green-200',
-      medium: 'text-orange-600 bg-orange-50 border-orange-200',
-      critical: 'text-red-600 bg-red-50 border-red-200',
+      low: "text-green-600 bg-green-50 border-green-200",
+      medium: "text-orange-600 bg-orange-50 border-orange-200",
+      critical: "text-red-600 bg-red-50 border-red-200",
     };
 
-    return colors[level?.toLowerCase()] || 'text-gray-600 bg-gray-50 border-gray-200';
+    return (
+      colors[level?.toLowerCase()] ||
+      "text-gray-600 bg-gray-50 border-gray-200"
+    );
+  };
+
+  const buildFormFromConsultation = (consultation, fallbackLanguage = "en") => {
+    const symptomsValue = Array.isArray(consultation?.symptoms)
+      ? consultation.symptoms.join(", ")
+      : consultation?.symptoms || "";
+
+    return {
+      rawInput: consultation?.rawInput || "",
+      symptoms: symptomsValue,
+      diagnosis: consultation?.diagnosis || "",
+      language: consultation?.language || fallbackLanguage || "en",
+      followUpDate: toInputDate(consultation?.followUpDate),
+      isChronic: consultation?.isChronic || false,
+    };
+  };
+
+  const getBestCompletedConsultation = async (currentFollowUp) => {
+    if (currentFollowUp?.completedConsultation) {
+      return currentFollowUp.completedConsultation;
+    }
+
+    try {
+      const consultationsRes = await apiInstance.get("/consultations/doctor");
+      const doctorConsultations = consultationsRes?.data?.data || [];
+
+      const currentFollowupId = String(followupId);
+      const originalConsultationId = String(getId(currentFollowUp?.consultationId));
+      const patientId = String(getId(currentFollowUp?.patientId));
+
+      const linkedByFollowupId = doctorConsultations.find((consultation) => {
+        return (
+          String(getId(consultation.followupId)) === currentFollowupId ||
+          String(getId(consultation.sourceFollowupId)) === currentFollowupId
+        );
+      });
+
+      if (linkedByFollowupId) {
+        return linkedByFollowupId;
+      }
+
+      const samePatientConsultations = doctorConsultations
+        .filter((consultation) => {
+          const samePatient = String(getId(consultation.patientId)) === patientId;
+          const notOriginal =
+            String(getId(consultation._id)) !== originalConsultationId;
+
+          return samePatient && notOriginal;
+        })
+        .sort((a, b) => {
+          return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+        });
+
+      return samePatientConsultations[0] || null;
+    } catch (error) {
+      console.error("Could not load completed follow-up consultation:", error);
+      return null;
+    }
+  };
+
+  const fillEditForm = async (currentFollowUp) => {
+    const completedConsultation =
+      await getBestCompletedConsultation(currentFollowUp);
+
+    const originalConsultation =
+      typeof currentFollowUp?.consultationId === "object" &&
+      currentFollowUp?.consultationId !== null
+        ? currentFollowUp.consultationId
+        : null;
+
+    const consultationToEdit = completedConsultation || originalConsultation;
+
+    if (!consultationToEdit) {
+      setForm((prev) => ({
+        ...prev,
+        language: currentFollowUp?.language || "en",
+      }));
+      return;
+    }
+
+    const normalized = normalizeAIResult({
+      ...consultationToEdit,
+      _id: consultationToEdit._id,
+    });
+
+    setForm(
+      buildFormFromConsultation(
+        consultationToEdit,
+        currentFollowUp?.language || "en"
+      )
+    );
+
+    setAiResult(normalized);
   };
 
   const loadFollowUp = async () => {
     try {
       setLoading(true);
 
-      const res = await getFollowUpById(followupId);
-      const data = res?.data;
+      let data = passedFollowUp;
+
+      if (!data) {
+        const res = await getFollowUpById(followupId);
+        data = res?.data;
+      }
 
       setFollowUp(data);
 
-      setForm((prev) => ({
-        ...prev,
-        language: data?.language || 'en',
-      }));
+      if (isEditMode) {
+        await fillEditForm(data);
+      } else {
+        setForm((prev) => ({
+          ...prev,
+          language: data?.language || "en",
+        }));
+      }
     } catch (error) {
       console.error(error);
-      Swal.fire('Error', 'Failed to load follow-up details', 'error');
+      Swal.fire("Error", "Failed to load follow-up details", "error");
     } finally {
       setLoading(false);
     }
@@ -163,31 +265,30 @@ const StartFollowUp = () => {
 
   const handleChange = (event) => {
     const { name, value, type, checked } = event.target;
-    const nextValue = type === 'checkbox' ? checked : value;
+    const nextValue = type === "checkbox" ? checked : value;
 
     const shouldResetAI =
-      name === 'rawInput' || name === 'symptoms' || name === 'language';
+      name === "rawInput" || name === "symptoms" || name === "language";
 
     setForm((prev) => ({
       ...prev,
       [name]: nextValue,
-      ...(shouldResetAI
+      ...(shouldResetAI && !isEditMode
         ? {
-            diagnosis: '',
-            followUpDate: '',
-            isChronic: false,
+            diagnosis: "",
+            followUpDate: "",
           }
         : {}),
     }));
 
-    if (shouldResetAI) {
+    if (shouldResetAI && !isEditMode) {
       setAiResult(null);
     }
   };
 
   const buildSymptomsArray = () => {
     return form.symptoms
-      .split(',')
+      .split(",")
       .map((item) => item.trim())
       .filter(Boolean);
   };
@@ -195,15 +296,15 @@ const StartFollowUp = () => {
   const validateClinicalInputs = () => {
     if (!form.rawInput.trim() || !form.symptoms.trim()) {
       Swal.fire(
-        'Missing data',
-        'Doctor notes and symptoms are required before AI recommendation.',
-        'warning'
+        "Missing data",
+        "Doctor notes and symptoms are required before AI recommendation.",
+        "warning"
       );
       return false;
     }
 
     if (!getPatientId()) {
-      Swal.fire('Error', 'Patient data is missing from this follow-up.', 'error');
+      Swal.fire("Error", "Patient data is missing from this follow-up.", "error");
       return false;
     }
 
@@ -215,60 +316,62 @@ const StartFollowUp = () => {
 
     try {
       setIsGenerating(true);
-      setAiResult(null);
 
       const payload = {
         patientId: getPatientId(),
         rawInput: form.rawInput.trim(),
-        diagnosis: '',
-        language: form.language || 'en',
-        isChronic: false,
+        diagnosis: "",
+        language: form.language || "en",
+        isChronic: form.isChronic,
         symptoms: buildSymptomsArray(),
         followUpDate: undefined,
 
-        visitType: 'followup',
+        followupId,
+        visitType: "followup",
         sourceFollowupId: followupId,
         parentConsultationId: getId(followUp?.consultationId),
 
-        previousInstructions: followUp?.instructions || '',
+        previousInstructions: followUp?.instructions || "",
         previousDiagnosis: getPreviousDiagnosis(),
         previousSymptoms: getPreviousSymptoms(),
         previousNotes: getPreviousNotes(),
       };
 
       const response = await getAIRecommendation(payload);
-
-      console.log('AI RECOMMENDATION RAW RESPONSE:', response);
-
       const normalized = normalizeAIResult(response);
 
       if (!normalized) {
         Swal.fire(
-          'No AI result',
-          'The backend did not return an AI recommendation.',
-          'warning'
+          "No AI result",
+          "The backend did not return an AI recommendation.",
+          "warning"
         );
         return;
       }
 
-      setAiResult(normalized);
+      const finalResult = {
+        ...normalized,
+        _id: normalized._id || aiResult?._id || "",
+      };
+
+      setAiResult(finalResult);
 
       setForm((prev) => ({
         ...prev,
-        diagnosis: normalized.diagnosis || prev.diagnosis,
-        followUpDate: normalized.followUpDate
-          ? toInputDate(normalized.followUpDate)
+        diagnosis: finalResult.diagnosis || prev.diagnosis,
+        followUpDate: finalResult.followUpDate
+          ? toInputDate(finalResult.followUpDate)
           : prev.followUpDate,
       }));
     } catch (error) {
-      console.error('AI ERROR:', error?.response?.data || error);
+      console.error("AI ERROR:", error?.response?.data || error);
 
       Swal.fire(
-        'Error',
+        "Error",
         error?.response?.data?.message ||
           error?.response?.data?.error ||
-          'Failed to get AI recommendation',
-        'error'
+          "Failed to get AI recommendation",
+        "error"
       );
     } finally {
       setIsGenerating(false);
@@ -278,20 +381,20 @@ const StartFollowUp = () => {
   const handleConfirmFollowUp = async (event) => {
     event.preventDefault();
 
-    if (!aiResult) {
+    if (!isEditMode && !aiResult) {
       Swal.fire(
-        'AI recommendation required',
-        'Please get the AI recommendation before confirming the follow-up.',
-        'warning'
+        "AI recommendation required",
+        "Please get the AI recommendation before confirming the follow-up.",
+        "warning"
       );
       return;
     }
 
     if (!form.rawInput.trim() || !form.symptoms.trim() || !form.diagnosis.trim()) {
       Swal.fire(
-        'Missing data',
-        'Doctor notes, symptoms, and final diagnosis are required.',
-        'warning'
+        "Missing data",
+        "Doctor notes, symptoms, and final diagnosis are required.",
+        "warning"
       );
       return;
     }
@@ -299,7 +402,7 @@ const StartFollowUp = () => {
     const patientId = getPatientId();
 
     if (!patientId) {
-      Swal.fire('Error', 'Patient data is missing from this follow-up.', 'error');
+      Swal.fire("Error", "Patient data is missing from this follow-up.", "error");
       return;
     }
 
@@ -315,57 +418,50 @@ const StartFollowUp = () => {
         symptoms: buildSymptomsArray(),
         followUpDate: form.followUpDate || undefined,
 
-        visitType: 'followup',
+        followupId,
+        visitType: "followup",
         sourceFollowupId: followupId,
         parentConsultationId: getId(followUp?.consultationId),
       };
 
-      let savedConsultationId = '';
+      let savedConsultationId = "";
 
       if (aiResult?._id) {
         await updateConsultation(aiResult._id, consultationPayload);
         savedConsultationId = aiResult._id;
       } else {
         const consultationRes = await createConsultation(consultationPayload);
-        savedConsultationId = consultationRes?.data?._id;
+        savedConsultationId = consultationRes?.data?._id || "";
       }
 
       await updateFollowUp(followupId, {
-        status: 'confirmed',
+        status: "confirmed",
+        instructions: `Follow-up after ${form.diagnosis.trim()}`,
+        scheduledDate: form.followUpDate || followUp?.scheduledDate,
+        language: form.language,
       });
 
-      if (form.followUpDate && savedConsultationId) {
-        await createFollowUp({
-          consultationId: savedConsultationId,
-          patientId,
-          instructions: `Follow-up after ${form.diagnosis}`,
-          scheduledDate: form.followUpDate,
-          status: 'pending',
-          language: form.language,
-        });
-      }
-
       Swal.fire({
-        title: 'Follow-up confirmed',
+        title: isEditMode ? "Follow-up updated" : "Follow-up confirmed",
         text: form.isChronic
-          ? 'The follow-up was saved and marked as chronic.'
-          : 'The follow-up session was saved successfully.',
-        icon: 'success',
+          ? "The follow-up was saved and marked as chronic."
+          : "The follow-up session was saved successfully.",
+        icon: "success",
         timer: 1600,
         showConfirmButton: false,
       });
 
-      navigate('/followups');
+      navigate("/followups");
     } catch (error) {
-      console.error('FULL ERROR:', error);
-      console.error('BACKEND RESPONSE:', error?.response?.data);
+      console.error("FULL ERROR:", error);
+      console.error("BACKEND RESPONSE:", error?.response?.data);
 
       Swal.fire(
-        'Error',
+        "Error",
         error?.response?.data?.error ||
           error?.response?.data?.message ||
-          'Failed to confirm follow-up session',
-        'error'
+          "Failed to save follow-up session",
+        "error"
       );
     } finally {
       setSubmitting(false);
@@ -374,11 +470,11 @@ const StartFollowUp = () => {
 
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
-  const minDate = tomorrow.toISOString().split('T')[0];
+  const minDate = tomorrow.toISOString().split("T")[0];
 
   const maxDateObj = new Date();
   maxDateObj.setMonth(maxDateObj.getMonth() + 6);
-  const maxDate = maxDateObj.toISOString().split('T')[0];
+  const maxDate = maxDateObj.toISOString().split("T")[0];
 
   if (loading) {
     return (
@@ -387,6 +483,7 @@ const StartFollowUp = () => {
           <div className="absolute inset-0 border-4 border-blue-100 rounded-full"></div>
           <div className="absolute inset-0 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
         </div>
+
         <p className="text-slate-400 font-medium text-xs mt-4 tracking-wider uppercase">
           Loading follow-up session ...
         </p>
@@ -400,6 +497,7 @@ const StartFollowUp = () => {
         <p className="text-slate-500 font-medium text-sm capitalize">
           Follow-up not found
         </p>
+
         <Link
           to="/followups"
           className="text-blue-500 font-bold mt-2 underline text-xs capitalize"
@@ -415,11 +513,13 @@ const StartFollowUp = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div className="lg:col-span-2 bg-white rounded-xl shadow p-4 sm:p-8">
           <h2 className="text-xl font-bold text-blue-700 mb-1">
-            Start Follow-up
+            {isEditMode ? "Edit Follow-up" : "Start Follow-up"}
           </h2>
 
           <p className="text-sm text-gray-500 mb-6 pb-4 border-b">
-            Complete a follow-up visit using the same clinical decision support flow.
+            {isEditMode
+              ? "Update the saved follow-up visit details."
+              : "Complete a follow-up visit using the same clinical decision support flow."}
           </p>
 
           <div className="mb-6 p-4 sm:p-5 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-xl shadow-sm">
@@ -427,6 +527,7 @@ const StartFollowUp = () => {
               <h3 className="text-base font-bold text-blue-800 flex items-center gap-2">
                 <span>📌 Previous Consultation Context</span>
               </h3>
+
               <p className="text-xs text-gray-500">
                 Review the previous consultation before starting this follow-up.
               </p>
@@ -437,6 +538,7 @@ const StartFollowUp = () => {
                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
                   Patient
                 </p>
+
                 <p className="text-sm font-semibold text-gray-800">
                   {getPatientName()}
                 </p>
@@ -446,6 +548,7 @@ const StartFollowUp = () => {
                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
                   Scheduled Follow-up
                 </p>
+
                 <p className="text-sm text-gray-800">
                   {formatDate(followUp.scheduledDate)}
                 </p>
@@ -455,8 +558,9 @@ const StartFollowUp = () => {
                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
                   Previous Instructions
                 </p>
+
                 <p className="text-sm text-gray-800 whitespace-pre-wrap">
-                  {followUp.instructions || 'No instructions recorded'}
+                  {followUp.instructions || "No instructions recorded"}
                 </p>
               </div>
 
@@ -465,6 +569,7 @@ const StartFollowUp = () => {
                   <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
                     Previous Diagnosis
                   </p>
+
                   <p className="text-sm text-gray-800">
                     {getPreviousDiagnosis()}
                   </p>
@@ -474,6 +579,7 @@ const StartFollowUp = () => {
                   <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
                     Previous Symptoms
                   </p>
+
                   <p className="text-sm text-gray-800">
                     {getPreviousSymptoms()}
                   </p>
@@ -484,6 +590,7 @@ const StartFollowUp = () => {
                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
                   Previous Notes
                 </p>
+
                 <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
                   {getPreviousNotes()}
                 </p>
@@ -497,6 +604,7 @@ const StartFollowUp = () => {
                 <label className="block text-sm font-medium text-blue-700 mb-1">
                   Patient
                 </label>
+
                 <input
                   type="text"
                   value={getPatientName()}
@@ -509,6 +617,7 @@ const StartFollowUp = () => {
                 <label className="block text-sm font-medium text-blue-700 mb-1">
                   Doctor&apos;s Notes
                 </label>
+
                 <textarea
                   name="rawInput"
                   rows={4}
@@ -523,6 +632,7 @@ const StartFollowUp = () => {
                 <label className="block text-sm font-medium text-blue-700 mb-1">
                   Symptoms (comma separated)
                 </label>
+
                 <input
                   type="text"
                   name="symptoms"
@@ -537,6 +647,7 @@ const StartFollowUp = () => {
                 <label className="block text-sm font-medium text-blue-700 mb-1">
                   Language
                 </label>
+
                 <select
                   name="language"
                   value={form.language}
@@ -555,6 +666,7 @@ const StartFollowUp = () => {
                   <h3 className="text-base font-bold text-blue-800 flex items-center gap-2">
                     <span>📋 Clinical Decision Support & Follow-up</span>
                   </h3>
+
                   <p className="text-xs text-gray-500">
                     The AI recommendation has been generated. Please finalize the diagnosis and set a follow-up date if required.
                   </p>
@@ -578,7 +690,7 @@ const StartFollowUp = () => {
 
                         <span
                           className={`transition-colors duration-200 truncate ${
-                            form.isChronic ? 'text-blue-600 font-extrabold' : ''
+                            form.isChronic ? "text-blue-600 font-extrabold" : ""
                           }`}
                         >
                           Chronic Disease
@@ -605,7 +717,7 @@ const StartFollowUp = () => {
                       type="date"
                       name="followUpDate"
                       value={form.followUpDate}
-                      min={minDate}
+                      min={isEditMode ? undefined : minDate}
                       max={maxDate}
                       onChange={handleChange}
                       className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -618,6 +730,7 @@ const StartFollowUp = () => {
                     <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1">
                       Chronic History Update
                     </p>
+
                     <p className="text-sm text-blue-900 leading-relaxed">
                       This follow-up consultation will be saved with chronic disease status and can appear in the patient history as a chronic condition.
                     </p>
@@ -637,7 +750,11 @@ const StartFollowUp = () => {
                     disabled={submitting}
                     className="bg-blue-700 hover:bg-blue-800 text-white px-5 py-2 rounded-md font-semibold text-sm disabled:opacity-50 block w-full sm:w-auto order-1 sm:order-2"
                   >
-                    {submitting ? 'Saving...' : 'Confirm Follow-up'}
+                    {submitting
+                      ? "Saving..."
+                      : isEditMode
+                        ? "Save Changes"
+                        : "Confirm Follow-up"}
                   </button>
                 </div>
               </div>
@@ -650,7 +767,13 @@ const StartFollowUp = () => {
                 disabled={isGenerating}
                 className="w-full sm:w-auto justify-center bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-md font-medium text-sm transition flex items-center gap-2 disabled:opacity-50"
               >
-                🤖 {isGenerating ? 'Analyzing...' : aiResult ? 'Regenerate AI Recommendation' : 'Get AI Recommendation'} →
+                🤖{" "}
+                {isGenerating
+                  ? "Analyzing..."
+                  : aiResult
+                    ? "Regenerate AI Recommendation"
+                    : "Get AI Recommendation"}{" "}
+                →
               </button>
             </div>
           </form>
@@ -662,6 +785,7 @@ const StartFollowUp = () => {
               <span className="font-semibold text-blue-800 text-sm flex items-center gap-1.5">
                 ⚡ Clinical Insights
               </span>
+
               <span className="text-[10px] bg-blue-600 text-white px-2 py-0.5 rounded-full font-bold">
                 BETA
               </span>
@@ -673,9 +797,11 @@ const StartFollowUp = () => {
                   <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl">
                     🧠
                   </div>
+
                   <p className="font-semibold text-gray-800 text-sm">
                     Agent Ready
                   </p>
+
                   <p className="text-xs text-gray-400 mt-1.5 leading-relaxed">
                     Fill out the follow-up form to receive automated clinical recommendations.
                   </p>
@@ -687,9 +813,11 @@ const StartFollowUp = () => {
                   <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-3 animate-pulse text-2xl">
                     🧠
                   </div>
+
                   <p className="font-semibold text-gray-800 text-sm">
                     Analyzing...
                   </p>
+
                   <p className="text-xs text-gray-400 mt-1.5">
                     The AI agent is reviewing the follow-up clinical data.
                   </p>
@@ -706,8 +834,9 @@ const StartFollowUp = () => {
                     <p className="text-xs font-semibold uppercase tracking-wide mb-1">
                       Urgency Level
                     </p>
+
                     <p className="text-sm font-bold capitalize">
-                      {aiResult.urgencyLevel || 'Not provided'}
+                      {aiResult.urgencyLevel || "Not provided"}
                     </p>
                   </div>
 
@@ -716,6 +845,7 @@ const StartFollowUp = () => {
                       <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
                         Suggested Specialist
                       </p>
+
                       <p className="text-sm text-gray-800">
                         {aiResult.suggestedSpecialist}
                       </p>
@@ -727,6 +857,7 @@ const StartFollowUp = () => {
                       <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
                         Structured Note
                       </p>
+
                       <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
                         {aiResult.structuredNote}
                       </p>
@@ -740,6 +871,7 @@ const StartFollowUp = () => {
                         <p className="text-xs font-semibold text-yellow-800 uppercase tracking-wide mb-1">
                           Agent Output
                         </p>
+
                         <p className="text-sm text-yellow-900 leading-relaxed">
                           The backend returned an AI response, but no structured clinical insight fields were provided.
                         </p>
@@ -759,7 +891,13 @@ const StartFollowUp = () => {
 
             <div className="p-5 space-y-3 text-sm text-gray-700">
               <p>This visit uses the same clinical flow as a consultation.</p>
-              <p>AI recommendation is required before confirming the follow-up.</p>
+
+              <p>
+                {isEditMode
+                  ? "You are editing an already completed follow-up session."
+                  : "AI recommendation is required before confirming the follow-up."}
+              </p>
+
               <p>After confirmation, the original follow-up moves to Confirmed.</p>
 
               {form.isChronic && (
@@ -770,8 +908,7 @@ const StartFollowUp = () => {
 
               {form.followUpDate && (
                 <p>
-                  A new pending follow-up will be scheduled for{' '}
-                  {formatDate(form.followUpDate)}.
+                  A follow-up date is set for {formatDate(form.followUpDate)}.
                 </p>
               )}
             </div>
