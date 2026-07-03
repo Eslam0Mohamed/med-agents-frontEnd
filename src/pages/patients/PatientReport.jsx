@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import { usePatientReport } from '../../hooks/usePatientReport';
 import PatientInfoHeader from '../../components/patient-report/PatientInfoHeader';
@@ -18,6 +19,7 @@ import FollowUpsSection, {
 import LoadingState from '../../components/patient-report/LoadingState';
 
 export default function PatientReport() {
+  const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -30,13 +32,13 @@ export default function PatientReport() {
   if (error) {
     return (
       <div className="max-w-7xl mx-auto text-center py-16">
-        <p className="text-red-500 font-medium mb-2">Failed to load report</p>
+        <p className="text-red-500 font-medium mb-2">{t('patientReport.failedToLoad')}</p>
         <p className="text-sm text-gray-500 mb-4">{error}</p>
         <button
           onClick={() => navigate('/patients')}
           className="text-sm text-blue-600 hover:text-blue-800 font-medium"
         >
-          ← Back to Patients
+          ← {t('patientReport.backToPatients')}
         </button>
       </div>
     );
@@ -57,12 +59,12 @@ export default function PatientReport() {
       />
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        <StatCard label="Consultations" value={stats.totalConsultations} icon="🩺" accent="blue" />
-        <StatCard label="Active Follow-ups" value={stats.activeFollowUps} icon="📋" accent="purple" />
-        <StatCard label="High Urgency" value={stats.highUrgencyCount} icon="⚠️" accent="red" />
-        <StatCard label="Prescriptions" value={stats.prescriptionsIssued} icon="💊" accent="green" />
-        <StatCard label="Diagnoses" value={stats.uniqueDiagnosisCount} icon="🔬" accent="amber" />
-        <StatCard label="Chronic Conditions" value={stats.chronicConditionsCount} icon="❤️" accent="gray" />
+        <StatCard label={t('patientReport.stats.consultations')} value={stats.totalConsultations} icon="🩺" accent="blue" />
+        <StatCard label={t('patientReport.stats.activeFollowUps')} value={stats.activeFollowUps} icon="📋" accent="purple" />
+        <StatCard label={t('patientReport.stats.highUrgency')} value={stats.highUrgencyCount} icon="⚠️" accent="red" />
+        <StatCard label={t('patientReport.stats.prescriptions')} value={stats.prescriptionsIssued} icon="💊" accent="green" />
+        <StatCard label={t('patientReport.stats.diagnoses')} value={stats.uniqueDiagnosisCount} icon="🔬" accent="amber" />
+        <StatCard label={t('patientReport.stats.chronicConditions')} value={stats.chronicConditionsCount} icon="❤️" accent="gray" />
       </div>
 
       <MedicalSummary
@@ -84,8 +86,8 @@ export default function PatientReport() {
       </div>
 
       <UnavailableSection
-        title="Lab & Test Results"
-        description="No lab results or test data endpoints exist in the current backend. This section will populate when lab integration is added."
+        title={t('patientReport.labResultsTitle')}
+        description={t('patientReport.labResultsDesc')}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

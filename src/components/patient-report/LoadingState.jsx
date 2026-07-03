@@ -1,4 +1,9 @@
-export default function LoadingState({ message = 'Loading patient report...' }) {
+import { useTranslation } from 'react-i18next';
+
+export default function LoadingState({ message }) {
+  const { t } = useTranslation();
+  const displayMessage = message || t('patientReport.loadingState.message');
+
   return (
     <div className="max-w-7xl mx-auto">
       <div className="animate-pulse space-y-6">
@@ -14,7 +19,7 @@ export default function LoadingState({ message = 'Loading patient report...' }) 
           <div className="h-64 bg-gray-200 rounded-xl" />
         </div>
       </div>
-      <p className="text-center text-gray-400 text-sm mt-6">{message}</p>
+      <p className="text-center text-gray-400 text-sm mt-6">{displayMessage}</p>
     </div>
   );
 }

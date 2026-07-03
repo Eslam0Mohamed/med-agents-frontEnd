@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import Swal from 'sweetalert2';
 import {
   searchDrugs,
@@ -51,6 +52,7 @@ function calculateAge(dob) {
 
 // One medication row, including its own drug-name autocomplete dropdown.
 function MedicationRow({ medication, index, onChange, onRemove, canRemove }) {
+  const { t } = useTranslation();
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [searching, setSearching] = useState(false);
@@ -96,7 +98,7 @@ function MedicationRow({ medication, index, onChange, onRemove, canRemove }) {
     <div className="border border-gray-200 rounded-lg p-4 relative bg-gray-50/60">
       <div className="flex items-center justify-between mb-3">
         <span className="text-xs font-semibold text-blue-700 uppercase tracking-wide">
-          Medication {index + 1}
+          {t('prescriptionModal.medicationLabel', { number: index + 1 })}
         </span>
         {canRemove && (
           <button
@@ -104,14 +106,14 @@ function MedicationRow({ medication, index, onChange, onRemove, canRemove }) {
             onClick={() => onRemove(index)}
             className="text-red-500 hover:text-red-700 text-xs font-medium"
           >
-            ✕ Remove
+            ✕ {t('prescriptionModal.remove')}
           </button>
         )}
       </div>
 
       {/* Drug name with FDA autocomplete */}
       <div className="relative mb-3">
-        <label className="block text-xs font-medium text-gray-600 mb-1">Medication Name</label>
+        <label className="block text-xs font-medium text-gray-600 mb-1">{t('prescriptionModal.medicationName')}</label>
         <input
           type="text"
           value={medication.name}
@@ -120,18 +122,18 @@ function MedicationRow({ medication, index, onChange, onRemove, canRemove }) {
           onBlur={() => {
             blurTimeoutRef.current = setTimeout(() => setShowSuggestions(false), 200);
           }}
-          placeholder="Start typing a drug name..."
+          placeholder={t('prescriptionModal.namePlaceholder')}
           className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
         />
         {medication.activeIngredient && (
           <p className="text-xs text-gray-400 mt-1">
-            Active ingredient: <span className="text-gray-600">{medication.activeIngredient}</span>
+            {t('prescriptionModal.activeIngredient')} <span className="text-gray-600">{medication.activeIngredient}</span>
           </p>
         )}
         {showSuggestions && (searching || suggestions.length > 0) && (
           <ul className="absolute z-20 w-full bg-white border border-gray-200 rounded-md mt-1 max-h-48 overflow-y-auto shadow-lg">
             {searching && (
-              <li className="px-3 py-2 text-xs text-gray-400">Searching FDA database...</li>
+              <li className="px-3 py-2 text-xs text-gray-400">{t('prescriptionModal.searchingFDA')}</li>
             )}
             {!searching &&
               suggestions.map((drug, i) => (
@@ -156,19 +158,19 @@ function MedicationRow({ medication, index, onChange, onRemove, canRemove }) {
       {/* Dosage amount + unit */}
       <div className="grid grid-cols-2 gap-3 mb-3">
         <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">Dosage Amount</label>
+          <label className="block text-xs font-medium text-gray-600 mb-1">{t('prescriptionModal.dosageAmount')}</label>
           <input
             type="number"
             min="0"
             step="any"
             value={medication.dosageAmount}
             onChange={(e) => field('dosageAmount', e.target.value)}
-            placeholder="e.g. 500"
+            placeholder={t('prescriptionModal.dosageAmountPlaceholder')}
             className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">Unit</label>
+          <label className="block text-xs font-medium text-gray-600 mb-1">{t('prescriptionModal.unit')}</label>
           <select
             value={medication.dosageUnit}
             onChange={(e) => field('dosageUnit', e.target.value)}
@@ -184,26 +186,26 @@ function MedicationRow({ medication, index, onChange, onRemove, canRemove }) {
       {/* Frequency count + period */}
       <div className="grid grid-cols-2 gap-3 mb-3">
         <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">Times Taken</label>
+          <label className="block text-xs font-medium text-gray-600 mb-1">{t('prescriptionModal.timesTaken')}</label>
           <input
             type="number"
             min="1"
             step="1"
             value={medication.frequencyCount}
             onChange={(e) => field('frequencyCount', e.target.value)}
-            placeholder="e.g. 2"
+            placeholder={t('prescriptionModal.timesTakenPlaceholder')}
             className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">Frequency</label>
+          <label className="block text-xs font-medium text-gray-600 mb-1">{t('prescriptionModal.frequency')}</label>
           <select
             value={medication.frequencyPeriod}
             onChange={(e) => field('frequencyPeriod', e.target.value)}
             className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
           >
             {FREQUENCY_PERIODS.map((p) => (
-              <option key={p} value={p}>{p}</option>
+              <option key={p} value={p}>{t(`prescriptionModal.frequencyPeriods.${p}`)}</option>
             ))}
           </select>
         </div>
@@ -218,14 +220,14 @@ function MedicationRow({ medication, index, onChange, onRemove, canRemove }) {
           className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
         />
         <span className="text-sm text-gray-700">
-          Chronic medication <span className="text-gray-400">(taken for life)</span>
+          {t('prescriptionModal.chronicMedication')} <span className="text-gray-400">{t('prescriptionModal.chronicMedicationHint')}</span>
         </span>
       </label>
 
       {/* Duration value + unit (disabled when chronic) */}
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">Duration</label>
+          <label className="block text-xs font-medium text-gray-600 mb-1">{t('prescriptionModal.duration')}</label>
           <input
             type="number"
             min="1"
@@ -233,14 +235,14 @@ function MedicationRow({ medication, index, onChange, onRemove, canRemove }) {
             disabled={medication.isChronic}
             value={medication.isChronic ? '' : medication.durationValue}
             onChange={(e) => field('durationValue', e.target.value)}
-            placeholder={medication.isChronic ? 'Lifelong' : 'e.g. 7'}
+            placeholder={medication.isChronic ? t('prescriptionModal.durationLifelong') : t('prescriptionModal.durationPlaceholder')}
             className={`w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
               medication.isChronic ? 'bg-gray-100 text-gray-400' : 'bg-white'
             }`}
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">Duration Unit</label>
+          <label className="block text-xs font-medium text-gray-600 mb-1">{t('prescriptionModal.durationUnit')}</label>
           <select
             disabled={medication.isChronic}
             value={medication.durationUnit}
@@ -250,7 +252,7 @@ function MedicationRow({ medication, index, onChange, onRemove, canRemove }) {
             }`}
           >
             {DURATION_UNITS.map((u) => (
-              <option key={u} value={u}>{u}</option>
+              <option key={u} value={u}>{t(`prescriptionModal.durationUnits.${u}`)}</option>
             ))}
           </select>
         </div>
@@ -263,15 +265,17 @@ function MedicationRow({ medication, index, onChange, onRemove, canRemove }) {
 // shows the single short sentence the Quick Drug Check agent returns for
 // each medication (or a clean checkmark when there's no issue).
 function SafetyPanel({ loading, checkedMedications }) {
+  const { t } = useTranslation();
+
   if (loading) {
     return (
       <div className="text-center py-6">
         <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-3 animate-pulse text-2xl">
           🧠
         </div>
-        <p className="font-semibold text-gray-800 text-sm">Checking safety...</p>
+        <p className="font-semibold text-gray-800 text-sm">{t('prescriptionModal.checkingSafety')}</p>
         <p className="text-xs text-gray-400 mt-1.5">
-          Reviewing allergies, interactions and active medications.
+          {t('prescriptionModal.checkingSafetyDesc')}
         </p>
       </div>
     );
@@ -283,9 +287,9 @@ function SafetyPanel({ loading, checkedMedications }) {
         <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl">
           🛡️
         </div>
-        <p className="font-semibold text-gray-800 text-sm">Safety Screening</p>
+        <p className="font-semibold text-gray-800 text-sm">{t('prescriptions.safetyScreening')}</p>
         <p className="text-xs text-gray-400 mt-1.5 leading-relaxed">
-          Add a medication name to see allergy, interaction and active-medication checks.
+          {t('prescriptionModal.safetyScreeningEmptyDesc')}
         </p>
       </div>
     );
@@ -304,7 +308,9 @@ function SafetyPanel({ loading, checkedMedications }) {
         ) : (
           <div key={i} className="border border-green-200 bg-green-50 rounded-lg p-3 flex items-center gap-2">
             <span className="text-green-600">✓</span>
-            <span className="text-sm font-medium text-green-800">{med.name} — no issues detected</span>
+            <span className="text-sm font-medium text-green-800">
+              {t('prescriptionModal.noIssuesDetected', { name: med.name })}
+            </span>
           </div>
         ),
       )}
@@ -333,6 +339,7 @@ export default function PrescriptionModal({
   existingPrescription = null,
   onSaved,
 }) {
+  const { t } = useTranslation();
   const isEditMode = !!existingPrescription;
   const [medications, setMedications] = useState([emptyMedication()]);
   const [checkedMedications, setCheckedMedications] = useState(null);
@@ -398,11 +405,13 @@ export default function PrescriptionModal({
 
   const validateMedications = () => {
     for (const med of medications) {
-      if (!med.name.trim()) return 'Every medication needs a name.';
-      if (!med.dosageAmount || Number(med.dosageAmount) <= 0) return `Enter a valid dosage amount for ${med.name || 'a medication'}.`;
-      if (!med.frequencyCount || Number(med.frequencyCount) <= 0) return `Enter how many times ${med.name || 'the medication'} is taken.`;
+      if (!med.name.trim()) return t('prescriptionModal.validation.nameRequired');
+      if (!med.dosageAmount || Number(med.dosageAmount) <= 0)
+        return t('prescriptionModal.validation.dosageInvalid', { name: med.name || t('prescriptionModal.defaultMedicationName') });
+      if (!med.frequencyCount || Number(med.frequencyCount) <= 0)
+        return t('prescriptionModal.validation.frequencyInvalid', { name: med.name || t('prescriptionModal.defaultMedicationNameThe') });
       if (!med.isChronic && (!med.durationValue || Number(med.durationValue) <= 0)) {
-        return `Enter a duration for ${med.name || 'the medication'}, or mark it as chronic.`;
+        return t('prescriptionModal.validation.durationInvalid', { name: med.name || t('prescriptionModal.defaultMedicationNameThe') });
       }
     }
     return null;
@@ -425,7 +434,7 @@ export default function PrescriptionModal({
   const handleSave = async () => {
     const validationError = validateMedications();
     if (validationError) {
-      Swal.fire('Incomplete medication', validationError, 'warning');
+      Swal.fire(t('prescriptionModal.incompleteTitle'), validationError, 'warning');
       return;
     }
 
@@ -448,14 +457,14 @@ export default function PrescriptionModal({
       }
       Swal.fire({
         icon: 'success',
-        title: isEditMode ? 'Prescription updated' : 'Prescription saved',
+        title: isEditMode ? t('prescriptionModal.updatedSuccess') : t('prescriptionModal.savedSuccess'),
         timer: 1400,
         showConfirmButton: false,
       });
       onSaved?.(res.data);
       onClose();
     } catch (err) {
-      Swal.fire('Error', err.response?.data?.message || 'Failed to save prescription', 'error');
+      Swal.fire(t('common.error'), err.response?.data?.message || t('prescriptionModal.saveFailed'), 'error');
     } finally {
       setIsSaving(false);
     }
@@ -473,14 +482,14 @@ export default function PrescriptionModal({
         <div className="sticky top-0 bg-white border-b px-5 sm:px-6 py-4 flex items-start justify-between gap-4 z-10">
           <div>
             <h2 className="text-lg font-bold text-blue-700">
-              {isEditMode ? 'Edit Prescription' : 'Add Prescription'}
+              {isEditMode ? t('prescriptionModal.editTitle') : t('prescriptionModal.addTitle')}
             </h2>
             {patient && (
               <p className="text-xs text-gray-500 mt-1">
                 {patient.name}
-                {age !== null && <> · Age {age}</>}
+                {age !== null && <> · {t('prescriptionModal.ageLabel', { age })}</>}
                 {patient.allergies?.length > 0 && (
-                  <> · Allergies: {patient.allergies.join(', ')}</>
+                  <> · {t('prescriptionModal.allergiesLabel', { list: patient.allergies.join(', ') })}</>
                 )}
               </p>
             )}
@@ -488,7 +497,7 @@ export default function PrescriptionModal({
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-700 text-xl leading-none px-1"
-            aria-label="Close"
+            aria-label={t('prescriptionModal.close')}
           >
             ✕
           </button>
@@ -513,7 +522,7 @@ export default function PrescriptionModal({
               onClick={handleAddMedication}
               className="text-blue-600 text-sm font-medium hover:underline"
             >
-              + Add another medication
+              {t('prescriptionModal.addAnotherMedication')}
             </button>
           </div>
 
@@ -522,7 +531,7 @@ export default function PrescriptionModal({
             <div className="bg-white rounded-xl shadow overflow-hidden border border-gray-100">
               <div className="bg-blue-50 px-4 py-3 flex items-center justify-between border-b border-blue-100">
                 <span className="font-semibold text-blue-800 text-sm flex items-center gap-1.5">
-                  🛡️ Safety Screening
+                  🛡️ {t('prescriptions.safetyScreening')}
                 </span>
               </div>
               <div className="p-4">
@@ -538,7 +547,7 @@ export default function PrescriptionModal({
             onClick={onClose}
             className="border border-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-50 text-sm"
           >
-            Cancel
+            {t('common.cancel')}
           </button>
           <button
             type="button"
@@ -546,7 +555,7 @@ export default function PrescriptionModal({
             disabled={isSaving}
             className="bg-blue-700 hover:bg-blue-800 text-white px-5 py-2 rounded-md font-medium text-sm disabled:opacity-50"
           >
-            {isSaving ? 'Saving...' : isEditMode ? 'Update Prescription' : 'Save Prescription'}
+            {isSaving ? t('common.saving') : isEditMode ? t('prescriptionModal.update') : t('prescriptionModal.save')}
           </button>
         </div>
       </div>

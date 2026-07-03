@@ -1,7 +1,9 @@
 import { Link, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../../context/AuthContext";
 
 const PublicNavbar = () => {
+  const { t } = useTranslation();
   const location = useLocation();
   const { isLoggedIn } = useAuth();
   const loggedIn = isLoggedIn();
@@ -22,24 +24,24 @@ const PublicNavbar = () => {
 
         <nav className="flex items-center gap-8">
           <Link to="/" className={linkClass("/")}>
-            Home
+            {t("nav.home")}
           </Link>
           <Link to="/contact" className={linkClass("/contact")}>
-            Contact Us
+            {t("nav.contactUs")}
           </Link>
           {loggedIn ? (
             <Link
               to="/patients"
               className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition"
             >
-              Go to Dashboard
+              {t("nav.goToDashboard")}
             </Link>
           ) : (
             <Link
               to="/login"
               className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition"
             >
-              Doctor Login
+              {t("home.doctorLogin")}
             </Link>
           )}
         </nav>

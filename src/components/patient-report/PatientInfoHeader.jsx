@@ -1,6 +1,8 @@
+import { useTranslation } from 'react-i18next';
 import { calculateAge, getInitials } from '../../utils/patientUtils';
 
 export default function PatientInfoHeader({ patient, doctorName, onBack, onNewConsultation, onEdit }) {
+  const { t, i18n } = useTranslation();
   const age = calculateAge(patient.dateOfBirth);
   const initials = getInitials(patient.name);
 
@@ -18,7 +20,7 @@ export default function PatientInfoHeader({ patient, doctorName, onBack, onNewCo
                 {patient.gender}
               </span>
               <span className="text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 font-medium">
-                Age {age}
+                {t('patientReport.header.age', { age })}
               </span>
               {patient.bloodType && (
                 <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 font-medium">
@@ -26,12 +28,18 @@ export default function PatientInfoHeader({ patient, doctorName, onBack, onNewCo
                 </span>
               )}
             </div>
-            <p className="text-sm text-gray-500">Patient Health Report</p>
+            <p className="text-sm text-gray-500">{t('patientReport.header.subtitle')}</p>
             {doctorName && (
-              <p className="text-xs text-gray-400 mt-1">Attending Physician: Dr. {doctorName}</p>
+              <p className="text-xs text-gray-400 mt-1">
+                {t('patientReport.header.attendingPhysician', { name: doctorName })}
+              </p>
             )}
             <p className="text-xs text-gray-400">
-              Generated on {new Date().toLocaleDateString('en-US', { dateStyle: 'long' })}
+              {t('patientReport.header.generatedOn', {
+                date: new Date().toLocaleDateString(i18n.language === 'ar' ? 'ar-EG' : 'en-US', {
+                  dateStyle: 'long',
+                }),
+              })}
             </p>
           </div>
         </div>
@@ -42,7 +50,7 @@ export default function PatientInfoHeader({ patient, doctorName, onBack, onNewCo
               onClick={onBack}
               className="px-4 py-2 rounded-lg text-sm font-medium border border-gray-200 text-gray-600 hover:bg-gray-50"
             >
-              ← Back
+              ← {t('patientReport.header.back')}
             </button>
           )}
           {onNewConsultation && (
@@ -50,7 +58,7 @@ export default function PatientInfoHeader({ patient, doctorName, onBack, onNewCo
               onClick={onNewConsultation}
               className="px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700"
             >
-              + New Consultation
+              + {t('patientReport.header.newConsultation')}
             </button>
           )}
           {onEdit && (
@@ -58,7 +66,7 @@ export default function PatientInfoHeader({ patient, doctorName, onBack, onNewCo
               onClick={onEdit}
               className="px-4 py-2 rounded-lg text-sm font-medium bg-blue-800 text-white hover:bg-blue-900"
             >
-              Edit Record
+              {t('patientReport.header.editRecord')}
             </button>
           )}
         </div>
@@ -66,7 +74,7 @@ export default function PatientInfoHeader({ patient, doctorName, onBack, onNewCo
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 pt-6 border-t border-gray-100">
         <div>
-          <p className="text-xs font-semibold text-gray-400 uppercase mb-2">Allergies</p>
+          <p className="text-xs font-semibold text-gray-400 uppercase mb-2">{t('patientReport.header.allergies')}</p>
           <div className="flex flex-wrap gap-1.5">
             {patient.allergies?.length > 0 ? (
               patient.allergies.map((allergy, i) => (
@@ -78,12 +86,12 @@ export default function PatientInfoHeader({ patient, doctorName, onBack, onNewCo
                 </span>
               ))
             ) : (
-              <span className="text-xs text-gray-400">None recorded</span>
+              <span className="text-xs text-gray-400">{t('patientReport.header.noneRecorded')}</span>
             )}
           </div>
         </div>
         <div>
-          <p className="text-xs font-semibold text-gray-400 uppercase mb-2">Chronic Conditions</p>
+          <p className="text-xs font-semibold text-gray-400 uppercase mb-2">{t('patientReport.header.chronicConditions')}</p>
           <div className="flex flex-wrap gap-1.5">
             {patient.chronicConditions?.length > 0 ? (
               patient.chronicConditions.map((condition, i) => (
@@ -95,7 +103,7 @@ export default function PatientInfoHeader({ patient, doctorName, onBack, onNewCo
                 </span>
               ))
             ) : (
-              <span className="text-xs text-gray-400">None recorded</span>
+              <span className="text-xs text-gray-400">{t('patientReport.header.noneRecorded')}</span>
             )}
           </div>
         </div>

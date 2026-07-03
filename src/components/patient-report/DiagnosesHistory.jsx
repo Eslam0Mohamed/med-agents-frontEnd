@@ -1,14 +1,17 @@
+import { useTranslation } from 'react-i18next';
 import { formatDate, getUrgencyStyle } from '../../utils/patientUtils';
 import EmptyState from './EmptyState';
 
 export default function DiagnosesHistory({ diagnoses }) {
+  const { t } = useTranslation();
+
   if (!diagnoses.length) {
     return (
       <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-        <h2 className="text-lg font-bold text-gray-900 mb-4">Diagnoses History</h2>
+        <h2 className="text-lg font-bold text-gray-900 mb-4">{t('patientReport.diagnosesHistory.title')}</h2>
         <EmptyState
-          title="No diagnoses recorded"
-          description="Diagnoses from consultations will be listed chronologically."
+          title={t('patientReport.diagnosesHistory.emptyTitle')}
+          description={t('patientReport.diagnosesHistory.emptyDesc')}
           icon="🔬"
         />
       </div>
@@ -18,7 +21,7 @@ export default function DiagnosesHistory({ diagnoses }) {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
       <div className="px-6 py-4 border-b border-gray-100">
-        <h2 className="text-lg font-bold text-gray-900">Diagnoses History</h2>
+        <h2 className="text-lg font-bold text-gray-900">{t('patientReport.diagnosesHistory.title')}</h2>
       </div>
       <div className="divide-y divide-gray-100">
         {diagnoses.map((item, i) => (

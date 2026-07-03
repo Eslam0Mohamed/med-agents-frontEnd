@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import Swal from "sweetalert2";
 import { getFollowUpById, updateFollowUp } from "../../api/followup";
 import {
@@ -19,6 +20,7 @@ const initialForm = {
 };
 
 const StartFollowUp = () => {
+  const { t } = useTranslation();
   const { followupId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
@@ -41,9 +43,9 @@ const StartFollowUp = () => {
   };
 
   const formatDate = (date) => {
-    if (!date) return "No date";
+    if (!date) return "—";
 
-    return new Date(date).toLocaleDateString("en-US", {
+    return new Date(date).toLocaleDateString(undefined, {
       month: "short",
       day: "numeric",
       year: "numeric",
@@ -60,7 +62,7 @@ const StartFollowUp = () => {
   };
 
   const getPatientName = () => {
-    return followUp?.patientId?.name || "Unknown Patient";
+    return followUp?.patientId?.name || t("followups.unknownPatient");
   };
 
   const getPatientId = () => {
@@ -81,7 +83,7 @@ const StartFollowUp = () => {
   const getPreviousSymptoms = () => {
     const consultation = getPreviousConsultation();
 
-    if (!consultation?.symptoms) return "No symptoms recorded";
+    if (!consultation?.symptoms) return t("followups.start.noSymptomsRecorded");
 
     if (Array.isArray(consultation.symptoms)) {
       return consultation.symptoms.join(", ");
@@ -92,12 +94,12 @@ const StartFollowUp = () => {
 
   const getPreviousNotes = () => {
     const consultation = getPreviousConsultation();
-    return consultation?.rawInput || "No previous notes recorded";
+    return consultation?.rawInput || t("followups.start.noNotesRecorded");
   };
 
   const getPreviousDiagnosis = () => {
     const consultation = getPreviousConsultation();
-    return consultation?.diagnosis || "No diagnosis recorded";
+    return consultation?.diagnosis || t("followups.start.noDiagnosisRecorded");
   };
 
   const normalizeAIResult = (response) => {
@@ -253,7 +255,7 @@ const StartFollowUp = () => {
       }
     } catch (error) {
       console.error(error);
-      Swal.fire("Error", "Failed to load follow-up details", "error");
+      Swal.fire(t("common.error"), t("followups.messages.errorLoadDetails"), "error");
     } finally {
       setLoading(false);
     }
@@ -261,6 +263,7 @@ const StartFollowUp = () => {
 
   useEffect(() => {
     loadFollowUp();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [followupId]);
 
   const handleChange = (event) => {
@@ -296,15 +299,15 @@ const StartFollowUp = () => {
   const validateClinicalInputs = () => {
     if (!form.rawInput.trim() || !form.symptoms.trim()) {
       Swal.fire(
-        "Missing data",
-        "Doctor notes and symptoms are required before AI recommendation.",
+        t("followups.messages.missingDataTitle"),
+        t("followups.messages.missingClinicalData"),
         "warning"
       );
       return false;
     }
 
     if (!getPatientId()) {
-      Swal.fire("Error", "Patient data is missing from this follow-up.", "error");
+      Swal.fire(t("common.error"), t("followups.messages.missingPatientData"), "error");
       return false;
     }
 
@@ -342,8 +345,8 @@ const StartFollowUp = () => {
 
       if (!normalized) {
         Swal.fire(
-          "No AI result",
-          "The backend did not return an AI recommendation.",
+          t("followups.messages.noAIResultTitle"),
+          t("followups.messages.noAIResultText"),
           "warning"
         );
         return;
@@ -367,10 +370,10 @@ const StartFollowUp = () => {
       console.error("AI ERROR:", error?.response?.data || error);
 
       Swal.fire(
-        "Error",
+        t("common.error"),
         error?.response?.data?.message ||
           error?.response?.data?.error ||
-          "Failed to get AI recommendation",
+          t("followups.messages.aiFailed"),
         "error"
       );
     } finally {
@@ -383,8 +386,8 @@ const StartFollowUp = () => {
 
     if (!isEditMode && !aiResult) {
       Swal.fire(
-        "AI recommendation required",
-        "Please get the AI recommendation before confirming the follow-up.",
+        t("followups.messages.aiRequiredTitle"),
+        t("followups.messages.aiRequiredText"),
         "warning"
       );
       return;
@@ -392,8 +395,8 @@ const StartFollowUp = () => {
 
     if (!form.rawInput.trim() || !form.symptoms.trim() || !form.diagnosis.trim()) {
       Swal.fire(
-        "Missing data",
-        "Doctor notes, symptoms, and final diagnosis are required.",
+        t("followups.messages.missingDataTitle"),
+        t("followups.messages.missingFinalData"),
         "warning"
       );
       return;
@@ -402,7 +405,7 @@ const StartFollowUp = () => {
     const patientId = getPatientId();
 
     if (!patientId) {
-      Swal.fire("Error", "Patient data is missing from this follow-up.", "error");
+      Swal.fire(t("common.error"), t("followups.messages.missingPatientData"), "error");
       return;
     }
 
@@ -442,10 +445,12 @@ const StartFollowUp = () => {
       });
 
       Swal.fire({
-        title: isEditMode ? "Follow-up updated" : "Follow-up confirmed",
+        title: isEditMode
+          ? t("followups.messages.updatedTitle")
+          : t("followups.messages.confirmedTitle"),
         text: form.isChronic
-          ? "The follow-up was saved and marked as chronic."
-          : "The follow-up session was saved successfully.",
+          ? t("followups.messages.savedChronicText")
+          : t("followups.messages.savedText"),
         icon: "success",
         timer: 1600,
         showConfirmButton: false,
@@ -457,10 +462,10 @@ const StartFollowUp = () => {
       console.error("BACKEND RESPONSE:", error?.response?.data);
 
       Swal.fire(
-        "Error",
+        t("common.error"),
         error?.response?.data?.error ||
           error?.response?.data?.message ||
-          "Failed to save follow-up session",
+          t("followups.messages.saveFailed"),
         "error"
       );
     } finally {
@@ -485,7 +490,7 @@ const StartFollowUp = () => {
         </div>
 
         <p className="text-slate-400 font-medium text-xs mt-4 tracking-wider uppercase">
-          Loading follow-up session ...
+          {t("followups.start.loadingSession")}
         </p>
       </div>
     );
@@ -495,14 +500,14 @@ const StartFollowUp = () => {
     return (
       <div className="text-center py-20 bg-[#f8fafc] h-screen flex flex-col justify-center items-center p-4">
         <p className="text-slate-500 font-medium text-sm capitalize">
-          Follow-up not found
+          {t("followups.start.notFound")}
         </p>
 
         <Link
           to="/followups"
           className="text-blue-500 font-bold mt-2 underline text-xs capitalize"
         >
-          Back to follow-ups
+          {t("followups.start.backToFollowUps")}
         </Link>
       </div>
     );
@@ -513,30 +518,30 @@ const StartFollowUp = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div className="lg:col-span-2 bg-white rounded-xl shadow p-4 sm:p-8">
           <h2 className="text-xl font-bold text-blue-700 mb-1">
-            {isEditMode ? "Edit Follow-up" : "Start Follow-up"}
+            {isEditMode ? t("followups.start.editTitle") : t("followups.start.title")}
           </h2>
 
           <p className="text-sm text-gray-500 mb-6 pb-4 border-b">
             {isEditMode
-              ? "Update the saved follow-up visit details."
-              : "Complete a follow-up visit using the same clinical decision support flow."}
+              ? t("followups.start.editSubtitle")
+              : t("followups.start.subtitle")}
           </p>
 
           <div className="mb-6 p-4 sm:p-5 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-xl shadow-sm">
             <div className="space-y-1 mb-4">
               <h3 className="text-base font-bold text-blue-800 flex items-center gap-2">
-                <span>📌 Previous Consultation Context</span>
+                <span>📌 {t("followups.start.previousContextTitle")}</span>
               </h3>
 
               <p className="text-xs text-gray-500">
-                Review the previous consultation before starting this follow-up.
+                {t("followups.start.previousContextSubtitle")}
               </p>
             </div>
 
             <div className="grid grid-cols-1 gap-3 text-sm text-gray-700">
               <div className="bg-white/80 rounded-lg p-3 border border-blue-100">
                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                  Patient
+                  {t("consultations.patient")}
                 </p>
 
                 <p className="text-sm font-semibold text-gray-800">
@@ -546,7 +551,7 @@ const StartFollowUp = () => {
 
               <div className="bg-white/80 rounded-lg p-3 border border-blue-100">
                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                  Scheduled Follow-up
+                  {t("followups.start.scheduledFollowUp")}
                 </p>
 
                 <p className="text-sm text-gray-800">
@@ -556,18 +561,18 @@ const StartFollowUp = () => {
 
               <div className="bg-white/80 rounded-lg p-3 border border-blue-100">
                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                  Previous Instructions
+                  {t("followups.start.previousInstructions")}
                 </p>
 
                 <p className="text-sm text-gray-800 whitespace-pre-wrap">
-                  {followUp.instructions || "No instructions recorded"}
+                  {followUp.instructions || t("followups.start.noInstructionsRecorded")}
                 </p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div className="bg-white/80 rounded-lg p-3 border border-blue-100">
                   <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                    Previous Diagnosis
+                    {t("followups.start.previousDiagnosis")}
                   </p>
 
                   <p className="text-sm text-gray-800">
@@ -577,7 +582,7 @@ const StartFollowUp = () => {
 
                 <div className="bg-white/80 rounded-lg p-3 border border-blue-100">
                   <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                    Previous Symptoms
+                    {t("followups.start.previousSymptoms")}
                   </p>
 
                   <p className="text-sm text-gray-800">
@@ -588,7 +593,7 @@ const StartFollowUp = () => {
 
               <div className="bg-white/80 rounded-lg p-3 border border-blue-100">
                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                  Previous Notes
+                  {t("followups.start.previousNotes")}
                 </p>
 
                 <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
@@ -602,7 +607,7 @@ const StartFollowUp = () => {
             <div className="grid grid-cols-1 gap-4">
               <div>
                 <label className="block text-sm font-medium text-blue-700 mb-1">
-                  Patient
+                  {t("consultations.patient")}
                 </label>
 
                 <input
@@ -615,7 +620,7 @@ const StartFollowUp = () => {
 
               <div>
                 <label className="block text-sm font-medium text-blue-700 mb-1">
-                  Doctor&apos;s Notes
+                  {t("consultations.doctorNotes")}
                 </label>
 
                 <textarea
@@ -623,14 +628,14 @@ const StartFollowUp = () => {
                   rows={4}
                   value={form.rawInput}
                   onChange={handleChange}
-                  placeholder="Write follow-up visit notes..."
+                  placeholder={t("followups.start.notesPlaceholder")}
                   className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-blue-700 mb-1">
-                  Symptoms (comma separated)
+                  {t("consultations.symptoms")}
                 </label>
 
                 <input
@@ -638,14 +643,14 @@ const StartFollowUp = () => {
                   name="symptoms"
                   value={form.symptoms}
                   onChange={handleChange}
-                  placeholder="chest pain, fever, shortness of breath"
+                  placeholder={t("followups.start.symptomsPlaceholder")}
                   className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-blue-700 mb-1">
-                  Language
+                  {t("consultations.language")}
                 </label>
 
                 <select
@@ -654,8 +659,8 @@ const StartFollowUp = () => {
                   onChange={handleChange}
                   className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="en">English</option>
-                  <option value="ar">Arabic</option>
+                  <option value="en">{t("consultations.english")}</option>
+                  <option value="ar">{t("consultations.arabic")}</option>
                 </select>
               </div>
             </div>
@@ -664,11 +669,11 @@ const StartFollowUp = () => {
               <div className="mt-6 p-4 sm:p-6 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-xl shadow-sm space-y-5">
                 <div className="space-y-1">
                   <h3 className="text-base font-bold text-blue-800 flex items-center gap-2">
-                    <span>📋 Clinical Decision Support & Follow-up</span>
+                    <span>📋 {t("consultations.clinicalSupport")}</span>
                   </h3>
 
                   <p className="text-xs text-gray-500">
-                    The AI recommendation has been generated. Please finalize the diagnosis and set a follow-up date if required.
+                    {t("consultations.finalizeNote")}
                   </p>
                 </div>
 
@@ -676,7 +681,7 @@ const StartFollowUp = () => {
                   <div className="space-y-2">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                       <label className="block text-sm font-medium text-blue-700">
-                        Diagnosis <span className="text-red-500">*</span>
+                        {t("consultations.diagnosis")} <span className="text-red-500">*</span>
                       </label>
 
                       <label className="inline-flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 cursor-pointer text-xs font-bold text-slate-600 transition-all duration-200 hover:bg-blue-50 hover:border-blue-200 select-none w-max max-w-full">
@@ -693,7 +698,7 @@ const StartFollowUp = () => {
                             form.isChronic ? "text-blue-600 font-extrabold" : ""
                           }`}
                         >
-                          Chronic Disease
+                          {t("consultations.chronicDisease")}
                         </span>
                       </label>
                     </div>
@@ -703,14 +708,14 @@ const StartFollowUp = () => {
                       name="diagnosis"
                       value={form.diagnosis}
                       onChange={handleChange}
-                      placeholder="Enter final diagnosis..."
+                      placeholder={t("consultations.diagnosisPlaceholder")}
                       className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
 
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-blue-700 sm:h-[28px] sm:flex sm:items-center">
-                      Follow-up Date
+                      {t("consultations.followUpDate")}
                     </label>
 
                     <input
@@ -728,11 +733,11 @@ const StartFollowUp = () => {
                 {form.isChronic && (
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                     <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1">
-                      Chronic History Update
+                      {t("followups.start.chronicUpdateTitle")}
                     </p>
 
                     <p className="text-sm text-blue-900 leading-relaxed">
-                      This follow-up consultation will be saved with chronic disease status and can appear in the patient history as a chronic condition.
+                      {t("followups.start.chronicUpdateText")}
                     </p>
                   </div>
                 )}
@@ -742,7 +747,7 @@ const StartFollowUp = () => {
                     to="/followups"
                     className="text-center border border-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-50 text-sm font-medium block w-full sm:w-auto order-2 sm:order-1"
                   >
-                    Cancel
+                    {t("common.cancel")}
                   </Link>
 
                   <button
@@ -751,10 +756,10 @@ const StartFollowUp = () => {
                     className="bg-blue-700 hover:bg-blue-800 text-white px-5 py-2 rounded-md font-semibold text-sm disabled:opacity-50 block w-full sm:w-auto order-1 sm:order-2"
                   >
                     {submitting
-                      ? "Saving..."
+                      ? t("common.saving")
                       : isEditMode
-                        ? "Save Changes"
-                        : "Confirm Follow-up"}
+                        ? t("followups.start.saveChanges")
+                        : t("followups.start.confirmButton")}
                   </button>
                 </div>
               </div>
@@ -769,10 +774,10 @@ const StartFollowUp = () => {
               >
                 🤖{" "}
                 {isGenerating
-                  ? "Analyzing..."
+                  ? t("consultations.analyzing")
                   : aiResult
-                    ? "Regenerate AI Recommendation"
-                    : "Get AI Recommendation"}{" "}
+                    ? t("followups.start.regenerateAI")
+                    : t("consultations.getAI")}{" "}
                 →
               </button>
             </div>
@@ -783,7 +788,7 @@ const StartFollowUp = () => {
           <div className="bg-white rounded-xl shadow overflow-hidden">
             <div className="bg-blue-50 px-5 py-3 flex items-center justify-between border-b border-blue-100">
               <span className="font-semibold text-blue-800 text-sm flex items-center gap-1.5">
-                ⚡ Clinical Insights
+                ⚡ {t("consultations.clinicalInsights")}
               </span>
 
               <span className="text-[10px] bg-blue-600 text-white px-2 py-0.5 rounded-full font-bold">
@@ -799,11 +804,11 @@ const StartFollowUp = () => {
                   </div>
 
                   <p className="font-semibold text-gray-800 text-sm">
-                    Agent Ready
+                    {t("consultations.agentReady")}
                   </p>
 
                   <p className="text-xs text-gray-400 mt-1.5 leading-relaxed">
-                    Fill out the follow-up form to receive automated clinical recommendations.
+                    {t("followups.start.agentReadyText")}
                   </p>
                 </div>
               )}
@@ -815,11 +820,11 @@ const StartFollowUp = () => {
                   </div>
 
                   <p className="font-semibold text-gray-800 text-sm">
-                    Analyzing...
+                    {t("consultations.analyzing")}
                   </p>
 
                   <p className="text-xs text-gray-400 mt-1.5">
-                    The AI agent is reviewing the follow-up clinical data.
+                    {t("followups.start.agentAnalyzingText")}
                   </p>
                 </div>
               )}
@@ -832,18 +837,18 @@ const StartFollowUp = () => {
                     )}`}
                   >
                     <p className="text-xs font-semibold uppercase tracking-wide mb-1">
-                      Urgency Level
+                      {t("consultations.urgencyLevel")}
                     </p>
 
                     <p className="text-sm font-bold capitalize">
-                      {aiResult.urgencyLevel || "Not provided"}
+                      {aiResult.urgencyLevel || t("followups.start.notProvided")}
                     </p>
                   </div>
 
                   {aiResult.suggestedSpecialist && (
                     <div className="bg-gray-50 rounded-lg p-3">
                       <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                        Suggested Specialist
+                        {t("consultations.suggestedSpecialist")}
                       </p>
 
                       <p className="text-sm text-gray-800">
@@ -855,7 +860,7 @@ const StartFollowUp = () => {
                   {aiResult.structuredNote && (
                     <div className="bg-gray-50 rounded-lg p-3">
                       <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                        Structured Note
+                        {t("consultations.structuredNote")}
                       </p>
 
                       <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
@@ -869,11 +874,11 @@ const StartFollowUp = () => {
                     !aiResult.urgencyLevel && (
                       <div className="bg-yellow-50 rounded-lg p-3 border border-yellow-200">
                         <p className="text-xs font-semibold text-yellow-800 uppercase tracking-wide mb-1">
-                          Agent Output
+                          {t("followups.start.agentOutputTitle")}
                         </p>
 
                         <p className="text-sm text-yellow-900 leading-relaxed">
-                          The backend returned an AI response, but no structured clinical insight fields were provided.
+                          {t("followups.start.agentOutputText")}
                         </p>
                       </div>
                     )}
@@ -885,30 +890,32 @@ const StartFollowUp = () => {
           <div className="bg-white rounded-xl shadow overflow-hidden">
             <div className="bg-blue-50 px-5 py-3 border-b border-blue-100">
               <span className="font-semibold text-blue-800 text-sm">
-                Follow-up Status
+                {t("followups.start.statusCardTitle")}
               </span>
             </div>
 
             <div className="p-5 space-y-3 text-sm text-gray-700">
-              <p>This visit uses the same clinical flow as a consultation.</p>
+              <p>{t("followups.start.statusLine1")}</p>
 
               <p>
                 {isEditMode
-                  ? "You are editing an already completed follow-up session."
-                  : "AI recommendation is required before confirming the follow-up."}
+                  ? t("followups.start.statusLine2Edit")
+                  : t("followups.start.statusLine2Start")}
               </p>
 
-              <p>After confirmation, the original follow-up moves to Confirmed.</p>
+              <p>{t("followups.start.statusLine3")}</p>
 
               {form.isChronic && (
                 <p className="text-blue-700 font-semibold">
-                  Chronic disease flag is enabled for this follow-up.
+                  {t("followups.start.chronicFlagEnabled")}
                 </p>
               )}
 
               {form.followUpDate && (
                 <p>
-                  A follow-up date is set for {formatDate(form.followUpDate)}.
+                  {t("followups.start.followUpDateSet", {
+                    date: formatDate(form.followUpDate),
+                  })}
                 </p>
               )}
             </div>
