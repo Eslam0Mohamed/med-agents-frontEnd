@@ -1,5 +1,6 @@
 {
   "nav": {
+      "subscriptions": "الاشتراكات",
     "patients": "المرضى",
     "consultations": "الاستشارات",
     "addConsultation": "إضافة استشارة",

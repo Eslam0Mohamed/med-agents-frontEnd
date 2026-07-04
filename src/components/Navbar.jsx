@@ -32,6 +32,7 @@ export default function Navbar() {
     { label: t('nav.followups'), path: '/followups' },
     { label: t('nav.aiChat'), path: '/ai-chat' },
     { label: t('nav.drugSafety'), path: '/drug-safety' },
+    { label: t('nav.subscriptions'), path: '/subscriptions' },
   ];
 
   useEffect(() => {

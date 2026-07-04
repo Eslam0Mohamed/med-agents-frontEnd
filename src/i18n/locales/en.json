@@ -1,5 +1,6 @@
 {
   "nav": {
+      "subscriptions": "Subscriptions",
     "patients": "Patients",
     "consultations": "Consultations",
     "addConsultation": "Add Consultation",
