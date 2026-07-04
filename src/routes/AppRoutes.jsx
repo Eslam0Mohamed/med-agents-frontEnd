@@ -11,7 +11,7 @@ import Settings from '../pages/settings/Settings';
 
 import ConsultationList from '../pages/consultations/ConsultationList';
 import ConsultationForm from '../pages/consultations/ConsultationForm';
-import ConsultationDetails from '../pages/consultations/ConsultationDetails'; // 1. تم إضافة استيراد صفحة التفاصيل هنا
+import ConsultationDetails from '../pages/consultations/ConsultationDetails'; 
 import PatientSearch from '../pages/consultations/PatientSearch';
 import PatientHistory from '../pages/patients/PatientHistory';
 import PatientReport from '../pages/patients/PatientReport';
@@ -21,7 +21,9 @@ import PatientsList from '../pages/patients/PatientsList';
 import PatientForm from '../pages/patients/PatientForm';
 import StartFollowUp from '../pages/followups/StartFollowUp';
 import Prescriptions from '../pages/prescriptions/Prescriptions';
+import Subscriptions from '../pages/suscriptions/Subscriptions';
 import FollowUpDetails from '../pages/followups/FollowUpDetails';
+import PaymentCallback from '../pages/payment/PaymentCallback';
 import Home from '../pages/puplic/home/Home';
 import Contact from '../pages/puplic/contact/Contact';
 const router = createBrowserRouter([
@@ -55,6 +57,7 @@ const router = createBrowserRouter([
       { path: 'patients/edit/:id', element: <PatientForm /> },
       { path: 'patients/history/:id', element: <PatientHistory /> },
       { path: 'patients/report/:id', element: <PatientReport /> },
+      { path: 'payment/callback', element: <PaymentCallback /> },
 
       // Consultations
       { path: 'consultations', element: <ConsultationList /> },
@@ -70,6 +73,7 @@ const router = createBrowserRouter([
 
       // Prescriptions
       { path: 'prescriptions', element: <Prescriptions /> },
+      { path: 'subscriptions', element: <Subscriptions /> },
 
       { path: 'ai-chat', element: <AiChat /> },
       { path: 'profile', element: <Profile /> },

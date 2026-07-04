@@ -4,6 +4,18 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import LanguageSwitcher from './LanguageSwitcher';
 
+
+const navItems = [
+  { label: 'Patients', path: '/patients' },
+  { label: 'Consultations', path: '/consultations' },
+  { label: 'Add Consultation', path: '/consultations/search-patient' },
+  { label: 'Prescriptions', path: '/prescriptions' },
+  { label: 'Follow-ups', path: '/followups' },
+  { label: 'AI Chat', path: '/ai-chat' },
+  { label: 'Drug Safety', path: '/drug-safety' },
+  { label: 'Subscriptions', path: '/Subscriptions' },
+];
+
 export default function Navbar() {
   const { t } = useTranslation();
   const { user, logout } = useAuth();
