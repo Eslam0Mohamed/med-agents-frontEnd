@@ -7,22 +7,29 @@ import {
   FiClock,
   FiPlayCircle,
   FiCheckCircle,
+  FiEdit3,
 } from "react-icons/fi";
 import Swal from "sweetalert2";
 import { getFollowUps } from "../../api/followup";
-import "./followups.css";
 import apiInstance from "../../config/apiInstance";
-
-const weekDays = ["S", "M", "T", "W", "T", "F", "S"];
-
-const monthNames = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
-];
+import "./followups.css";
 
 const FollowUps = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+
+  const monthNames = [
+    t("followups.months.january"), t("followups.months.february"), t("followups.months.march"),
+    t("followups.months.april"), t("followups.months.may"), t("followups.months.june"),
+    t("followups.months.july"), t("followups.months.august"), t("followups.months.september"),
+    t("followups.months.october"), t("followups.months.november"), t("followups.months.december"),
+  ];
+
+  const weekDays = [
+    t("followups.weekDays.sun"), t("followups.weekDays.mon"), t("followups.weekDays.tue"),
+    t("followups.weekDays.wed"), t("followups.weekDays.thu"), t("followups.weekDays.fri"),
+    t("followups.weekDays.sat"),
+  ];
 
   const [followUps, setFollowUps] = useState([]);
   const [activeTab, setActiveTab] = useState("upcoming");
@@ -58,8 +65,8 @@ const FollowUps = () => {
   };
 
   const formatDate = (date) => {
-    if (!date) return "No date";
-    return new Date(date).toLocaleDateString("en-US", {
+    if (!date) return "—";
+    return new Date(date).toLocaleDateString(undefined, {
       month: "short",
       day: "numeric",
       year: "numeric",
@@ -87,7 +94,7 @@ const FollowUps = () => {
       const doctorConsultations = consultationsRes?.data?.data || [];
 
       const doctorConsultationIds = new Set(
-        doctorConsultations.map((c) => String(c._id))
+        doctorConsultations.map((consultation) => String(consultation._id))
       );
 
       const filteredFollowups = allFollowups.filter((followup) => {
@@ -100,7 +107,8 @@ const FollowUps = () => {
 
       setFollowUps(filteredFollowups);
     } catch (error) {
-      Swal.fire("Error", "Failed to load follow-ups", "error");
+      console.error(error);
+      Swal.fire(t("common.error"), t("followups.loadError"), "error");
     } finally {
       setLoading(false);
     }
@@ -171,8 +179,8 @@ const FollowUps = () => {
   }, [validFollowUps, selectedDate]);
 
   const insightDateLabel = selectedDate
-    ? `on ${formatDate(selectedDate)}`
-    : "today";
+    ? `${t("followups.on")} ${formatDate(selectedDate)}`
+    : t("followups.today");
 
   const getFollowUpsCountForDate = (date) => {
     if (!date) return 0;
@@ -183,12 +191,12 @@ const FollowUps = () => {
   };
 
   const getPatientName = (item) =>
-    item.patientId?.name || "Unknown Patient";
+    item.patientId?.name || t("followups.unknownPatient");
 
   const getPatientId = (item) => getId(item.patientId);
 
   const getInitials = (name) => {
-    if (!name || name === "Unknown Patient") return "P";
+    if (!name || name === t("followups.unknownPatient")) return "P";
     return name
       .split(" ")
       .map((part) => part[0])
@@ -199,12 +207,12 @@ const FollowUps = () => {
 
   const getConsultationSummary = (item) => {
     const consultation = item.consultationId;
-    if (!consultation) return "No consultation details";
+    if (!consultation) return "—";
     if (consultation.diagnosis) return consultation.diagnosis;
     if (Array.isArray(consultation.symptoms) && consultation.symptoms.length > 0)
       return consultation.symptoms.join(", ");
     if (consultation.rawInput) return consultation.rawInput;
-    return "Consultation details unavailable";
+    return "—";
   };
 
   const handlePreviousMonth = () => {
@@ -225,11 +233,21 @@ const FollowUps = () => {
   };
 
   const handleStartFollowUp = (item) => {
-    navigate(`/followups/start/${item._id}`);
+    navigate(`/followups/start/${item._id}`, {
+      state: { followUp: item, mode: "start" },
+    });
   };
 
   const handleViewDetails = (item) => {
-    navigate(`/followups/${item._id}`);
+    navigate(`/followups/${item._id}`, {
+      state: { followUp: item },
+    });
+  };
+
+  const handleEditFollowUp = (item) => {
+    navigate(`/followups/start/${item._id}`, {
+      state: { followUp: item, mode: "edit" },
+    });
   };
 
   const handleInsightAction = () => {
@@ -242,14 +260,29 @@ const FollowUps = () => {
     setActiveTab("upcoming");
   };
 
+  const getSectionTitle = () => {
+    if (activeTab === "upcoming") return t("followups.upcomingTitle");
+    if (activeTab === "pastDue") return t("followups.pastDueTitle");
+    return t("followups.completedTitle");
+  };
+
+  const getStatusLabel = (item) => {
+    if (isCompleted(item)) return t("followups.status.confirmed");
+    if (isPastDue(item))
+      return isCancelled(item)
+        ? t("followups.status.cancelled")
+        : t("followups.status.pastDue");
+    return t("followups.status.pending");
+  };
+
   return (
     <section className="followups-page">
       <div className="followups-header">
         <div>
           <h1>{t("followups.title")}</h1>
-          <p>Manage scheduled reviews and continuity of care for your clinic.</p>
+          <p>{t("followups.subtitle")}</p>
         </div>
-        <div className="header-note">Created automatically from consultations</div>
+        <div className="header-note">{t("followups.createdAuto")}</div>
       </div>
 
       <div className="followups-tabs">
@@ -257,19 +290,19 @@ const FollowUps = () => {
           className={activeTab === "upcoming" ? "active" : ""}
           onClick={() => handleTabChange("upcoming")}
         >
-          Upcoming
+          {t("followups.upcoming")}
         </button>
         <button
           className={activeTab === "pastDue" ? "active" : ""}
           onClick={() => handleTabChange("pastDue")}
         >
-          Past Due
+          {t("followups.pastDue")}
         </button>
         <button
           className={activeTab === "completed" ? "active" : ""}
           onClick={() => handleTabChange("completed")}
         >
-          {t("followups.status.confirmed")}
+          {t("followups.completed")}
         </button>
       </div>
 
@@ -321,28 +354,32 @@ const FollowUps = () => {
               {selectedDate ? (
                 <>
                   <p>
-                    Showing {selectedDateCount} follow-up(s) for{" "}
-                    {formatDate(selectedDate)}
+                    {t("followups.showingCount", {
+                      count: selectedDateCount,
+                      date: formatDate(selectedDate),
+                    })}
                   </p>
                   <button type="button" onClick={() => setSelectedDate(null)}>
-                    Show all
+                    {t("followups.showAll")}
                   </button>
                 </>
               ) : (
-                <p>Click a day to filter follow-ups.</p>
+                <p>{t("followups.clickToFilter")}</p>
               )}
             </div>
           </div>
 
           <div className="ai-insights-card">
-            <h3>AI Insights</h3>
+            <h3>{t("followups.aiInsights")}</h3>
             <div className="insight-list">
-              <p>{insightDateCount} follow-up(s) scheduled {insightDateLabel}.</p>
-              <p>{pastDueCount} pending follow-up(s) are past due.</p>
-              <p>{completedCount} follow-up(s) completed.</p>
+              <p>
+                {insightDateCount} {t("followups.insightScheduled")} {insightDateLabel}.
+              </p>
+              <p>{pastDueCount} {t("followups.insightPastDue")}</p>
+              <p>{completedCount} {t("followups.insightCompleted")}</p>
             </div>
             <button type="button" onClick={handleInsightAction}>
-              {pastDueCount > 0 ? "Review Past Due" : "View Today's Follow-ups"}
+              {pastDueCount > 0 ? t("followups.reviewPastDue") : t("followups.viewToday")}
             </button>
           </div>
         </aside>
@@ -350,11 +387,7 @@ const FollowUps = () => {
         <main className="followups-content">
           <div className="section-title">
             {activeTab === "completed" ? <FiCheckCircle /> : <FiAlertTriangle />}
-            <span>
-              {activeTab === "upcoming" && "Upcoming Follow-ups"}
-              {activeTab === "pastDue" && "Past Due Follow-ups"}
-              {activeTab === "completed" && "Completed Follow-ups"}
-            </span>
+            <span>{getSectionTitle()}</span>
           </div>
 
           {loading && (
@@ -373,20 +406,14 @@ const FollowUps = () => {
                     <div className="patient-avatar">{getInitials(patientName)}</div>
                     <div>
                       <h3>{patientName}</h3>
-                      <p>Patient ID: {getPatientId(item)}</p>
+                      <p>{t("followups.patientId")}: {getPatientId(item)}</p>
                     </div>
                     <span
                       className={
                         isPastDue(item) ? "urgent-badge danger" : "urgent-badge"
                       }
                     >
-                      {isCompleted(item)
-                        ? t("followups.status.confirmed")
-                        : isPastDue(item)
-                        ? isCancelled(item)
-                          ? t("followups.status.cancelled")
-                          : "Past Due"
-                        : t("followups.status.pending")}
+                      {getStatusLabel(item)}
                     </span>
                   </div>
 
@@ -397,12 +424,12 @@ const FollowUps = () => {
                     </p>
                     <p>
                       <FiClock />
-                      {item.instructions || "No follow-up instructions"}
+                      {item.instructions || t("followups.noInstructions")}
                     </p>
                   </div>
 
                   <div className="followup-context">
-                    <span>Linked consultation</span>
+                    <span>{t("followups.linkedConsultation")}</span>
                     <p>{getConsultationSummary(item)}</p>
                   </div>
 
@@ -413,16 +440,25 @@ const FollowUps = () => {
                         onClick={() => handleStartFollowUp(item)}
                       >
                         <FiPlayCircle />
-                        Start Follow-up
+                        {t("followups.startFollowUp")}
                       </button>
                     ) : (
-                      <button
-                        className="start-btn"
-                        onClick={() => handleViewDetails(item)}
-                      >
-                        <FiCheckCircle />
-                        View Details
-                      </button>
+                      <>
+                        <button
+                          className="details-btn"
+                          onClick={() => handleViewDetails(item)}
+                        >
+                          <FiCheckCircle />
+                          {t("followups.viewDetails")}
+                        </button>
+                        <button
+                          className="edit-btn"
+                          onClick={() => handleEditFollowUp(item)}
+                        >
+                          <FiEdit3 />
+                          {t("common.edit")}
+                        </button>
+                      </>
                     )}
                   </div>
                 </article>

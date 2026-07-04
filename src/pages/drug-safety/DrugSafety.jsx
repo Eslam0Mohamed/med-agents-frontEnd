@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { checkDrugSafety } from '../../api/drugSafety';
 
 function parseResult(text) {
@@ -32,6 +33,7 @@ const riskConfig = {
 };
 
 export default function DrugSafety() {
+  const { t } = useTranslation();
   const [medications, setMedications] = useState([{ name: '', dosage: '' }]);
   const [language, setLanguage] = useState('en');
   const [result, setResult] = useState(null);
@@ -49,13 +51,13 @@ export default function DrugSafety() {
 
   const handleCheck = async () => {
     const validMeds = medications.filter((m) => m.name.trim());
-    if (validMeds.length === 0) { setError('Please add at least one medication.'); return; }
+    if (validMeds.length === 0) { setError(t('drugSafety.errorEmpty')); return; }
     setIsLoading(true); setError(''); setResult(null);
     try {
       const res = await checkDrugSafety(validMeds, language);
       setResult(res.data.content);
     } catch {
-      setError('Failed to check drug safety. Please try again.');
+      setError(t('drugSafety.errorFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -69,8 +71,8 @@ export default function DrugSafety() {
       <div className="flex items-center gap-3 mb-5 sm:mb-6">
         <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-amber-100 flex items-center justify-center text-lg sm:text-xl">🛡️</div>
         <div className="flex-1 min-w-0">
-          <h1 className="text-base sm:text-lg font-semibold text-gray-900">Drug Safety Check</h1>
-          <p className="text-xs text-gray-500 hidden sm:block">Detect interactions, contraindications & risks</p>
+          <h1 className="text-base sm:text-lg font-semibold text-gray-900">{t('drugSafety.title')}</h1>
+          <p className="text-xs text-gray-500 hidden sm:block">{t('drugSafety.subtitle')}</p>
         </div>
         <div className="flex items-center bg-gray-100 rounded-md p-0.5 flex-shrink-0">
           <button onClick={() => setLanguage('en')} className={`px-2.5 py-1 rounded text-xs font-medium ${language === 'en' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500'}`}>EN</button>
@@ -79,19 +81,19 @@ export default function DrugSafety() {
       </div>
 
       <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 mb-5 sm:mb-6">
-        <h2 className="text-sm font-semibold text-gray-700 mb-4">Medications</h2>
+        <h2 className="text-sm font-semibold text-gray-700 mb-4">{t('drugSafety.medications')}</h2>
         {medications.map((med, index) => (
           <div key={index} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 mb-3">
             <input
               type="text"
-              placeholder="Medication name"
+              placeholder={t('drugSafety.medicationName')}
               value={med.name}
               onChange={(e) => handleMedChange(index, 'name', e.target.value)}
               className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm outline-none focus:border-blue-500"
             />
             <input
               type="text"
-              placeholder="Dosage"
+              placeholder={t('drugSafety.dosage')}
               value={med.dosage}
               onChange={(e) => handleMedChange(index, 'dosage', e.target.value)}
               className="sm:w-36 border border-gray-300 rounded-md px-3 py-2 text-sm outline-none focus:border-blue-500"
@@ -101,14 +103,16 @@ export default function DrugSafety() {
             )}
           </div>
         ))}
-        <button onClick={addMedication} className="text-blue-600 text-sm font-medium hover:underline mt-1">+ Add another medication</button>
+        <button onClick={addMedication} className="text-blue-600 text-sm font-medium hover:underline mt-1">
+          {t('drugSafety.addMedication')}
+        </button>
         {error && <p className="text-red-500 text-sm mt-3">{error}</p>}
         <button
           onClick={handleCheck}
           disabled={isLoading}
           className="w-full mt-5 bg-blue-600 text-white rounded-md py-2.5 text-sm font-medium hover:bg-blue-700 disabled:bg-gray-300 transition cursor-pointer"
         >
-          {isLoading ? 'Checking...' : 'Check Drug Safety'}
+          {isLoading ? t('drugSafety.checking') : t('drugSafety.checkButton')}
         </button>
       </div>
 
