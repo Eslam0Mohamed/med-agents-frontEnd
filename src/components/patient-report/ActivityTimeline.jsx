@@ -1,29 +1,32 @@
+import { useTranslation } from 'react-i18next';
 import { formatDateTime, getUrgencyStyle } from '../../utils/patientUtils';
 import EmptyState from './EmptyState';
 
-const typeConfig = {
-  consultation: {
-    icon: '🩺',
-    dotColor: 'bg-blue-500',
-    badge: 'Consultation',
-    badgeClass: 'bg-blue-50 text-blue-700',
-  },
-  followup: {
-    icon: '📋',
-    dotColor: 'bg-purple-500',
-    badge: 'Follow-up',
-    badgeClass: 'bg-purple-50 text-purple-700',
-  },
-};
-
 export default function ActivityTimeline({ timeline }) {
+  const { t } = useTranslation();
+
+  const typeConfig = {
+    consultation: {
+      icon: '🩺',
+      dotColor: 'bg-blue-500',
+      badge: t('patientReport.activityTimeline.consultationBadge'),
+      badgeClass: 'bg-blue-50 text-blue-700',
+    },
+    followup: {
+      icon: '📋',
+      dotColor: 'bg-purple-500',
+      badge: t('patientReport.activityTimeline.followupBadge'),
+      badgeClass: 'bg-purple-50 text-purple-700',
+    },
+  };
+
   if (!timeline.length) {
     return (
       <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-        <h2 className="text-lg font-bold text-gray-900 mb-4">Activity Timeline</h2>
+        <h2 className="text-lg font-bold text-gray-900 mb-4">{t('patientReport.activityTimeline.title')}</h2>
         <EmptyState
-          title="No activity recorded"
-          description="Consultations and follow-ups will appear in chronological order."
+          title={t('patientReport.activityTimeline.emptyTitle')}
+          description={t('patientReport.activityTimeline.emptyDesc')}
           icon="🕐"
         />
       </div>
@@ -33,8 +36,8 @@ export default function ActivityTimeline({ timeline }) {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
       <div className="px-6 py-4 border-b border-gray-100">
-        <h2 className="text-lg font-bold text-gray-900">Activity Timeline</h2>
-        <p className="text-xs text-gray-400 mt-0.5">Consultations and follow-ups combined</p>
+        <h2 className="text-lg font-bold text-gray-900">{t('patientReport.activityTimeline.title')}</h2>
+        <p className="text-xs text-gray-400 mt-0.5">{t('patientReport.activityTimeline.subtitle')}</p>
       </div>
       <div className="px-6 py-4">
         <div className="relative">
@@ -62,7 +65,7 @@ export default function ActivityTimeline({ timeline }) {
                       )}
                       {item.status === 'done' && (
                         <span className="text-xs px-2 py-0.5 rounded-full bg-green-50 text-green-700 font-medium">
-                          Completed
+                          {t('patientReport.activityTimeline.completed')}
                         </span>
                       )}
                     </div>
@@ -71,7 +74,9 @@ export default function ActivityTimeline({ timeline }) {
                       <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{item.subtitle}</p>
                     )}
                     {item.meta && (
-                      <p className="text-xs text-blue-600 mt-1">Referral: {item.meta}</p>
+                      <p className="text-xs text-blue-600 mt-1">
+                        {t('patientReport.activityTimeline.referral', { name: item.meta })}
+                      </p>
                     )}
                   </div>
                 </div>

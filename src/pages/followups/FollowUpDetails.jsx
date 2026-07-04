@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Swal from 'sweetalert2';
 import { getFollowUpById } from '../../api/followup';
 
 const FollowUpDetails = () => {
+  const { t } = useTranslation();
   const { followupId } = useParams();
 
   const [followUp, setFollowUp] = useState(null);
@@ -20,25 +22,25 @@ const FollowUpDetails = () => {
         if (data) {
           setFollowUp(data);
         } else {
-          Swal.fire('Error', 'Follow-up not found', 'error');
+          Swal.fire(t('common.error'), t('followups.start.notFound'), 'error');
         }
       } catch (error) {
         console.error(error);
-        Swal.fire('Error', 'Failed to load follow-up details', 'error');
+        Swal.fire(t('common.error'), t('followups.messages.errorLoadDetails'), 'error');
       } finally {
         setLoading(false);
       }
     };
 
     fetchDetails();
-  }, [followupId]);
+  }, [followupId, t]);
 
   const getPatientName = (patient) => {
     if (typeof patient === 'object' && patient !== null) {
-      return patient.name || 'Unknown';
+      return patient.name || t('common.unknown');
     }
 
-    return patient || 'Unknown';
+    return patient || t('common.unknown');
   };
 
   const getConsultation = () => {
@@ -54,10 +56,10 @@ const FollowUpDetails = () => {
 
   const renderSymptoms = (symptoms) => {
     if (Array.isArray(symptoms)) {
-      return symptoms.length > 0 ? symptoms.join(', ') : 'None recorded.';
+      return symptoms.length > 0 ? symptoms.join(', ') : t('followups.details.noSymptoms');
     }
 
-    return symptoms || 'None recorded.';
+    return symptoms || t('followups.details.noSymptoms');
   };
 
   const renderDate = (date) => {
@@ -67,7 +69,7 @@ const FollowUpDetails = () => {
 
     if (Number.isNaN(parsedDate.getTime())) return null;
 
-    return parsedDate.toLocaleDateString('en-US', {
+    return parsedDate.toLocaleDateString(undefined, {
       weekday: 'short',
       month: 'short',
       day: 'numeric',
@@ -76,15 +78,15 @@ const FollowUpDetails = () => {
   };
 
   const renderStatus = (status) => {
-    if (status === 'confirmed') return 'Confirmed';
-    if (status === 'done') return 'Completed';
-    if (status === 'cancelled' || status === 'canceled') return 'Cancelled';
+    if (status === 'confirmed') return t('followups.status.confirmed');
+    if (status === 'done') return t('followups.status.completed');
+    if (status === 'cancelled' || status === 'canceled') return t('followups.status.cancelled');
 
-    return status || 'Pending';
+    return status || t('followups.status.pending');
   };
 
   const renderPrescription = (prescription) => {
-    if (!prescription) return 'No active medications issued.';
+    if (!prescription) return t('followups.details.noPrescription');
 
     if (typeof prescription === 'string') {
       return prescription;
@@ -93,24 +95,24 @@ const FollowUpDetails = () => {
     if (Array.isArray(prescription)) {
       return prescription.length > 0
         ? prescription.map((item) => item.name || item).join(', ')
-        : 'No active medications issued.';
+        : t('followups.details.noPrescription');
     }
 
     if (prescription.medications && Array.isArray(prescription.medications)) {
       return prescription.medications.length > 0
         ? prescription.medications
             .map((med) => {
-              const name = med.name || 'Medication';
+              const name = med.name || t('followups.details.medicationFallback');
               const dosage = med.dosage ? ` - ${med.dosage}` : '';
               const frequency = med.frequency ? ` (${med.frequency})` : '';
 
               return `${name}${dosage}${frequency}`;
             })
             .join('\n')
-        : 'No active medications issued.';
+        : t('followups.details.noPrescription');
     }
 
-    return 'No active medications issued.';
+    return t('followups.details.noPrescription');
   };
 
   if (loading) {
@@ -125,14 +127,14 @@ const FollowUpDetails = () => {
     return (
       <div className="text-center py-20 bg-[#f8fafc] h-screen flex flex-col justify-center items-center p-4">
         <p className="text-slate-500 font-medium text-sm capitalize">
-          No follow-up record found
+          {t('followups.details.notFound')}
         </p>
 
         <Link
           to="/followups"
           className="text-blue-500 font-bold mt-2 underline text-xs capitalize"
         >
-          Back to follow-ups
+          {t('followups.details.back')}
         </Link>
       </div>
     );
@@ -192,11 +194,11 @@ const FollowUpDetails = () => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 mb-6 border-b border-slate-200/50 gap-4 animate-premium-header">
           <div>
             <h2 className="text-xl sm:text-2xl font-extrabold text-blue-600 tracking-tight capitalize">
-              Follow-up details
+              {t('followups.details.title')}
             </h2>
 
             <p className="text-slate-400 text-xs mt-0.5 font-medium capitalize">
-              Comprehensive follow-up dossier and linked consultation logs.
+              {t('followups.details.subtitle')}
             </p>
           </div>
 
@@ -218,14 +220,14 @@ const FollowUpDetails = () => {
               />
             </svg>
 
-            Back to follow-ups
+            {t('followups.details.back')}
           </Link>
         </div>
 
         <div className="bg-white rounded-2xl border border-slate-200/80 border-l-4 border-l-blue-500 p-5 sm:p-8 shadow-md hover:shadow-xl hover:shadow-blue-500/[0.02] transition-shadow duration-300 animate-premium-box space-y-5">
           <div className="stagger-row stagger-1 grid grid-cols-1 sm:grid-cols-3 items-start gap-1 sm:gap-4 border-b border-blue-50/60 pb-3.5 px-1 rounded-xl hover:bg-slate-50/40 transition">
             <span className="text-[11px] font-bold text-blue-500 tracking-widest uppercase pt-0.5 shrink-0 capitalize">
-              Patient
+              {t('consultations.patient')}
             </span>
 
             <div className="sm:col-span-2 text-sm font-extrabold text-slate-900 break-words">
@@ -238,7 +240,7 @@ const FollowUpDetails = () => {
 
           <div className="stagger-row stagger-2 grid grid-cols-1 sm:grid-cols-3 items-start gap-1 sm:gap-4 border-b border-blue-50/60 pb-3.5 px-1 rounded-xl hover:bg-slate-50/40 transition">
             <span className="text-[11px] font-bold text-blue-500 tracking-widest uppercase pt-0.5 shrink-0 capitalize">
-              Status
+              {t('followups.details.status')}
             </span>
 
             <div className="sm:col-span-2 text-sm font-bold break-words">
@@ -260,7 +262,7 @@ const FollowUpDetails = () => {
 
           <div className="stagger-row stagger-3 grid grid-cols-1 sm:grid-cols-3 items-start gap-1 sm:gap-4 border-b border-blue-50/60 pb-3.5 px-1 rounded-xl hover:bg-slate-50/40 transition">
             <span className="text-[11px] font-bold text-blue-500 tracking-widest uppercase pt-0.5 shrink-0 capitalize">
-              Scheduled date
+              {t('followups.details.scheduledDate')}
             </span>
 
             <div className="sm:col-span-2 text-sm text-slate-800 font-bold">
@@ -270,7 +272,7 @@ const FollowUpDetails = () => {
 
               {renderDate(followUp.scheduledDate) || (
                 <span className="text-slate-400 font-medium">
-                  No scheduled date.
+                  {t('followups.details.noScheduledDate')}
                 </span>
               )}
             </div>
@@ -278,33 +280,33 @@ const FollowUpDetails = () => {
 
           <div className="stagger-row stagger-4 grid grid-cols-1 sm:grid-cols-3 items-start gap-1 sm:gap-4 border-b border-blue-50/60 pb-3.5 px-1 rounded-xl hover:bg-slate-50/40 transition">
             <span className="text-[11px] font-bold text-blue-500 tracking-widest uppercase pt-0.5 shrink-0 capitalize">
-              Instructions
+              {t('followups.details.instructions')}
             </span>
 
             <div className="sm:col-span-2 text-sm text-slate-700 font-medium whitespace-pre-line leading-relaxed break-words">
               <span className="inline sm:hidden text-slate-400 font-normal mr-1">
                 :
               </span>
-              {followUp.instructions || 'No follow-up instructions recorded.'}
+              {followUp.instructions || t('followups.details.noInstructions')}
             </div>
           </div>
 
           <div className="stagger-row stagger-5 grid grid-cols-1 sm:grid-cols-3 items-start gap-1 sm:gap-4 border-b border-blue-50/60 pb-3.5 px-1 rounded-xl hover:bg-slate-50/40 transition">
             <span className="text-[11px] font-bold text-blue-500 tracking-widest uppercase pt-0.5 shrink-0 capitalize">
-              Doctor&apos;s notes
+              {t('followups.details.doctorNotes')}
             </span>
 
             <div className="sm:col-span-2 text-sm text-slate-700 font-medium whitespace-pre-line leading-relaxed break-words">
               <span className="inline sm:hidden text-slate-400 font-normal mr-1">
                 :
               </span>
-              {consultation?.rawInput || 'No supplementary clinical inputs.'}
+              {consultation?.rawInput || t('followups.details.noNotes')}
             </div>
           </div>
 
           <div className="stagger-row stagger-6 grid grid-cols-1 sm:grid-cols-3 items-start gap-1 sm:gap-4 border-b border-blue-50/60 pb-3.5 px-1 rounded-xl hover:bg-slate-50/40 transition">
             <span className="text-[11px] font-bold text-blue-500 tracking-widest uppercase pt-0.5 shrink-0 capitalize">
-              Symptoms
+              {t('followups.details.symptoms')}
             </span>
 
             <div className="sm:col-span-2 text-sm text-slate-700 font-medium break-words">
@@ -317,20 +319,20 @@ const FollowUpDetails = () => {
 
           <div className="stagger-row stagger-7 grid grid-cols-1 sm:grid-cols-3 items-start gap-1 sm:gap-4 border-b border-blue-50/60 pb-3.5 px-1 rounded-xl hover:bg-slate-50/40 transition">
             <span className="text-[11px] font-bold text-blue-500 tracking-widest uppercase pt-0.5 shrink-0 capitalize">
-              Diagnosis
+              {t('followups.details.diagnosis')}
             </span>
 
             <div className="sm:col-span-2 text-sm text-slate-900 font-bold break-words">
               <span className="inline sm:hidden text-slate-400 font-normal mr-1">
                 :
               </span>
-              {consultation?.diagnosis || 'Pending definitive analysis.'}
+              {consultation?.diagnosis || t('followups.details.pendingDiagnosis')}
             </div>
           </div>
 
           <div className="stagger-row stagger-8 grid grid-cols-1 sm:grid-cols-3 items-start gap-1 sm:gap-4 pt-1 px-1 rounded-xl hover:bg-slate-50/40 transition">
             <span className="text-[11px] font-bold text-blue-500 tracking-widest uppercase pt-0.5 shrink-0 capitalize">
-              Prescription
+              {t('followups.details.prescription')}
             </span>
 
             <div className="sm:col-span-2 text-sm text-slate-800 font-semibold whitespace-pre-line leading-relaxed break-words">

@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Swal from 'sweetalert2';
 import { getConsultations } from '../../api/consultation'; 
 
 const ConsultationDetails = () => {
+  const { t } = useTranslation();
   const { id } = useParams();
   const [consultation, setConsultation] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -18,17 +20,17 @@ const ConsultationDetails = () => {
         if (found) {
           setConsultation(found);
         } else {
-          Swal.fire('Error', 'Consultation not found', 'error');
+          Swal.fire(t('common.error'), t('consultations.notFound'), 'error');
         }
       } catch {
-        Swal.fire('Error', 'Failed to load details', 'error');
+        Swal.fire(t('common.error'), t('consultations.failedLoad'), 'error');
       } finally {
         setLoading(false);
       }
     };
 
     fetchDetails();
-  }, [id]);
+  }, [id, t]);
 
   if (loading) {
     return (
@@ -41,24 +43,24 @@ const ConsultationDetails = () => {
   if (!consultation) {
     return (
       <div className="text-center py-20 bg-[#f8fafc] h-screen flex flex-col justify-center items-center p-4">
-        <p className="text-slate-500 font-medium text-sm capitalize">No records found</p>
-        <Link to="/consultations" className="text-blue-500 font-bold mt-2 underline text-xs capitalize">Back to consultations</Link>
+        <p className="text-slate-500 font-medium text-sm capitalize">{t('consultations.noRecordsFound')}</p>
+        <Link to="/consultations" className="text-blue-500 font-bold mt-2 underline text-xs capitalize">{t('consultations.backToConsultations')}</Link>
       </div>
     );
   }
 
   const getPatientName = (patient) => {
     if (typeof patient === 'object' && patient !== null) {
-      return patient.name || 'Unknown';
+      return patient.name || t('common.unknown');
     }
-    return patient || 'Unknown';
+    return patient || t('common.unknown');
   };
 
   const renderSymptoms = (symptoms) => {
     if (Array.isArray(symptoms)) {
-      return symptoms.join(', ');
+      return symptoms.length > 0 ? symptoms.join(', ') : t('consultations.noSymptoms');
     }
-    return symptoms || 'None recorded.';
+    return symptoms || t('consultations.noSymptoms');
   };
 
   return (
@@ -109,8 +111,8 @@ const ConsultationDetails = () => {
        
         <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 mb-6 border-b border-slate-200/50 gap-4 animate-premium-header">
           <div>
-            <h2 className="text-xl sm:text-2xl font-extrabold text-blue-600 tracking-tight capitalize">Consultation details</h2>
-            <p className="text-slate-400 text-xs mt-0.5 font-medium capitalize">Comprehensive patient dossier and encounter logs.</p>
+            <h2 className="text-xl sm:text-2xl font-extrabold text-blue-600 tracking-tight capitalize">{t('consultations.detailsTitle')}</h2>
+            <p className="text-slate-400 text-xs mt-0.5 font-medium capitalize">{t('consultations.detailsSubtitle')}</p>
           </div>
           <Link 
             to="/consultations" 
@@ -119,7 +121,7 @@ const ConsultationDetails = () => {
             <svg className="w-3 h-3 transition-transform duration-200 group-hover:-translate-x-0.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
-            Back to consultations
+            {t('consultations.backToConsultations')}
           </Link>
         </div>
 
@@ -128,7 +130,7 @@ const ConsultationDetails = () => {
           
           {/* Patient Profile Identity */}
           <div className="stagger-row stagger-1 grid grid-cols-1 sm:grid-cols-3 items-start gap-1 sm:gap-4 border-b border-blue-50/60 pb-3.5 px-1 rounded-xl hover:bg-slate-50/40 transition">
-            <span className="text-[11px] font-bold text-blue-500 tracking-widest uppercase pt-0.5 shrink-0 capitalize">Patient</span>
+            <span className="text-[11px] font-bold text-blue-500 tracking-widest uppercase pt-0.5 shrink-0 capitalize">{t('consultations.patient')}</span>
             <div className="sm:col-span-2 text-sm font-extrabold text-slate-900 break-words">
               <span className="inline sm:hidden text-slate-400 font-normal mr-1">:</span>
               {getPatientName(consultation.patientId)}
@@ -137,16 +139,16 @@ const ConsultationDetails = () => {
 
           {/* Doctor's Notes */}
           <div className="stagger-row stagger-2 grid grid-cols-1 sm:grid-cols-3 items-start gap-1 sm:gap-4 border-b border-blue-50/60 pb-3.5 px-1 rounded-xl hover:bg-slate-50/40 transition">
-            <span className="text-[11px] font-bold text-blue-500 tracking-widest uppercase pt-0.5 shrink-0 capitalize">Doctor's notes</span>
+            <span className="text-[11px] font-bold text-blue-500 tracking-widest uppercase pt-0.5 shrink-0 capitalize">{t('consultations.doctorNotes')}</span>
             <div className="sm:col-span-2 text-sm text-slate-700 font-medium whitespace-pre-line leading-relaxed break-words">
               <span className="inline sm:hidden text-slate-400 font-normal mr-1">:</span>
-              {consultation.rawInput || 'No supplementary clinical inputs.'}
+              {consultation.rawInput || t('consultations.noNotes')}
             </div>
           </div>
 
           {/* Observed Symptoms */}
           <div className="stagger-row stagger-3 grid grid-cols-1 sm:grid-cols-3 items-start gap-1 sm:gap-4 border-b border-blue-50/60 pb-3.5 px-1 rounded-xl hover:bg-slate-50/40 transition">
-            <span className="text-[11px] font-bold text-blue-500 tracking-widest uppercase pt-0.5 shrink-0 capitalize">Symptoms</span>
+            <span className="text-[11px] font-bold text-blue-500 tracking-widest uppercase pt-0.5 shrink-0 capitalize">{t('consultations.symptomsLabel')}</span>
             <div className="sm:col-span-2 text-sm text-slate-700 font-medium break-words">
               <span className="inline sm:hidden text-slate-400 font-normal mr-1">:</span>
               {renderSymptoms(consultation.symptoms)}
@@ -155,33 +157,33 @@ const ConsultationDetails = () => {
 
           {/* Established Diagnosis */}
           <div className="stagger-row stagger-4 grid grid-cols-1 sm:grid-cols-3 items-start gap-1 sm:gap-4 border-b border-blue-50/60 pb-3.5 px-1 rounded-xl hover:bg-slate-50/40 transition">
-            <span className="text-[11px] font-bold text-blue-500 tracking-widest uppercase pt-0.5 shrink-0 capitalize">Diagnosis</span>
+            <span className="text-[11px] font-bold text-blue-500 tracking-widest uppercase pt-0.5 shrink-0 capitalize">{t('consultations.diagnosis')}</span>
             <div className="sm:col-span-2 text-sm text-slate-900 font-bold break-words">
               <span className="inline sm:hidden text-slate-400 font-normal mr-1">:</span>
-              {consultation.diagnosis || 'Pending definitive analysis.'}
+              {consultation.diagnosis || t('consultations.pendingDiagnosis')}
             </div>
           </div>
 
           {/* Active Prescription Block */}
           <div className="stagger-row stagger-5 grid grid-cols-1 sm:grid-cols-3 items-start gap-1 sm:gap-4 border-b border-blue-50/60 pb-3.5 px-1 rounded-xl hover:bg-slate-50/40 transition">
-            <span className="text-[11px] font-bold text-blue-500 tracking-widest uppercase pt-0.5 shrink-0 capitalize">Prescription</span>
+            <span className="text-[11px] font-bold text-blue-500 tracking-widest uppercase pt-0.5 shrink-0 capitalize">{t('consultations.prescription')}</span>
             <div className="sm:col-span-2 text-sm text-slate-800 font-semibold whitespace-pre-line leading-relaxed break-words">
               <span className="inline sm:hidden text-slate-400 font-normal mr-1">:</span>
-              {consultation.prescription || 'No active medications issued.'}
+              {consultation.prescription || t('consultations.noPrescription')}
             </div>
           </div>
 
           {/* Next Planned Follow-Up */}
           <div className="stagger-row stagger-6 grid grid-cols-1 sm:grid-cols-3 items-start gap-1 sm:gap-4 pt-1 px-1 rounded-xl hover:bg-slate-50/40 transition">
-            <span className="text-[11px] font-bold text-blue-500 tracking-widest uppercase pt-0.5 shrink-0 capitalize">Follow-up date</span>
+            <span className="text-[11px] font-bold text-blue-500 tracking-widest uppercase pt-0.5 shrink-0 capitalize">{t('consultations.followUpDate')}</span>
             <div className="sm:col-span-2 text-sm text-slate-800 font-bold">
               <span className="inline sm:hidden text-slate-400 font-normal mr-1">:</span>
               {consultation.followUpDate ? (
-                new Date(consultation.followUpDate).toLocaleDateString('en-US', {
+                new Date(consultation.followUpDate).toLocaleDateString(undefined, {
                   weekday: 'short', month: 'short', day: 'numeric', year: 'numeric'
                 })
               ) : (
-                <span className="text-slate-400 font-medium">No scheduled returns.</span>
+                <span className="text-slate-400 font-medium">{t('consultations.noScheduledReturn')}</span>
               )}
             </div>
           </div>
