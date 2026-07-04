@@ -176,7 +176,10 @@ const ConsultationForm = () => {
         .split(',')
         .map((s) => s.trim())
         .filter((s) => s.length > 0),
-      followUpDate: formData.followUpDate || undefined,
+      // في وضع التعديل، لازم نبعت followUpDate دايمًا حتى لو فاضية — عشان
+      // الباك يقدر يفرّق بين "الدكتور مسح التاريخ عن قصد" و"الحقل ده أصلاً
+      // مش جزء من التعديل". في وضع الإنشاء مفيش لبس، فمفيش داعي نبعتها فاضية.
+      followUpDate: isEditMode ? (formData.followUpDate || '') : (formData.followUpDate || undefined),
     };
 
     try {
@@ -518,15 +521,19 @@ const ConsultationForm = () => {
         </div>
       </div>
 
-      <PrescriptionModal
-        isOpen={showPrescriptionModal}
-        onClose={handleClosePrescriptionModal}
-        consultationId={savedConsultationId}
-        patient={currentPatient}
-        language={watch('language') || 'en'}
-        existingPrescription={existingPrescription}
-        onSaved={handlePrescriptionSaved}
-      />
+      {showPrescriptionModal && (
+        <div className="mt-6">
+          <PrescriptionModal
+            isOpen={showPrescriptionModal}
+            onClose={handleClosePrescriptionModal}
+            consultationId={savedConsultationId}
+            patient={currentPatient}
+            language={watch('language') || 'en'}
+            existingPrescription={existingPrescription}
+            onSaved={handlePrescriptionSaved}
+          />
+        </div>
+      )}
     </div>
   );
 }

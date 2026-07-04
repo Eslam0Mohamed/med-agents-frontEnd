@@ -2,23 +2,32 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Swal from 'sweetalert2';
-import { getConsultations } from '../../api/consultation'; 
+import { getConsultationById } from '../../api/consultation';
+import { getPrescriptionByConsultation } from '../../api/prescription';
 
 const ConsultationDetails = () => {
   const { t } = useTranslation();
   const { id } = useParams();
   const [consultation, setConsultation] = useState(null);
+  const [prescription, setPrescription] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchDetails = async () => {
       try {
         setLoading(true);
-        const res = await getConsultations();
-        const found = res.data.find(item => item._id === id);
-        
+        const res = await getConsultationById(id);
+        const found = res?.data || res;
+
         if (found) {
           setConsultation(found);
+
+          try {
+            const presRes = await getPrescriptionByConsultation(id);
+            setPrescription(presRes?.data || null);
+          } catch {
+            setPrescription(null);
+          }
         } else {
           Swal.fire(t('common.error'), t('consultations.notFound'), 'error');
         }
@@ -61,6 +70,22 @@ const ConsultationDetails = () => {
       return symptoms.length > 0 ? symptoms.join(', ') : t('consultations.noSymptoms');
     }
     return symptoms || t('consultations.noSymptoms');
+  };
+
+  const renderPrescription = () => {
+    const medications = prescription?.medications;
+    if (!Array.isArray(medications) || medications.length === 0) {
+      return t('consultations.noPrescription');
+    }
+
+    return medications
+      .map((med) => {
+        const name = med.name || '';
+        const dosage = med.dose ? ` - ${med.dose}` : '';
+        const frequency = med.frequency ? ` (${med.frequency})` : '';
+        return `${name}${dosage}${frequency}`;
+      })
+      .join('\n');
   };
 
   return (
@@ -169,7 +194,7 @@ const ConsultationDetails = () => {
             <span className="text-[11px] font-bold text-blue-500 tracking-widest uppercase pt-0.5 shrink-0 capitalize">{t('consultations.prescription')}</span>
             <div className="sm:col-span-2 text-sm text-slate-800 font-semibold whitespace-pre-line leading-relaxed break-words">
               <span className="inline sm:hidden text-slate-400 font-normal mr-1">:</span>
-              {consultation.prescription || t('consultations.noPrescription')}
+              {renderPrescription()}
             </div>
           </div>
 

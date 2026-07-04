@@ -473,35 +473,23 @@ export default function PrescriptionModal({
   const age = calculateAge(patient?.dateOfBirth);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-
-      {/* Modal panel */}
-      <div className="relative bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[92vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b px-5 sm:px-6 py-4 flex items-start justify-between gap-4 z-10">
-          <div>
-            <h2 className="text-lg font-bold text-blue-700">
-              {isEditMode ? t('prescriptionModal.editTitle') : t('prescriptionModal.addTitle')}
-            </h2>
-            {patient && (
-              <p className="text-xs text-gray-500 mt-1">
-                {patient.name}
-                {age !== null && <> · {t('prescriptionModal.ageLabel', { age })}</>}
-                {patient.allergies?.length > 0 && (
-                  <> · {t('prescriptionModal.allergiesLabel', { list: patient.allergies.join(', ') })}</>
-                )}
-              </p>
-            )}
-          </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-700 text-xl leading-none px-1"
-            aria-label={t('prescriptionModal.close')}
-          >
-            ✕
-          </button>
+    <div className="bg-white rounded-xl shadow border border-gray-100">
+      <div className="border-b px-5 sm:px-6 py-4 flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-lg font-bold text-blue-700">
+            {isEditMode ? t('prescriptionModal.editTitle') : t('prescriptionModal.addTitle')}
+          </h2>
+          {patient && (
+            <p className="text-xs text-gray-500 mt-1">
+              {patient.name}
+              {age !== null && <> · {t('prescriptionModal.ageLabel', { age })}</>}
+              {patient.allergies?.length > 0 && (
+                <> · {t('prescriptionModal.allergiesLabel', { list: patient.allergies.join(', ') })}</>
+              )}
+            </p>
+          )}
         </div>
+      </div>
 
         <div className="p-5 sm:p-6 grid grid-cols-1 lg:grid-cols-3 gap-5">
           {/* Medications column */}
@@ -541,7 +529,7 @@ export default function PrescriptionModal({
           </div>
         </div>
 
-        <div className="sticky bottom-0 bg-white border-t px-5 sm:px-6 py-4 flex items-center justify-end gap-3">
+        <div className="bg-white border-t px-5 sm:px-6 py-4 flex items-center justify-end gap-3">
           <button
             type="button"
             onClick={onClose}
@@ -559,6 +547,5 @@ export default function PrescriptionModal({
           </button>
         </div>
       </div>
-    </div>
   );
 }
