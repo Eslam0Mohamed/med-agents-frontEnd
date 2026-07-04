@@ -3,12 +3,14 @@ import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Swal from 'sweetalert2';
 import { getFollowUpById } from '../../api/followup';
+import { getPrescriptionByConsultation } from '../../api/prescription';
 
 const FollowUpDetails = () => {
   const { t } = useTranslation();
   const { followupId } = useParams();
 
   const [followUp, setFollowUp] = useState(null);
+  const [prescription, setPrescription] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -21,6 +23,22 @@ const FollowUpDetails = () => {
 
         if (data) {
           setFollowUp(data);
+
+          // البريسكربشن مش متضمنة جوه الفولو أب أو الكونسلتيشن — لازم تتجاب
+          // لوحدها، من زيارة الإكمال (لو موجودة) وإلا الكونسلتيشن الأصلية
+          const effectiveConsultation =
+            (typeof data?.completionConsultationId === 'object' && data.completionConsultationId) ||
+            (typeof data?.consultationId === 'object' && data.consultationId) ||
+            null;
+
+          if (effectiveConsultation?._id) {
+            try {
+              const presRes = await getPrescriptionByConsultation(effectiveConsultation._id);
+              setPrescription(presRes?.data || null);
+            } catch {
+              setPrescription(null);
+            }
+          }
         } else {
           Swal.fire(t('common.error'), t('followups.start.notFound'), 'error');
         }
@@ -44,6 +62,15 @@ const FollowUpDetails = () => {
   };
 
   const getConsultation = () => {
+    // زيارة الإكمال (لو الفولو أب اتكملت) فيها البيانات الفعلية للزيارة —
+    // نفضّلها عن الكونسلتيشن الأصلية اللي جدولت الفولو أب بس
+    if (
+      typeof followUp?.completionConsultationId === 'object' &&
+      followUp?.completionConsultationId !== null
+    ) {
+      return followUp.completionConsultationId;
+    }
+
     if (
       typeof followUp?.consultationId === 'object' &&
       followUp?.consultationId !== null
@@ -103,7 +130,7 @@ const FollowUpDetails = () => {
         ? prescription.medications
             .map((med) => {
               const name = med.name || t('followups.details.medicationFallback');
-              const dosage = med.dosage ? ` - ${med.dosage}` : '';
+              const dosage = med.dose ? ` - ${med.dose}` : '';
               const frequency = med.frequency ? ` (${med.frequency})` : '';
 
               return `${name}${dosage}${frequency}`;
@@ -339,7 +366,7 @@ const FollowUpDetails = () => {
               <span className="inline sm:hidden text-slate-400 font-normal mr-1">
                 :
               </span>
-              {renderPrescription(consultation?.prescription)}
+              {renderPrescription(prescription)}
             </div>
           </div>
         </div>

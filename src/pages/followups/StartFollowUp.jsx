@@ -159,6 +159,19 @@ const StartFollowUp = () => {
       return currentFollowUp.completedConsultation;
     }
 
+    // completionConsultationId هو المرجع الموثوق لزيارة الإكمال — الباك
+    // بيحطه على الفولو أب نفسها وقت ما تتكمّل، وبيرجّعه معبّي (populated)
+    // من getFollowUpById. الاعتماد عليه أوثق بكتير من إننا ندوّر في لستة
+    // "/consultations/doctor" لأن الإندبوينت ده أصلاً بيستبعد زيارات
+    // الإكمال (اللي معاها followupId) من نتايجه، فمكانش بيلاقيها خالص
+    // في الحالات المتسلسلة (فولو اب من فولو اب)
+    if (
+      typeof currentFollowUp?.completionConsultationId === "object" &&
+      currentFollowUp?.completionConsultationId !== null
+    ) {
+      return currentFollowUp.completionConsultationId;
+    }
+
     try {
       const consultationsRes = await apiInstance.get("/consultations/doctor");
       const doctorConsultations = consultationsRes?.data?.data || [];
@@ -430,7 +443,13 @@ const StartFollowUp = () => {
       let savedConsultationId = "";
 
       if (aiResult?._id) {
-        await updateConsultation(aiResult._id, consultationPayload);
+        // في وضع التعديل، لازم نبعت followUpDate دايمًا حتى لو فاضية — عشان
+        // الباك يقدر يفرّق بين "الدكتور مسح التاريخ عن قصد" و"الحقل ده أصلاً
+        // مش جزء من التعديل"
+        await updateConsultation(aiResult._id, {
+          ...consultationPayload,
+          followUpDate: form.followUpDate || '',
+        });
         savedConsultationId = aiResult._id;
       } else {
         const consultationRes = await createConsultation(consultationPayload);

@@ -3,7 +3,6 @@ import Swal from "sweetalert2";
 import { useTranslation } from "react-i18next";
 import {
   getAllPrescriptions,
-  deletePrescription,
   getPrescriptionDates,
 } from "../../api/prescription";
 import PrescriptionModal from "../../components/prescriptions/PrescriptionModal";
@@ -153,7 +152,7 @@ function SafetyCell({ medication }) {
   );
 }
 
-function PatientPrescriptionCard({ prescription, onEdit, onDelete }) {
+function PatientPrescriptionCard({ prescription, onEdit }) {
   const { t } = useTranslation();
   const patient = prescription.patientId;
   const age = calculateAge(patient?.dateOfBirth);
@@ -188,9 +187,6 @@ function PatientPrescriptionCard({ prescription, onEdit, onDelete }) {
         <div className="flex items-center gap-3 shrink-0">
           <button onClick={() => onEdit(prescription)} className="text-sm text-blue-600 hover:text-blue-800 font-medium">
             ✏️ {t("common.edit")}
-          </button>
-          <button onClick={() => onDelete(prescription)} className="text-sm text-red-500 hover:text-red-700 font-medium">
-            🗑️ {t("common.delete")}
           </button>
         </div>
       </div>
@@ -317,29 +313,6 @@ export default function Prescriptions() {
     setShowEditModal(true);
   };
 
-  const handleDelete = async (prescription) => {
-    const result = await Swal.fire({
-      title: t("prescriptions.deleteTitle"),
-      text: t("prescriptions.deleteText"),
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#3085d6",
-      confirmButtonText: t("prescriptions.deleteConfirm"),
-      cancelButtonText: t("common.cancel"),
-    });
-    if (!result.isConfirmed) return;
-
-    try {
-      await deletePrescription(prescription._id);
-      Swal.fire(t("prescriptions.deleted"), t("prescriptions.deleteSuccess"), "success");
-      loadPrescriptions(search, selectedDate, page);
-      loadDateCounts();
-    } catch (err) {
-      Swal.fire(t("common.error"), err.response?.data?.message || t("prescriptions.deleteError"), "error");
-    }
-  };
-
   const handleModalSaved = () => {
     setShowEditModal(false);
     setEditingPrescription(null);
@@ -379,7 +352,6 @@ export default function Prescriptions() {
               key={prescription._id}
               prescription={prescription}
               onEdit={handleEdit}
-              onDelete={handleDelete}
             />
           ))}
 
