@@ -1,6 +1,5 @@
 {
   "nav": {
-      "subscriptions": "الاشتراكات",
     "patients": "المرضى",
     "consultations": "الاستشارات",
     "addConsultation": "إضافة استشارة",
@@ -63,6 +62,7 @@
     "noConsultations": "لا توجد استشارات مسجلة حتى الآن.",
     "viewReport": "عرض التقرير",
     "newConsultation": "استشارة جديدة",
+    "editPatient": "تعديل المريض",
     "age": "العمر",
     "patientInformation": "بيانات المريض",
     "manageInfo": "إدارة البيانات الديموغرافية والتاريخ الطبي للمرضى.",
@@ -76,6 +76,8 @@
     "diagnosis": "التشخيص",
     "newConsultation": "استشارة جديدة",
     "editConsultation": "تعديل الاستشارة",
+    "consultation": "استشارة",
+    "followUpVisit": "زيارة متابعة",
     "formSubtitle": "توثيق الزيارة الطبية والحصول على دعم سريري فوري.",
     "patient": "المريض",
     "patientPlaceholder": "اكتب اسم المريض...",

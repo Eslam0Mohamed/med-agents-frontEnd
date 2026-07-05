@@ -1,32 +1,37 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import Swal from 'sweetalert2';
-import { useTranslation } from 'react-i18next';
-import { consultationSchema } from '../../schemas/consultation';
-import { getAllPatients } from '../../api/patient';
-import { createConsultation, getAIRecommendation, getConsultationById, updateConsultation } from '../../api/consultation';
-import { getPrescriptionByConsultation } from '../../api/prescription';
-import PrescriptionModal from '../../components/prescriptions/PrescriptionModal';
+import { useState, useEffect, useCallback } from "react";
+import { useNavigate, useParams, Link } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import Swal from "sweetalert2";
+import { useTranslation } from "react-i18next";
+import { consultationSchema } from "../../schemas/consultation";
+import { getAllPatients } from "../../api/patient";
+import {
+  createConsultation,
+  getAIRecommendation,
+  getConsultationById,
+  updateConsultation,
+} from "../../api/consultation";
+import { getPrescriptionByConsultation } from "../../api/prescription";
+import PrescriptionModal from "../../components/prescriptions/PrescriptionModal";
 
 const ConsultationForm = () => {
   const { t } = useTranslation();
   const { id, patientId } = useParams();
   const navigate = useNavigate();
   const isEditMode = !!id;
-  const [createdId, setCreatedId] = useState('');
+  const [createdId, setCreatedId] = useState("");
   const [patients, setPatients] = useState([]);
-  const [patientSearch, setPatientSearch] = useState('');
+  const [patientSearch, setPatientSearch] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
-  const [selectedPatientId, setSelectedPatientId] = useState('');
+  const [selectedPatientId, setSelectedPatientId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [aiResult, setAiResult] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
 
   const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
-  const [savedConsultationId, setSavedConsultationId] = useState('');
+  const [savedConsultationId, setSavedConsultationId] = useState("");
   const [existingPrescription, setExistingPrescription] = useState(null);
 
   const {
@@ -39,12 +44,12 @@ const ConsultationForm = () => {
   } = useForm({
     resolver: zodResolver(consultationSchema),
     defaultValues: {
-      language: 'en',
+      language: "en",
       isChronic: false,
     },
   });
 
-  const isChronicChecked = watch('isChronic');
+  const isChronicChecked = watch("isChronic");
 
   const loadConsultation = useCallback(
     async (patientsList) => {
@@ -52,33 +57,41 @@ const ConsultationForm = () => {
         const res = await getConsultationById(id);
         const data = res.data;
 
-        const patientIdValue = typeof data.patientId === 'object'
-          ? data.patientId?._id
-          : data.patientId;
+        const patientIdValue =
+          typeof data.patientId === "object"
+            ? data.patientId?._id
+            : data.patientId;
 
-        const patientName = typeof data.patientId === 'object'
-          ? data.patientId?.name
-          : patientsList.find((p) => p._id === data.patientId)?.name || '';
+        const patientName =
+          typeof data.patientId === "object"
+            ? data.patientId?.name
+            : patientsList.find((p) => p._id === data.patientId)?.name || "";
 
-        setValue('patientId', patientIdValue);
+        setValue("patientId", patientIdValue);
         setSelectedPatientId(patientIdValue);
         setPatientSearch(patientName);
-        setValue('rawInput', data.rawInput);
-        setValue('symptoms',
-          Array.isArray(data.symptoms) ? data.symptoms.join(', ') : data.symptoms
+        setValue("rawInput", data.rawInput);
+        setValue(
+          "symptoms",
+          Array.isArray(data.symptoms)
+            ? data.symptoms.join(", ")
+            : data.symptoms,
         );
-        setValue('diagnosis', data.diagnosis || '');
-        setValue('language', data.language || 'en');
-        setValue('isChronic', data.isChronic || false);
-        setValue('followUpDate',
-          data.followUpDate ? new Date(data.followUpDate).toISOString().split('T')[0] : ''
+        setValue("diagnosis", data.diagnosis || "");
+        setValue("language", data.language || "en");
+        setValue("isChronic", data.isChronic || false);
+        setValue(
+          "followUpDate",
+          data.followUpDate
+            ? new Date(data.followUpDate).toISOString().split("T")[0]
+            : "",
         );
         setAiResult(data);
       } catch (err) {
-        console.error('Failed to load consultation', err);
+        console.error("Failed to load consultation", err);
       }
     },
-    [id, setValue]
+    [id, setValue],
   );
 
   useEffect(() => {
@@ -97,12 +110,12 @@ const ConsultationForm = () => {
           if (patient) {
             setSelectedPatientId(patient._id);
             setPatientSearch(patient.name);
-            setValue('patientId', patient._id);
+            setValue("patientId", patient._id);
             setShowDropdown(false);
           }
         }
       } catch (err) {
-        console.error('Failed to load patients', err);
+        console.error("Failed to load patients", err);
       }
     };
 
@@ -116,18 +129,18 @@ const ConsultationForm = () => {
   }, [patients, isEditMode, patientId]);
 
   const filteredPatients = patients.filter((p) =>
-    p.name.toLowerCase().includes(patientSearch.toLowerCase())
+    p.name.toLowerCase().includes(patientSearch.toLowerCase()),
   );
 
   const handlePatientSelect = (patient) => {
     setPatientSearch(patient.name);
     setSelectedPatientId(patient._id);
-    setValue('patientId', patient._id, { dValidate: true, shouldDirty: true });
+    setValue("patientId", patient._id, { dValidate: true, shouldDirty: true });
     setShowDropdown(false);
   };
 
   const handleGetAIRecommendation = async () => {
-    const isValid = await trigger(['patientId', 'rawInput', 'symptoms']);
+    const isValid = await trigger(["patientId", "rawInput", "symptoms"]);
     if (!isValid) return;
 
     const formValues = watch();
@@ -137,11 +150,11 @@ const ConsultationForm = () => {
     const payload = {
       patientId: selectedPatientId,
       rawInput: formValues.rawInput,
-      diagnosis: formValues.diagnosis || '',
-      language: formValues.language || 'en',
+      diagnosis: formValues.diagnosis || "",
+      language: formValues.language || "en",
       isChronic: formValues.isChronic || false,
       symptoms: formValues.symptoms
-        .split(',')
+        .split(",")
         .map((s) => s.trim())
         .filter((s) => s.length > 0),
       followUpDate: formValues.followUpDate || undefined,
@@ -153,11 +166,11 @@ const ConsultationForm = () => {
       setCreatedId(res.data._id);
       setIsSaved(true);
       if (res.data.diagnosis) {
-        setValue('diagnosis', res.data.diagnosis);
+        setValue("diagnosis", res.data.diagnosis);
       }
     } catch (err) {
       console.log(err.response?.data);
-      Swal.fire(t('common.error'), t('consultations.failedAI'), 'error');
+      Swal.fire(t("common.error"), t("consultations.failedAI"), "error");
     } finally {
       setIsGenerating(false);
     }
@@ -173,13 +186,15 @@ const ConsultationForm = () => {
       language: formData.language,
       isChronic: formData.isChronic,
       symptoms: formData.symptoms
-        .split(',')
+        .split(",")
         .map((s) => s.trim())
         .filter((s) => s.length > 0),
       // في وضع التعديل، لازم نبعت followUpDate دايمًا حتى لو فاضية — عشان
       // الباك يقدر يفرّق بين "الدكتور مسح التاريخ عن قصد" و"الحقل ده أصلاً
       // مش جزء من التعديل". في وضع الإنشاء مفيش لبس، فمفيش داعي نبعتها فاضية.
-      followUpDate: isEditMode ? (formData.followUpDate || '') : (formData.followUpDate || undefined),
+      followUpDate: isEditMode
+        ? formData.followUpDate || ""
+        : formData.followUpDate || undefined,
     };
 
     try {
@@ -193,11 +208,11 @@ const ConsultationForm = () => {
       }
 
       Swal.fire({
-        title: t('consultations.savedSuccess'),
+        title: t("consultations.savedSuccess"),
         text: payload.isChronic
-          ? t('consultations.savedChronicText')
-          : t('consultations.savedText'),
-        icon: 'success',
+          ? t("consultations.savedChronicText")
+          : t("consultations.savedText"),
+        icon: "success",
         timer: 1800,
         showConfirmButton: false,
       });
@@ -213,7 +228,7 @@ const ConsultationForm = () => {
 
       setShowPrescriptionModal(true);
     } catch {
-      Swal.fire(t('common.error'), t('consultations.failedSave'), 'error');
+      Swal.fire(t("common.error"), t("consultations.failedSave"), "error");
     } finally {
       setIsLoading(false);
     }
@@ -221,57 +236,60 @@ const ConsultationForm = () => {
 
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
-  const minDate = tomorrow.toISOString().split('T')[0];
+  const minDate = tomorrow.toISOString().split("T")[0];
 
   const maxDateObj = new Date();
   maxDateObj.setMonth(maxDateObj.getMonth() + 6);
-  const maxDate = maxDateObj.toISOString().split('T')[0];
+  const maxDate = maxDateObj.toISOString().split("T")[0];
 
   const getUrgencyColor = (level) => {
     const colors = {
-      low: 'text-green-600 bg-green-50 border-green-200',
-      medium: 'text-orange-600 bg-orange-50 border-orange-200',
-      critical: 'text-red-600 bg-red-50 border-red-200',
+      low: "text-green-600 bg-green-50 border-green-200",
+      medium: "text-orange-600 bg-orange-50 border-orange-200",
+      critical: "text-red-600 bg-red-50 border-red-200",
     };
-    return colors[level] || 'text-gray-600 bg-gray-50 border-gray-200';
+    return colors[level] || "text-gray-600 bg-gray-50 border-gray-200";
   };
 
   const currentPatient =
-    patients.find((p) => String(p._id) === String(selectedPatientId || watch('patientId'))) ||
-    (existingPrescription?.patientId && typeof existingPrescription.patientId === 'object'
+    patients.find(
+      (p) => String(p._id) === String(selectedPatientId || watch("patientId")),
+    ) ||
+    (existingPrescription?.patientId &&
+    typeof existingPrescription.patientId === "object"
       ? existingPrescription.patientId
       : null);
 
   const handleClosePrescriptionModal = () => {
     setShowPrescriptionModal(false);
-    navigate('/consultations');
+    navigate("/consultations");
   };
 
   const handlePrescriptionSaved = () => {
     setShowPrescriptionModal(false);
-    navigate('/prescriptions');
+    navigate("/prescriptions");
   };
 
   return (
     <div className="p-4 max-w-6xl mx-auto">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-
         {/* Main Form */}
         <div className="lg:col-span-2 bg-white rounded-xl shadow p-6 sm:p-8">
           <h2 className="text-xl font-bold text-blue-700 mb-1">
-            {isEditMode ? t('consultations.editConsultation') : t('consultations.newConsultation')}
+            {isEditMode
+              ? t("consultations.editConsultation")
+              : t("consultations.newConsultation")}
           </h2>
           <p className="text-sm text-gray-500 mb-6 pb-4 border-b">
-            {t('consultations.formSubtitle')}
+            {t("consultations.formSubtitle")}
           </p>
 
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
               {/* Patient */}
               <div className="md:col-span-2 relative">
                 <label className="block text-sm font-medium text-blue-700 mb-1">
-                  {t('consultations.patient')}
+                  {t("consultations.patient")}
                 </label>
                 <input
                   type="text"
@@ -280,94 +298,102 @@ const ConsultationForm = () => {
                   onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
                   onChange={(e) => {
                     setPatientSearch(e.target.value);
-                    setSelectedPatientId('');
-                    setValue('patientId', '', { shouldValidate: true });
+                    setSelectedPatientId("");
+                    setValue("patientId", "", { shouldValidate: true });
                     setShowDropdown(true);
                   }}
                   onFocus={() => {
                     if (!isEditMode && !patientId) setShowDropdown(true);
                   }}
-                  placeholder={t('consultations.patientPlaceholder')}
+                  placeholder={t("consultations.patientPlaceholder")}
                   className={`w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    (isEditMode || patientId) ? 'bg-gray-100' : ''
+                    isEditMode || patientId ? "bg-gray-100" : ""
                   }`}
                 />
-                <input type="hidden" {...register('patientId')} />
+                <input type="hidden" {...register("patientId")} />
 
-                {!isEditMode && !patientId && showDropdown && filteredPatients.length > 0 && (
-                  <ul className="absolute z-10 w-full bg-white border border-gray-200 rounded-md mt-1 max-h-48 overflow-y-auto shadow-lg">
-                    {filteredPatients.map((p) => (
-                      <li
-                        key={p._id}
-                        onClick={() => handlePatientSelect(p)}
-                        className="px-3 py-2 hover:bg-blue-50 cursor-pointer text-sm"
-                      >
-                        {p.name}
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                {!isEditMode &&
+                  !patientId &&
+                  showDropdown &&
+                  filteredPatients.length > 0 && (
+                    <ul className="absolute z-10 w-full bg-white border border-gray-200 rounded-md mt-1 max-h-48 overflow-y-auto shadow-lg">
+                      {filteredPatients.map((p) => (
+                        <li
+                          key={p._id}
+                          onClick={() => handlePatientSelect(p)}
+                          className="px-3 py-2 hover:bg-blue-50 cursor-pointer text-sm"
+                        >
+                          {p.name}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
 
                 {errors.patientId && (
-                  <p className="text-red-500 text-xs mt-1">{errors.patientId.message}</p>
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.patientId.message}
+                  </p>
                 )}
               </div>
 
               {/* Doctor's Notes */}
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-blue-700 mb-1">
-                  {t('consultations.doctorNotes')}
+                  {t("consultations.doctorNotes")}
                 </label>
                 <textarea
-                  {...register('rawInput')}
+                  {...register("rawInput")}
                   rows={4}
                   className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 {errors.rawInput && (
-                  <p className="text-red-500 text-xs mt-1">{errors.rawInput.message}</p>
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.rawInput.message}
+                  </p>
                 )}
               </div>
 
               {/* Symptoms */}
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-blue-700 mb-1">
-                  {t('consultations.symptoms')}
+                  {t("consultations.symptoms")}
                 </label>
                 <input
                   type="text"
-                  {...register('symptoms')}
-                  placeholder={t('consultations.symptomsPlaceholder')}
+                  {...register("symptoms")}
+                  placeholder={t("consultations.symptomsPlaceholder")}
                   className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 {errors.symptoms && (
-                  <p className="text-red-500 text-xs mt-1">{errors.symptoms.message}</p>
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.symptoms.message}
+                  </p>
                 )}
               </div>
 
               {/* Language */}
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-blue-700 mb-1">
-                  {t('consultations.language')}
+                  {t("consultations.language")}
                 </label>
                 <select
-                  {...register('language')}
+                  {...register("language")}
                   className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="en">{t('consultations.english')}</option>
-                  <option value="ar">{t('consultations.arabic')}</option>
+                  <option value="en">{t("consultations.english")}</option>
+                  <option value="ar">{t("consultations.arabic")}</option>
                 </select>
               </div>
-
             </div>
 
             {/* AI Recommendation Result */}
             {(aiResult || isEditMode) && (
               <div className="mt-6 p-6 bg-linear-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-xl shadow-sm space-y-4">
                 <h3 className="text-base font-bold text-blue-800 flex items-center gap-2">
-                  <span>📋 {t('consultations.clinicalSupport')}</span>
+                  <span>📋 {t("consultations.clinicalSupport")}</span>
                 </h3>
                 <p className="text-xs text-gray-500">
-                  {t('consultations.finalizeNote')}
+                  {t("consultations.finalizeNote")}
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -375,44 +401,51 @@ const ConsultationForm = () => {
                   <div>
                     <div className="flex items-center justify-between gap-2 mb-1">
                       <label className="block text-sm font-medium text-blue-700">
-                        {t('consultations.diagnosis')} <span className="text-red-500">*</span>
+                        {t("consultations.diagnosis")}{" "}
+                        <span className="text-red-500">*</span>
                       </label>
                       <label className="inline-flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 cursor-pointer text-xs font-bold text-slate-600 transition-all duration-200 hover:bg-blue-50 hover:border-blue-200 select-none">
                         <input
                           type="checkbox"
-                          {...register('isChronic')}
+                          {...register("isChronic")}
                           className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 cursor-pointer shrink-0"
                         />
-                        <span className={`transition-colors duration-200 ${isChronicChecked ? 'text-blue-600 font-extrabold' : ''}`}>
-                          {t('consultations.chronicDisease')}
+                        <span
+                          className={`transition-colors duration-200 ${isChronicChecked ? "text-blue-600 font-extrabold" : ""}`}
+                        >
+                          {t("consultations.chronicDisease")}
                         </span>
                       </label>
                     </div>
                     <input
                       type="text"
-                      {...register('diagnosis')}
-                      placeholder={t('consultations.diagnosisPlaceholder')}
+                      {...register("diagnosis")}
+                      placeholder={t("consultations.diagnosisPlaceholder")}
                       className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     {errors.diagnosis && (
-                      <p className="text-red-500 text-xs mt-1">{errors.diagnosis.message}</p>
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.diagnosis.message}
+                      </p>
                     )}
                   </div>
 
                   {/* Follow-up Date */}
                   <div>
                     <label className="block text-sm font-medium text-blue-700 mb-1">
-                      {t('consultations.followUpDate')}
+                      {t("consultations.followUpDate")}
                     </label>
                     <input
                       type="date"
-                      {...register('followUpDate')}
+                      {...register("followUpDate")}
                       min={minDate}
                       max={maxDate}
                       className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     {errors.followUpDate && (
-                      <p className="text-red-500 text-xs mt-1">{errors.followUpDate.message}</p>
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.followUpDate.message}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -427,24 +460,28 @@ const ConsultationForm = () => {
                 disabled={isGenerating}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-md font-medium text-sm transition flex items-center gap-2 disabled:opacity-50"
               >
-                🤖 {isGenerating ? t('consultations.analyzing') : t('consultations.getAI')} →
+                🤖{" "}
+                {isGenerating
+                  ? t("consultations.analyzing")
+                  : t("consultations.getAI")}{" "}
+                →
               </button>
 
-              <div className="flex gap-3 ms-auto">
-                <Link
-                  to="/consultations"
-                  className="border border-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-50 text-sm"
-                >
-                  {t('common.cancel')}
-                </Link>
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="bg-blue-700 hover:bg-blue-800 text-white px-5 py-2 rounded-md font-medium text-sm disabled:opacity-50"
-                >
-                  {isLoading ? t('common.saving') : isEditMode ? t('common.update') : t('consultations.saveRecord')}
-                </button>
-              </div>
+              {(aiResult || isEditMode) && (
+                <div className="flex gap-3 ms-auto">
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="bg-blue-700 hover:bg-blue-800 text-white px-5 py-2 rounded-md font-medium text-sm disabled:opacity-50"
+                  >
+                    {isLoading
+                      ? t("common.saving")
+                      : isEditMode
+                        ? t("common.update")
+                        : t("consultations.saveRecord")}
+                  </button>
+                </div>
+              )}
             </div>
           </form>
         </div>
@@ -454,7 +491,7 @@ const ConsultationForm = () => {
           <div className="bg-white rounded-xl shadow overflow-hidden">
             <div className="bg-blue-50 px-5 py-3 flex items-center justify-between border-b border-blue-100">
               <span className="font-semibold text-blue-800 text-sm flex items-center gap-1.5">
-                ⚡ {t('consultations.clinicalInsights')}
+                ⚡ {t("consultations.clinicalInsights")}
               </span>
               <span className="text-[10px] bg-blue-600 text-white px-2 py-0.5 rounded-full font-bold">
                 BETA
@@ -467,9 +504,11 @@ const ConsultationForm = () => {
                   <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl">
                     🧠
                   </div>
-                  <p className="font-semibold text-gray-800 text-sm">{t('consultations.agentReady')}</p>
+                  <p className="font-semibold text-gray-800 text-sm">
+                    {t("consultations.agentReady")}
+                  </p>
                   <p className="text-xs text-gray-400 mt-1.5 leading-relaxed">
-                    {t('consultations.agentReadyText')}
+                    {t("consultations.agentReadyText")}
                   </p>
                 </div>
               )}
@@ -479,35 +518,43 @@ const ConsultationForm = () => {
                   <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-3 animate-pulse text-2xl">
                     🧠
                   </div>
-                  <p className="font-semibold text-gray-800 text-sm">{t('consultations.analyzing')}</p>
+                  <p className="font-semibold text-gray-800 text-sm">
+                    {t("consultations.analyzing")}
+                  </p>
                   <p className="text-xs text-gray-400 mt-1.5">
-                    {t('consultations.agentAnalyzing')}
+                    {t("consultations.agentAnalyzing")}
                   </p>
                 </div>
               )}
 
               {aiResult && !isGenerating && (
                 <div className="space-y-3">
-                  <div className={`border rounded-lg p-3 ${getUrgencyColor(aiResult.urgencyLevel)}`}>
+                  <div
+                    className={`border rounded-lg p-3 ${getUrgencyColor(aiResult.urgencyLevel)}`}
+                  >
                     <p className="text-xs font-semibold uppercase tracking-wide mb-1">
-                      {t('consultations.urgencyLevel')}
+                      {t("consultations.urgencyLevel")}
                     </p>
-                    <p className="text-sm font-bold capitalize">{aiResult.urgencyLevel}</p>
+                    <p className="text-sm font-bold capitalize">
+                      {aiResult.urgencyLevel}
+                    </p>
                   </div>
 
                   {aiResult.suggestedSpecialist && (
                     <div className="bg-gray-50 rounded-lg p-3">
                       <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                        {t('consultations.suggestedSpecialist')}
+                        {t("consultations.suggestedSpecialist")}
                       </p>
-                      <p className="text-sm text-gray-800">{aiResult.suggestedSpecialist}</p>
+                      <p className="text-sm text-gray-800">
+                        {aiResult.suggestedSpecialist}
+                      </p>
                     </div>
                   )}
 
                   {aiResult.structuredNote && (
                     <div className="bg-gray-50 rounded-lg p-3">
                       <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                        {t('consultations.structuredNote')}
+                        {t("consultations.structuredNote")}
                       </p>
                       <p className="text-sm text-gray-700 leading-relaxed">
                         {aiResult.structuredNote}
@@ -528,7 +575,7 @@ const ConsultationForm = () => {
             onClose={handleClosePrescriptionModal}
             consultationId={savedConsultationId}
             patient={currentPatient}
-            language={watch('language') || 'en'}
+            language={watch("language") || "en"}
             existingPrescription={existingPrescription}
             onSaved={handlePrescriptionSaved}
           />
@@ -536,6 +583,6 @@ const ConsultationForm = () => {
       )}
     </div>
   );
-}
+};
 
 export default ConsultationForm;

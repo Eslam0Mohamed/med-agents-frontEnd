@@ -1,6 +1,5 @@
 {
   "nav": {
-      "subscriptions": "Subscriptions",
     "patients": "Patients",
     "consultations": "Consultations",
     "addConsultation": "Add Consultation",
@@ -63,6 +62,7 @@
     "noConsultations": "No consultations recorded yet.",
     "viewReport": "View Report",
     "newConsultation": "New Consultation",
+    "editPatient": "Edit Patient",
     "age": "Age",
     "patientInformation": "Patient Information",
     "manageInfo": "Manage demographics and medical history for new or existing patients.",
@@ -76,6 +76,8 @@
     "diagnosis": "Diagnosis",
     "newConsultation": "New Consultation",
     "editConsultation": "Edit Consultation",
+    "consultation": "Consultation",
+    "followUpVisit": "Follow-up Visit",
     "formSubtitle": "Document patient encounter and receive real-time clinical decision support.",
     "patient": "Patient",
     "patientPlaceholder": "Type patient name...",
