@@ -58,6 +58,7 @@
     "chronicConditions": "Chronic Conditions",
     "none": "None",
     "saveRecord": "Save Patient Record",
+    "editRecord": "Edit Record",
     "backToPatients": "Back to Patients",
     "consultationHistory": "Consultation History",
     "noConsultations": "No consultations recorded yet.",
@@ -73,6 +74,7 @@
   },
   "consultations": {
     "title": "Consultations",
+    "listSubtitle": "Review clinical consult history, specialist notes, and digital recommendations.",
     "diagnosis": "Diagnosis",
     "newConsultation": "New Consultation",
     "editConsultation": "Edit Consultation",
@@ -108,6 +110,8 @@
     "notFound": "Consultation not found",
     "failedLoad": "Failed to load details",
     "specialist": "Specialist",
+    "symptomsColumn": "Symptoms",
+    "urgencyColumn": "Urgency",
     "aiClinicalNote": "AI Clinical Note",
     "prescription": "Prescription",
     "urgency": {
@@ -545,6 +549,40 @@
       "days": "days",
       "weeks": "weeks",
       "months": "months"
+    }
+  },
+  "subscriptionsPage": {
+    "loading": "Loading...",
+    "oops": "Oops!",
+    "retry": "Retry",
+    "notFound": "No Subscription Found",
+    "expiredBanner": "You were redirected here because your subscription has expired. Please renew below to continue using MedAgents.",
+    "title": "My Subscription",
+    "statusActive": "Premium",
+    "statusExpired": "Expired",
+    "statusTrial": "Trial",
+    "plan": "Plan",
+    "daysLeft": "Days Left",
+    "expireDate": "Expire Date",
+    "renewSubscription": "Renew Subscription",
+    "subscribeNow": "Subscribe Now",
+    "duration": "Duration",
+    "month": "1 month",
+    "monthsCount": "{{count}} months",
+    "redirecting": "Redirecting...",
+    "pay": "Pay {{amount}} EGP",
+    "perMonth": "EGP / month",
+    "loadError": "Failed to load subscription. Please try again.",
+    "paymentError": "Failed to start payment, please try again",
+    "status": {
+      "expiredTitle": "Subscription Expired",
+      "expiredMessage": "Your subscription has expired. Renew now to regain access to all features.",
+      "expiringSoonTitle": "Subscription Expiring Soon",
+      "expiringSoonMessage": "Your subscription will expire soon. Please contact the administrator.",
+      "trialTitle": "Free Trial",
+      "trialMessage": "You're currently using the free trial. Upgrade before it expires to continue using all features.",
+      "activeTitle": "Premium Active",
+      "activeMessage": "Your subscription is active. Enjoy all premium features."
     }
   }
 }

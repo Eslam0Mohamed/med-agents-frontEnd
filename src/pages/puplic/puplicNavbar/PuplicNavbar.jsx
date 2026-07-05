@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../../context/AuthContext";
+import LanguageSwitcher from "../../../components/LanguageSwitcher";
 
 const PublicNavbar = () => {
   const { t } = useTranslation();
@@ -29,6 +30,7 @@ const PublicNavbar = () => {
           <Link to="/contact" className={linkClass("/contact")}>
             {t("nav.contactUs")}
           </Link>
+          <LanguageSwitcher />
           {loggedIn ? (
             <Link
               to="/patients"

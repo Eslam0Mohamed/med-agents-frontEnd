@@ -132,7 +132,7 @@ const Consultations = () => {
                 {t('consultations.title')} <span className="w-2 h-2 rounded-full bg-blue-300"></span>
               </h2>
               <p className="text-blue-100 text-xs sm:text-sm font-medium mt-1 opacity-90">
-                Review clinical consult history, specialist notes, and digital recommendations.
+                {t('consultations.listSubtitle')}
               </p>
             </div>
             <Link
@@ -172,8 +172,8 @@ const Consultations = () => {
               <thead className="bg-blue-600 text-white/95">
                 <tr>
                   <th className="px-6 py-4 font-bold tracking-wide text-xs uppercase opacity-90">{t('common.name')}</th>
-                  <th className="px-6 py-4 font-bold tracking-wide text-xs uppercase opacity-90">Symptoms</th>
-                  <th className="px-6 py-4 font-bold tracking-wide text-xs uppercase opacity-90">Urgency</th>
+                  <th className="px-6 py-4 font-bold tracking-wide text-xs uppercase opacity-90">{t('consultations.symptomsColumn')}</th>
+                  <th className="px-6 py-4 font-bold tracking-wide text-xs uppercase opacity-90">{t('consultations.urgencyColumn')}</th>
                   <th className="px-6 py-4 font-bold tracking-wide text-xs uppercase opacity-90">{t('consultations.specialist')}</th>
                   <th className="px-6 py-4 font-bold tracking-wide text-xs uppercase opacity-90">{t('common.status')}</th>
                   <th className="px-6 py-4 font-bold tracking-wide text-xs uppercase opacity-90">{t('consultations.followUpDate')}</th>
