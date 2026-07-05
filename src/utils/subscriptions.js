@@ -1,11 +1,10 @@
 export const getSubscriptionMessage = (subscription) => {
-      if (!subscription) return null;
+  if (!subscription) return null;
 
   if (subscription.status === "expired") {
     return {
-      title: "Subscription Expired",
-      message:
-        "Your subscription has expired. Renew now to regain access to all features.",
+      titleKey: "subscriptionsPage.status.expiredTitle",
+      messageKey: "subscriptionsPage.status.expiredMessage",
       bg: "bg-red-50",
       border: "border-red-500",
       titleColor: "text-red-600",
@@ -14,9 +13,8 @@ export const getSubscriptionMessage = (subscription) => {
 
   if (subscription.daysLeft <= 3) {
     return {
-      title: "Subscription Expiring Soon",
-      message:
-        "Your subscription will expire soon. Please contact the administrator.",
+      titleKey: "subscriptionsPage.status.expiringSoonTitle",
+      messageKey: "subscriptionsPage.status.expiringSoonMessage",
       bg: "bg-red-50",
       border: "border-red-500",
       titleColor: "text-red-600",
@@ -25,9 +23,8 @@ export const getSubscriptionMessage = (subscription) => {
 
   if (subscription.status === "trial") {
     return {
-      title: "Free Trial",
-      message:
-        "You're currently using the free trial. Upgrade before it expires to continue using all features.",
+      titleKey: "subscriptionsPage.status.trialTitle",
+      messageKey: "subscriptionsPage.status.trialMessage",
       bg: "bg-yellow-50",
       border: "border-yellow-500",
       titleColor: "text-yellow-700",
@@ -35,9 +32,8 @@ export const getSubscriptionMessage = (subscription) => {
   }
 
   return {
-    title: "Premium Active",
-    message:
-      "Your subscription is active. Enjoy all premium features.",
+    titleKey: "subscriptionsPage.status.activeTitle",
+    messageKey: "subscriptionsPage.status.activeMessage",
     bg: "bg-green-50",
     border: "border-green-500",
     titleColor: "text-green-700",

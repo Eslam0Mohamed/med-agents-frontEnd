@@ -57,6 +57,7 @@
     "chronicConditions": "الأمراض المزمنة",
     "none": "لا يوجد",
     "saveRecord": "حفظ بيانات المريض",
+    "editRecord": "تعديل السجل",
     "backToPatients": "الرجوع إلى المرضى",
     "consultationHistory": "سجل الاستشارات",
     "noConsultations": "لا توجد استشارات مسجلة حتى الآن.",
@@ -73,6 +74,7 @@
   },
   "consultations": {
     "title": "الاستشارات",
+    "listSubtitle": "راجع سجل الاستشارات السريرية وملاحظات الأخصائيين والتوصيات الرقمية.",
     "diagnosis": "التشخيص",
     "newConsultation": "استشارة جديدة",
     "editConsultation": "تعديل الاستشارة",
@@ -110,6 +112,8 @@
     "notFound": "الاستشارة غير موجودة",
     "failedLoad": "فشل تحميل التفاصيل",
     "specialist": "الأخصائي",
+    "symptomsColumn": "الأعراض",
+    "urgencyColumn": "درجة الخطورة",
     "aiClinicalNote": "ملاحظة سريرية من الذكاء الاصطناعي",
     "prescription": "الروشتة",
     "urgency": {
@@ -547,6 +551,40 @@
       "days": "أيام",
       "weeks": "أسابيع",
       "months": "أشهر"
+    }
+  },
+  "subscriptionsPage": {
+    "loading": "جاري التحميل...",
+    "oops": "عفوًا!",
+    "retry": "إعادة المحاولة",
+    "notFound": "لا يوجد اشتراك",
+    "expiredBanner": "تم تحويلك إلى هذه الصفحة لأن اشتراكك قد انتهى. برجاء التجديد أدناه لمتابعة استخدام MedAgents.",
+    "title": "اشتراكي",
+    "statusActive": "بريميوم",
+    "statusExpired": "منتهي",
+    "statusTrial": "تجريبي",
+    "plan": "الباقة",
+    "daysLeft": "الأيام المتبقية",
+    "expireDate": "تاريخ الانتهاء",
+    "renewSubscription": "تجديد الاشتراك",
+    "subscribeNow": "اشترك الآن",
+    "duration": "المدة",
+    "month": "شهر واحد",
+    "monthsCount": "{{count}} أشهر",
+    "redirecting": "جاري التحويل...",
+    "pay": "ادفع {{amount}} جنيه",
+    "perMonth": "جنيه / شهريًا",
+    "loadError": "فشل تحميل بيانات الاشتراك. حاول مرة أخرى.",
+    "paymentError": "فشل بدء عملية الدفع، برجاء المحاولة مرة أخرى",
+    "status": {
+      "expiredTitle": "انتهى الاشتراك",
+      "expiredMessage": "لقد انتهى اشتراكك. جدد الآن لاستعادة الوصول إلى جميع الميزات.",
+      "expiringSoonTitle": "الاشتراك على وشك الانتهاء",
+      "expiringSoonMessage": "سينتهي اشتراكك قريبًا. برجاء التواصل مع الإدارة.",
+      "trialTitle": "الفترة التجريبية المجانية",
+      "trialMessage": "أنت تستخدم حاليًا الفترة التجريبية المجانية. قم بالترقية قبل انتهائها لمتابعة استخدام جميع الميزات.",
+      "activeTitle": "اشتراك بريميوم مفعّل",
+      "activeMessage": "اشتراكك مفعّل. استمتع بجميع ميزات بريميوم."
     }
   }
 }

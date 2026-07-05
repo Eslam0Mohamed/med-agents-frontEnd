@@ -33,9 +33,9 @@ const riskConfig = {
 };
 
 export default function DrugSafety() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [medications, setMedications] = useState([{ name: '', dosage: '' }]);
-  const [language, setLanguage] = useState('en');
+  const language = i18n.language === 'ar' ? 'ar' : 'en';
   const [result, setResult] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -73,10 +73,6 @@ export default function DrugSafety() {
         <div className="flex-1 min-w-0">
           <h1 className="text-base sm:text-lg font-semibold text-gray-900">{t('drugSafety.title')}</h1>
           <p className="text-xs text-gray-500 hidden sm:block">{t('drugSafety.subtitle')}</p>
-        </div>
-        <div className="flex items-center bg-gray-100 rounded-md p-0.5 flex-shrink-0">
-          <button onClick={() => setLanguage('en')} className={`px-2.5 py-1 rounded text-xs font-medium ${language === 'en' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500'}`}>EN</button>
-          <button onClick={() => setLanguage('ar')} className={`px-2.5 py-1 rounded text-xs font-medium ${language === 'ar' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500'}`}>AR</button>
         </div>
       </div>
 

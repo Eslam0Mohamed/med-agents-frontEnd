@@ -1,6 +1,7 @@
 import React from 'react'
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { getMySubscription } from "../../api/subscription";
 import { initiatePayment } from "../../api/payment";
 import { getSubscriptionMessage } from '../../utils/subscriptions';
@@ -8,6 +9,7 @@ import { getSubscriptionMessage } from '../../utils/subscriptions';
 const PLAN_PRICES = { Basic: 200, Pro: 350 };
 const MONTHS_OPTIONS = [1, 3, 6, 12];
 const Subscriptions = () => {
+    const { t } = useTranslation();
     const [searchParams] = useSearchParams();
     const redirectedDueToExpiry = searchParams.get("expired") === "1";
 
@@ -30,7 +32,7 @@ const Subscriptions = () => {
         } catch (err) {
             console.error(err);
             setPayError(
-                err.response?.data?.message || "Failed to start payment, please try again"
+                err.response?.data?.message || t('subscriptionsPage.paymentError')
             );
             setPayLoading(false);
         }
@@ -46,7 +48,7 @@ const Subscriptions = () => {
 
         } catch (err) {
             console.error(err);
-            setError("Failed to load subscription. Please try again.");
+            setError(t('subscriptionsPage.loadError'));
         } finally {
             setLoading(false);
         }
@@ -56,14 +58,14 @@ const Subscriptions = () => {
 useEffect(()=>{
     fetchSubscription()
 },[])
-    if (loading) return <h2>Loading...</h2>;
+    if (loading) return <h2>{t('subscriptionsPage.loading')}</h2>;
     if (error) {
         return (
             <div className="flex justify-center items-center min-h-[60vh]">
                 <div className="bg-white rounded-xl shadow-lg p-8 text-center max-w-md">
 
                     <h2 className="text-2xl font-bold text-red-600 mb-3">
-                        Oops!
+                        {t('subscriptionsPage.oops')}
                     </h2>
 
                     <p className="text-gray-600 mb-6">
@@ -74,7 +76,7 @@ useEffect(()=>{
                         onClick={fetchSubscription}
                         className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg transition"
                         >
-                        Retry
+                        {t('subscriptionsPage.retry')}
                     </button>
 
                 </div>
@@ -86,7 +88,7 @@ useEffect(()=>{
         return (
             <div className="text-center mt-20">
                 <h2 className="text-2xl font-semibold">
-                    No Subscription Found
+                    {t('subscriptionsPage.notFound')}
                 </h2>
             </div>
         );
@@ -106,15 +108,14 @@ useEffect(()=>{
 
             {redirectedDueToExpiry && (
                 <div className="mb-6 rounded-lg bg-red-50 border border-red-200 p-4 text-red-700 text-sm">
-                    You were redirected here because your subscription has expired.
-                    Please renew below to continue using MedAgents.
+                    {t('subscriptionsPage.expiredBanner')}
                 </div>
             )}
 
             <div className="flex justify-between items-center">
 
                 <h1 className="text-3xl font-bold">
-                    My Subscription
+                    {t('subscriptionsPage.title')}
                 </h1>
 
             <span
@@ -127,10 +128,10 @@ useEffect(()=>{
   }`}
 >
   {subscription.status === "active"
-    ? "Premium"
+    ? t('subscriptionsPage.statusActive')
     : subscription.status === "expired"
-    ? "Expired"
-    : "Trial"}
+    ? t('subscriptionsPage.statusExpired')
+    : t('subscriptionsPage.statusTrial')}
 </span>
 
             </div>
@@ -138,17 +139,17 @@ useEffect(()=>{
             <div className="grid grid-cols-3 gap-6 mt-8">
 
                 <div>
-                    <p className="text-gray-500">Plan</p>
+                    <p className="text-gray-500">{t('subscriptionsPage.plan')}</p>
                     <h2 className="text-3xl font-bold">{subscription.plan}</h2>
                 </div>
 
                 <div>
-                    <p className="text-gray-500">Days Left</p>
+                    <p className="text-gray-500">{t('subscriptionsPage.daysLeft')}</p>
                     <h2 className="text-3xl font-bold">{subscription.daysLeft}</h2>
                 </div>
 
                 <div>
-                    <p className="text-gray-500">Expire Date</p>
+                    <p className="text-gray-500">{t('subscriptionsPage.expireDate')}</p>
                     <h2 className="text-xl font-semibold">
                         {new Date(expireDate).toLocaleDateString()}
                     </h2>
@@ -168,35 +169,35 @@ useEffect(()=>{
                 className={`mt-8 rounded-xl border-l-4 p-5 ${statusInfo.bg} ${statusInfo.border}`}
             >
                 <h3 className={`font-semibold text-lg ${statusInfo.titleColor}`}>
-                    {statusInfo.title}
+                    {t(statusInfo.titleKey)}
                 </h3>
 
                 <p className="text-gray-600 mt-2">
-                    {statusInfo.message}
+                    {t(statusInfo.messageKey)}
                 </p>
             </div>
 
             <div className="mt-8 rounded-xl border border-gray-200 p-6">
                 <h3 className="font-semibold text-lg text-gray-800 mb-4">
-                    {subscription.status === "active" ? "Renew Subscription" : "Subscribe Now"}
+                    {subscription.status === "active" ? t('subscriptionsPage.renewSubscription') : t('subscriptionsPage.subscribeNow')}
                 </h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
 
                     <div>
-                        <label className="block text-sm text-gray-500 mb-1">Plan</label>
+                        <label className="block text-sm text-gray-500 mb-1">{t('subscriptionsPage.plan')}</label>
                         <select
                             value={selectedPlan}
                             onChange={(e) => setSelectedPlan(e.target.value)}
                             className="w-full border border-gray-300 rounded-lg px-3 py-2"
                         >
-                            <option value="Basic">Basic - {PLAN_PRICES.Basic} EGP / month</option>
-                            <option value="Pro">Pro - {PLAN_PRICES.Pro} EGP / month</option>
+                            <option value="Basic">Basic - {PLAN_PRICES.Basic} {t('subscriptionsPage.perMonth')}</option>
+                            <option value="Pro">Pro - {PLAN_PRICES.Pro} {t('subscriptionsPage.perMonth')}</option>
                         </select>
                     </div>
 
                     <div>
-                        <label className="block text-sm text-gray-500 mb-1">Duration</label>
+                        <label className="block text-sm text-gray-500 mb-1">{t('subscriptionsPage.duration')}</label>
                         <select
                             value={selectedMonths}
                             onChange={(e) => setSelectedMonths(Number(e.target.value))}
@@ -204,7 +205,7 @@ useEffect(()=>{
                         >
                             {MONTHS_OPTIONS.map((m) => (
                                 <option key={m} value={m}>
-                                    {m === 1 ? "1 month" : `${m} months`}
+                                    {m === 1 ? t('subscriptionsPage.month') : t('subscriptionsPage.monthsCount', { count: m })}
                                 </option>
                             ))}
                         </select>
@@ -216,8 +217,8 @@ useEffect(()=>{
                         className="bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white px-5 py-2 rounded-lg transition font-semibold"
                     >
                         {payLoading
-                            ? "Redirecting..."
-                            : `Pay ${PLAN_PRICES[selectedPlan] * selectedMonths} EGP`}
+                            ? t('subscriptionsPage.redirecting')
+                            : t('subscriptionsPage.pay', { amount: PLAN_PRICES[selectedPlan] * selectedMonths })}
                     </button>
                 </div>
 
