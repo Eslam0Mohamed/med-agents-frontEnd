@@ -2,12 +2,16 @@ import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Swal from "sweetalert2";
+import { useDispatch } from "react-redux";
+import { setPatientChronicConditions } from "../../slices/patientsSlice";
 import { getFollowUpById, updateFollowUp } from "../../api/followup";
 import {
   createConsultation,
   getAIRecommendation,
   updateConsultation,
 } from "../../api/consultation";
+import { getPrescriptionByConsultation } from "../../api/prescription";
+import PrescriptionModal from "../../components/prescriptions/PrescriptionModal";
 import apiInstance from "../../config/apiInstance";
 
 const initialForm = {
@@ -24,6 +28,7 @@ const StartFollowUp = () => {
   const { followupId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useDispatch();
 
   const passedFollowUp = location.state?.followUp || null;
   const isEditMode = location.state?.mode === "edit";
@@ -35,6 +40,12 @@ const StartFollowUp = () => {
   const [loading, setLoading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  // بعد ما نحفظ الكونسلتيشن، ديف الروشتة بيظهر في نفس الصفحة (مش بوب أب ولا
+  // صفحة تانية) عشان الدكتور يقدر يعدّل/يضيف الروشتة في نفس مكان إكمال الفولو أب
+  const [showPrescriptionSection, setShowPrescriptionSection] = useState(false);
+  const [existingPrescription, setExistingPrescription] = useState(null);
+  const [savedConsultationId, setSavedConsultationId] = useState("");
 
   const getId = (value) => {
     if (!value) return "";
@@ -120,8 +131,10 @@ const StartFollowUp = () => {
         result.content ||
         result.message ||
         "",
-      urgencyLevel: result.urgencyLevel || result.urgency || result.priority || "",
-      suggestedSpecialist: result.suggestedSpecialist || result.specialist || "",
+      urgencyLevel:
+        result.urgencyLevel || result.urgency || result.priority || "",
+      suggestedSpecialist:
+        result.suggestedSpecialist || result.specialist || "",
       followUpDate: result.followUpDate || result.nextFollowUpDate || "",
     };
   };
@@ -134,8 +147,7 @@ const StartFollowUp = () => {
     };
 
     return (
-      colors[level?.toLowerCase()] ||
-      "text-gray-600 bg-gray-50 border-gray-200"
+      colors[level?.toLowerCase()] || "text-gray-600 bg-gray-50 border-gray-200"
     );
   };
 
@@ -177,7 +189,9 @@ const StartFollowUp = () => {
       const doctorConsultations = consultationsRes?.data?.data || [];
 
       const currentFollowupId = String(followupId);
-      const originalConsultationId = String(getId(currentFollowUp?.consultationId));
+      const originalConsultationId = String(
+        getId(currentFollowUp?.consultationId),
+      );
       const patientId = String(getId(currentFollowUp?.patientId));
 
       const linkedByFollowupId = doctorConsultations.find((consultation) => {
@@ -193,7 +207,8 @@ const StartFollowUp = () => {
 
       const samePatientConsultations = doctorConsultations
         .filter((consultation) => {
-          const samePatient = String(getId(consultation.patientId)) === patientId;
+          const samePatient =
+            String(getId(consultation.patientId)) === patientId;
           const notOriginal =
             String(getId(consultation._id)) !== originalConsultationId;
 
@@ -238,11 +253,25 @@ const StartFollowUp = () => {
     setForm(
       buildFormFromConsultation(
         consultationToEdit,
-        currentFollowUp?.language || "en"
-      )
+        currentFollowUp?.language || "en",
+      ),
     );
 
     setAiResult(normalized);
+
+    // زي ما بيحصل في صفحة الكونسلتيشن بالظبط: أول ما تفتح Edit، تشوف على
+    // طول اللي كنت كاتبه (الملاحظات/التشخيص) والبريسكربشن الموجودة مع بعض،
+    // من غير ما تحتاج تدوس حفظ الأول عشان تظهرلك
+    setSavedConsultationId(consultationToEdit._id);
+    try {
+      const presRes = await getPrescriptionByConsultation(
+        consultationToEdit._id,
+      );
+      setExistingPrescription(presRes?.data || null);
+    } catch {
+      setExistingPrescription(null);
+    }
+    setShowPrescriptionSection(true);
   };
 
   const loadFollowUp = async () => {
@@ -268,7 +297,11 @@ const StartFollowUp = () => {
       }
     } catch (error) {
       console.error(error);
-      Swal.fire(t("common.error"), t("followups.messages.errorLoadDetails"), "error");
+      Swal.fire(
+        t("common.error"),
+        t("followups.messages.errorLoadDetails"),
+        "error",
+      );
     } finally {
       setLoading(false);
     }
@@ -314,13 +347,17 @@ const StartFollowUp = () => {
       Swal.fire(
         t("followups.messages.missingDataTitle"),
         t("followups.messages.missingClinicalData"),
-        "warning"
+        "warning",
       );
       return false;
     }
 
     if (!getPatientId()) {
-      Swal.fire(t("common.error"), t("followups.messages.missingPatientData"), "error");
+      Swal.fire(
+        t("common.error"),
+        t("followups.messages.missingPatientData"),
+        "error",
+      );
       return false;
     }
 
@@ -360,7 +397,7 @@ const StartFollowUp = () => {
         Swal.fire(
           t("followups.messages.noAIResultTitle"),
           t("followups.messages.noAIResultText"),
-          "warning"
+          "warning",
         );
         return;
       }
@@ -387,7 +424,7 @@ const StartFollowUp = () => {
         error?.response?.data?.message ||
           error?.response?.data?.error ||
           t("followups.messages.aiFailed"),
-        "error"
+        "error",
       );
     } finally {
       setIsGenerating(false);
@@ -401,16 +438,20 @@ const StartFollowUp = () => {
       Swal.fire(
         t("followups.messages.aiRequiredTitle"),
         t("followups.messages.aiRequiredText"),
-        "warning"
+        "warning",
       );
       return;
     }
 
-    if (!form.rawInput.trim() || !form.symptoms.trim() || !form.diagnosis.trim()) {
+    if (
+      !form.rawInput.trim() ||
+      !form.symptoms.trim() ||
+      !form.diagnosis.trim()
+    ) {
       Swal.fire(
         t("followups.messages.missingDataTitle"),
         t("followups.messages.missingFinalData"),
-        "warning"
+        "warning",
       );
       return;
     }
@@ -418,7 +459,11 @@ const StartFollowUp = () => {
     const patientId = getPatientId();
 
     if (!patientId) {
-      Swal.fire(t("common.error"), t("followups.messages.missingPatientData"), "error");
+      Swal.fire(
+        t("common.error"),
+        t("followups.messages.missingPatientData"),
+        "error",
+      );
       return;
     }
 
@@ -446,14 +491,40 @@ const StartFollowUp = () => {
         // في وضع التعديل، لازم نبعت followUpDate دايمًا حتى لو فاضية — عشان
         // الباك يقدر يفرّق بين "الدكتور مسح التاريخ عن قصد" و"الحقل ده أصلاً
         // مش جزء من التعديل"
-        await updateConsultation(aiResult._id, {
+        const updateRes = await updateConsultation(aiResult._id, {
           ...consultationPayload,
-          followUpDate: form.followUpDate || '',
+          followUpDate: form.followUpDate || "",
         });
         savedConsultationId = aiResult._id;
+        if (updateRes.chronicConditions) {
+          dispatch(
+            setPatientChronicConditions({
+              patientId,
+              chronicConditions: updateRes.chronicConditions,
+            }),
+          );
+        }
       } else {
         const consultationRes = await createConsultation(consultationPayload);
         savedConsultationId = consultationRes?.data?._id || "";
+        if (consultationRes.chronicConditions) {
+          dispatch(
+            setPatientChronicConditions({
+              patientId,
+              chronicConditions: consultationRes.chronicConditions,
+            }),
+          );
+        }
+        // بعد أول حفظ، لو الدكتور دوس على الزرار تاني (الفورم لسه ظاهر ومعاه
+        // ديف الروشتة)، لازم يتعمل تعديل على نفس الكونسلتيشن دي مش إنشاء
+        // نسخة مكررة تانية — فبنسجل الـ id في aiResult عشان الشرط اللي فوق
+        // (aiResult?._id) يتحقق صح في أي إرسال تاني
+        if (savedConsultationId) {
+          setAiResult((prev) => ({
+            ...(prev || {}),
+            _id: savedConsultationId,
+          }));
+        }
       }
 
       await updateFollowUp(followupId, {
@@ -475,7 +546,15 @@ const StartFollowUp = () => {
         showConfirmButton: false,
       });
 
-      navigate("/followups");
+      setSavedConsultationId(savedConsultationId);
+      try {
+        const presRes =
+          await getPrescriptionByConsultation(savedConsultationId);
+        setExistingPrescription(presRes?.data || null);
+      } catch {
+        setExistingPrescription(null);
+      }
+      setShowPrescriptionSection(true);
     } catch (error) {
       console.error("FULL ERROR:", error);
       console.error("BACKEND RESPONSE:", error?.response?.data);
@@ -485,11 +564,19 @@ const StartFollowUp = () => {
         error?.response?.data?.error ||
           error?.response?.data?.message ||
           t("followups.messages.saveFailed"),
-        "error"
+        "error",
       );
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handlePrescriptionSaved = () => {
+    navigate("/followups");
+  };
+
+  const handlePrescriptionClosed = () => {
+    navigate("/followups");
   };
 
   const tomorrow = new Date();
@@ -537,7 +624,9 @@ const StartFollowUp = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div className="lg:col-span-2 bg-white rounded-xl shadow p-4 sm:p-8">
           <h2 className="text-xl font-bold text-blue-700 mb-1">
-            {isEditMode ? t("followups.start.editTitle") : t("followups.start.title")}
+            {isEditMode
+              ? t("followups.start.editTitle")
+              : t("followups.start.title")}
           </h2>
 
           <p className="text-sm text-gray-500 mb-6 pb-4 border-b">
@@ -584,7 +673,8 @@ const StartFollowUp = () => {
                 </p>
 
                 <p className="text-sm text-gray-800 whitespace-pre-wrap">
-                  {followUp.instructions || t("followups.start.noInstructionsRecorded")}
+                  {followUp.instructions ||
+                    t("followups.start.noInstructionsRecorded")}
                 </p>
               </div>
 
@@ -684,6 +774,23 @@ const StartFollowUp = () => {
               </div>
             </div>
 
+            <div className="flex justify-end mt-6 pt-5 border-t">
+              <button
+                type="button"
+                onClick={handleGetAIRecommendation}
+                disabled={isGenerating}
+                className="w-full sm:w-auto justify-center bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-md font-medium text-sm transition flex items-center gap-2 disabled:opacity-50"
+              >
+                🤖{" "}
+                {isGenerating
+                  ? t("consultations.analyzing")
+                  : aiResult
+                    ? t("followups.start.regenerateAI")
+                    : t("consultations.getAI")}{" "}
+                →
+              </button>
+            </div>
+
             {aiResult && (
               <div className="mt-6 p-4 sm:p-6 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-xl shadow-sm space-y-5">
                 <div className="space-y-1">
@@ -700,7 +807,8 @@ const StartFollowUp = () => {
                   <div className="space-y-2">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                       <label className="block text-sm font-medium text-blue-700">
-                        {t("consultations.diagnosis")} <span className="text-red-500">*</span>
+                        {t("consultations.diagnosis")}{" "}
+                        <span className="text-red-500">*</span>
                       </label>
 
                       <label className="inline-flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 cursor-pointer text-xs font-bold text-slate-600 transition-all duration-200 hover:bg-blue-50 hover:border-blue-200 select-none w-max max-w-full">
@@ -762,44 +870,20 @@ const StartFollowUp = () => {
                 )}
 
                 <div className="flex flex-col sm:flex-row gap-2.5 sm:justify-end pt-3 border-t border-blue-100/60">
-                  <Link
-                    to="/followups"
-                    className="text-center border border-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-50 text-sm font-medium block w-full sm:w-auto order-2 sm:order-1"
-                  >
-                    {t("common.cancel")}
-                  </Link>
-
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="bg-blue-700 hover:bg-blue-800 text-white px-5 py-2 rounded-md font-semibold text-sm disabled:opacity-50 block w-full sm:w-auto order-1 sm:order-2"
+                    className="bg-blue-700 hover:bg-blue-800 text-white px-5 py-2 rounded-md font-semibold text-sm disabled:opacity-50 block w-full sm:w-auto"
                   >
                     {submitting
                       ? t("common.saving")
-                      : isEditMode
+                      : isEditMode || savedConsultationId
                         ? t("followups.start.saveChanges")
                         : t("followups.start.confirmButton")}
                   </button>
                 </div>
               </div>
             )}
-
-            <div className="flex justify-end mt-6 pt-5 border-t">
-              <button
-                type="button"
-                onClick={handleGetAIRecommendation}
-                disabled={isGenerating}
-                className="w-full sm:w-auto justify-center bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-md font-medium text-sm transition flex items-center gap-2 disabled:opacity-50"
-              >
-                🤖{" "}
-                {isGenerating
-                  ? t("consultations.analyzing")
-                  : aiResult
-                    ? t("followups.start.regenerateAI")
-                    : t("consultations.getAI")}{" "}
-                →
-              </button>
-            </div>
           </form>
         </div>
 
@@ -852,7 +936,7 @@ const StartFollowUp = () => {
                 <div className="space-y-3">
                   <div
                     className={`border rounded-lg p-3 ${getUrgencyColor(
-                      aiResult.urgencyLevel
+                      aiResult.urgencyLevel,
                     )}`}
                   >
                     <p className="text-xs font-semibold uppercase tracking-wide mb-1">
@@ -860,7 +944,8 @@ const StartFollowUp = () => {
                     </p>
 
                     <p className="text-sm font-bold capitalize">
-                      {aiResult.urgencyLevel || t("followups.start.notProvided")}
+                      {aiResult.urgencyLevel ||
+                        t("followups.start.notProvided")}
                     </p>
                   </div>
 
@@ -941,6 +1026,20 @@ const StartFollowUp = () => {
           </div>
         </div>
       </div>
+
+      {showPrescriptionSection && (
+        <div className="mt-6">
+          <PrescriptionModal
+            isOpen={showPrescriptionSection}
+            onClose={handlePrescriptionClosed}
+            consultationId={savedConsultationId}
+            patient={followUp?.patientId}
+            language={form.language || "en"}
+            existingPrescription={existingPrescription}
+            onSaved={handlePrescriptionSaved}
+          />
+        </div>
+      )}
     </div>
   );
 };

@@ -1,6 +1,12 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { createPatient, deletePatient, fetchPatientById, fetchPatientHistory, fetchPatients, updatePatient } from '../api/patient';
-
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import {
+  createPatient,
+  deletePatient,
+  fetchPatientById,
+  fetchPatientHistory,
+  fetchPatients,
+  updatePatient,
+} from "../api/patient";
 
 const initialState = {
   list: [],
@@ -14,7 +20,7 @@ const initialState = {
 };
 
 const patientsSlice = createSlice({
-  name: 'patients',
+  name: "patients",
   initialState,
   reducers: {
     clearSelectedPatient: (state) => {
@@ -22,6 +28,26 @@ const patientsSlice = createSlice({
     },
     clearHistory: (state) => {
       state.history = null;
+    },
+    // بيتنادى بعد ما نعمل create/update لكونسلتيشن أو فولو أب لو الـ
+    // response رجّع chronicConditions محدّثة — بنحط النسخة الجديدة على
+    // طول في patient.chronicConditions اللي في state.history (لو صفحة
+    // Patient History فاتحة/متحمّلة) من غير ما نستنى refetch كامل
+    setPatientChronicConditions: (state, action) => {
+      const { patientId, chronicConditions } = action.payload || {};
+      if (!chronicConditions) return;
+      if (
+        state.history?.patient &&
+        String(state.history.patient._id) === String(patientId)
+      ) {
+        state.history.patient.chronicConditions = chronicConditions;
+      }
+      if (
+        state.selectedPatient &&
+        String(state.selectedPatient._id) === String(patientId)
+      ) {
+        state.selectedPatient.chronicConditions = chronicConditions;
+      }
     },
   },
   extraReducers: (builder) => {
@@ -96,5 +122,9 @@ const patientsSlice = createSlice({
   },
 });
 
-export const { clearSelectedPatient, clearHistory } = patientsSlice.actions;
+export const {
+  clearSelectedPatient,
+  clearHistory,
+  setPatientChronicConditions,
+} = patientsSlice.actions;
 export default patientsSlice.reducer;

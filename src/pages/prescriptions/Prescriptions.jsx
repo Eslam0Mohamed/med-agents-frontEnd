@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { useTranslation } from "react-i18next";
 import {
@@ -44,18 +45,27 @@ function PrescriptionCalendar({ selectedDate, onSelectDate, dateCounts }) {
   const { t } = useTranslation();
 
   const monthNames = [
-    t("prescriptions.months.january"), t("prescriptions.months.february"),
-    t("prescriptions.months.march"), t("prescriptions.months.april"),
-    t("prescriptions.months.may"), t("prescriptions.months.june"),
-    t("prescriptions.months.july"), t("prescriptions.months.august"),
-    t("prescriptions.months.september"), t("prescriptions.months.october"),
-    t("prescriptions.months.november"), t("prescriptions.months.december"),
+    t("prescriptions.months.january"),
+    t("prescriptions.months.february"),
+    t("prescriptions.months.march"),
+    t("prescriptions.months.april"),
+    t("prescriptions.months.may"),
+    t("prescriptions.months.june"),
+    t("prescriptions.months.july"),
+    t("prescriptions.months.august"),
+    t("prescriptions.months.september"),
+    t("prescriptions.months.october"),
+    t("prescriptions.months.november"),
+    t("prescriptions.months.december"),
   ];
 
   const weekDays = [
-    t("prescriptions.weekDays.sun"), t("prescriptions.weekDays.mon"),
-    t("prescriptions.weekDays.tue"), t("prescriptions.weekDays.wed"),
-    t("prescriptions.weekDays.thu"), t("prescriptions.weekDays.fri"),
+    t("prescriptions.weekDays.sun"),
+    t("prescriptions.weekDays.mon"),
+    t("prescriptions.weekDays.tue"),
+    t("prescriptions.weekDays.wed"),
+    t("prescriptions.weekDays.thu"),
+    t("prescriptions.weekDays.fri"),
     t("prescriptions.weekDays.sat"),
   ];
 
@@ -82,17 +92,40 @@ function PrescriptionCalendar({ selectedDate, onSelectDate, dateCounts }) {
   return (
     <div className="mini-calendar-card">
       <div className="calendar-title">
-        <button type="button" onClick={() => setCalendarMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))}>‹</button>
-        <span>{monthNames[calendarMonth.getMonth()]} {calendarMonth.getFullYear()}</span>
-        <button type="button" onClick={() => setCalendarMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))}>›</button>
+        <button
+          type="button"
+          onClick={() =>
+            setCalendarMonth(
+              (prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1),
+            )
+          }
+        >
+          ‹
+        </button>
+        <span>
+          {monthNames[calendarMonth.getMonth()]} {calendarMonth.getFullYear()}
+        </span>
+        <button
+          type="button"
+          onClick={() =>
+            setCalendarMonth(
+              (prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1),
+            )
+          }
+        >
+          ›
+        </button>
       </div>
 
       <div className="calendar-grid">
         {weekDays.map((day, index) => (
-          <span key={`${day}-${index}`} className="calendar-day-name">{day}</span>
+          <span key={`${day}-${index}`} className="calendar-day-name">
+            {day}
+          </span>
         ))}
         {calendarDays.map((day, index) => {
-          if (!day) return <span key={`empty-${index}`} className="calendar-empty" />;
+          if (!day)
+            return <span key={`empty-${index}`} className="calendar-empty" />;
           const key = toDateKey(day);
           const count = dateCounts?.[key] || 0;
           const isSelected = selectedDate && key === toDateKey(selectedDate);
@@ -102,7 +135,12 @@ function PrescriptionCalendar({ selectedDate, onSelectDate, dateCounts }) {
               type="button"
               key={key}
               onClick={() => onSelectDate(isSelected ? null : day)}
-              className={["calendar-day", isSelected ? "selected" : "", isToday ? "today" : "", count > 0 ? "has-followups" : ""].join(" ")}
+              className={[
+                "calendar-day",
+                isSelected ? "selected" : "",
+                isToday ? "today" : "",
+                count > 0 ? "has-followups" : "",
+              ].join(" ")}
             >
               <span>{day.getDate()}</span>
               {count > 0 && <small>{count}</small>}
@@ -116,7 +154,11 @@ function PrescriptionCalendar({ selectedDate, onSelectDate, dateCounts }) {
           <>
             <p>
               {t("prescriptions.filterDate")}{" "}
-              {selectedDate.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
+              {selectedDate.toLocaleDateString(undefined, {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              })}
             </p>
             <button type="button" onClick={() => onSelectDate(null)}>
               {t("prescriptions.showAll")}
@@ -169,23 +211,37 @@ function PatientPrescriptionCard({ prescription, onEdit }) {
           <div>
             <p className="text-sm font-semibold text-gray-900 flex items-center gap-2 flex-wrap">
               {patient?.name || t("prescriptions.unknownPatient")}
-              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${isFromFollowup ? "bg-purple-50 text-purple-700" : "bg-blue-50 text-blue-700"}`}>
-                {isFromFollowup ? t("prescriptions.followupTag") : t("prescriptions.consultationTag")}
+              <span
+                className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${isFromFollowup ? "bg-purple-50 text-purple-700" : "bg-blue-50 text-blue-700"}`}
+              >
+                {isFromFollowup
+                  ? t("prescriptions.followupTag")
+                  : t("prescriptions.consultationTag")}
               </span>
             </p>
             <p className="text-xs text-gray-500">
               {t("prescriptions.id")}: #{patient?._id?.slice(-6) || "—"}
-              {age !== null && <> • {t("prescriptions.age")}: {age}</>}
+              {age !== null && (
+                <>
+                  {" "}
+                  • {t("prescriptions.age")}: {age}
+                </>
+              )}
               {" • "}
               {t("patients.allergies")}:{" "}
-              {patient?.allergies?.length > 0 ? patient.allergies.join(", ") : t("prescriptions.noneReported")}
+              {patient?.allergies?.length > 0
+                ? patient.allergies.join(", ")
+                : t("prescriptions.noneReported")}
               {" • "}
               {new Date(prescription.createdAt).toLocaleDateString()}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-3 shrink-0">
-          <button onClick={() => onEdit(prescription)} className="text-sm text-blue-600 hover:text-blue-800 font-medium">
+          <button
+            onClick={() => onEdit(prescription)}
+            className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+          >
             ✏️ {t("common.edit")}
           </button>
         </div>
@@ -197,17 +253,31 @@ function PatientPrescriptionCard({ prescription, onEdit }) {
           <thead>
             <tr className="text-xs font-semibold text-gray-500 uppercase">
               <th className="px-5 py-3">{t("prescriptions.medication")}</th>
-              <th className="px-5 py-3">{t("prescriptions.dosageFrequency")}</th>
-              <th className="px-5 py-3">{t("prescriptions.safetyScreening")}</th>
+              <th className="px-5 py-3">
+                {t("prescriptions.dosageFrequency")}
+              </th>
+              <th className="px-5 py-3">
+                {t("prescriptions.safetyScreening")}
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {medications.map((med, i) => (
               <tr key={i}>
                 <td className="px-5 py-4 align-top">
-                  <p className="text-sm font-semibold text-gray-900">{med.name || t("prescriptions.unknownMedication")}</p>
-                  {med.activeIngredient && <p className="text-xs text-gray-400">{med.activeIngredient}</p>}
-                  {med.isChronic && <p className="text-xs text-gray-400">{t("prescriptions.chronic")}</p>}
+                  <p className="text-sm font-semibold text-gray-900">
+                    {med.name || t("prescriptions.unknownMedication")}
+                  </p>
+                  {med.activeIngredient && (
+                    <p className="text-xs text-gray-400">
+                      {med.activeIngredient}
+                    </p>
+                  )}
+                  {med.isChronic && (
+                    <p className="text-xs text-gray-400">
+                      {t("prescriptions.chronic")}
+                    </p>
+                  )}
                 </td>
                 <td className="px-5 py-4 align-top">
                   <p className="text-sm text-gray-700">{med.dose || "—"}</p>
@@ -230,8 +300,12 @@ function PatientPrescriptionCard({ prescription, onEdit }) {
         {medications.map((med, i) => (
           <div key={i} className="px-4 py-4">
             <div className="mb-1">
-              <p className="text-sm font-semibold text-gray-900">{med.name || t("prescriptions.unknownMedication")}</p>
-              {med.activeIngredient && <p className="text-xs text-gray-400">{med.activeIngredient}</p>}
+              <p className="text-sm font-semibold text-gray-900">
+                {med.name || t("prescriptions.unknownMedication")}
+              </p>
+              {med.activeIngredient && (
+                <p className="text-xs text-gray-400">{med.activeIngredient}</p>
+              )}
               <p className="text-xs text-gray-500">{med.dose || "—"}</p>
             </div>
             <p className="text-xs text-gray-500 mb-2">
@@ -249,6 +323,7 @@ function PatientPrescriptionCard({ prescription, onEdit }) {
 
 export default function Prescriptions() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [prescriptions, setPrescriptions] = useState([]);
   const [search, setSearch] = useState("");
   const [selectedDate, setSelectedDate] = useState(null);
@@ -260,30 +335,35 @@ export default function Prescriptions() {
   const [editingPrescription, setEditingPrescription] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
 
-  const loadPrescriptions = useCallback(async (searchValue, dateValue, pageValue) => {
-    try {
-      setLoading(true);
-      const res = await getAllPrescriptions({
-        search: searchValue,
-        date: dateValue ? toDateKey(dateValue) : "",
-        page: pageValue,
-        limit: PAGE_LIMIT,
-      });
-      setPrescriptions(res.data || []);
-      setTotalPages(res.pagination?.totalPages || 1);
-      setTotal(res.pagination?.total || 0);
-    } catch {
-      Swal.fire(t("common.error"), t("prescriptions.loadError"), "error");
-    } finally {
-      setLoading(false);
-    }
-  }, [t]);
+  const loadPrescriptions = useCallback(
+    async (searchValue, dateValue, pageValue) => {
+      try {
+        setLoading(true);
+        const res = await getAllPrescriptions({
+          search: searchValue,
+          date: dateValue ? toDateKey(dateValue) : "",
+          page: pageValue,
+          limit: PAGE_LIMIT,
+        });
+        setPrescriptions(res.data || []);
+        setTotalPages(res.pagination?.totalPages || 1);
+        setTotal(res.pagination?.total || 0);
+      } catch {
+        Swal.fire(t("common.error"), t("prescriptions.loadError"), "error");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [t],
+  );
 
   const loadDateCounts = useCallback(async () => {
     try {
       const res = await getPrescriptionDates();
       const counts = {};
-      (res.data || []).forEach((key) => { counts[key] = (counts[key] || 0) + 1; });
+      (res.data || []).forEach((key) => {
+        counts[key] = (counts[key] || 0) + 1;
+      });
       setDateCounts(counts);
     } catch {
       setDateCounts({});
@@ -309,6 +389,30 @@ export default function Prescriptions() {
   };
 
   const handleEdit = (prescription) => {
+    // بدل ما نعرض ديف تعديل الروشتة لوحدها تحت الصفحة، نوديه للمكان اللي
+    // الروشتة دي اتعملت منه أصلاً (الكونسلتيشن أو الفولو أب) عشان يقدر
+    // يعدّل في السياق الكامل بتاعها (التشخيص/الملاحظات مع الروشتة مع بعض)
+    const consultation = prescription.consultationId;
+    const consultationId =
+      typeof consultation === "object" ? consultation?._id : consultation;
+    const followupId =
+      typeof consultation === "object" ? consultation?.followupId : null;
+
+    if (followupId) {
+      const resolvedFollowupId =
+        typeof followupId === "object" ? followupId?._id : followupId;
+      navigate(`/followups/start/${resolvedFollowupId}`, {
+        state: { mode: "edit" },
+      });
+      return;
+    }
+
+    if (consultationId) {
+      navigate(`/consultations/edit/${consultationId}`);
+      return;
+    }
+
+    // احتياطي: لو مقدرناش نحدد الكونسلتيشن الأصلية لأي سبب، نفضل بالسلوك القديم
     setEditingPrescription(prescription);
     setShowEditModal(true);
   };
@@ -323,8 +427,12 @@ export default function Prescriptions() {
   return (
     <div className="max-w-7xl mx-auto px-3 sm:px-6 py-6">
       <div className="mb-6">
-        <h1 className="text-lg sm:text-xl font-bold text-gray-900">{t("prescriptions.title")}</h1>
-        <p className="text-xs sm:text-sm text-gray-500 mt-0.5">{t("prescriptions.subtitle")}</p>
+        <h1 className="text-lg sm:text-xl font-bold text-gray-900">
+          {t("prescriptions.title")}
+        </h1>
+        <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
+          {t("prescriptions.subtitle")}
+        </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6 items-start">
@@ -339,7 +447,11 @@ export default function Prescriptions() {
             />
           </div>
 
-          {loading && <div className="text-center text-gray-400 py-16">{t("prescriptions.loading")}</div>}
+          {loading && (
+            <div className="text-center text-gray-400 py-16">
+              {t("prescriptions.loading")}
+            </div>
+          )}
 
           {!loading && prescriptions.length === 0 && (
             <div className="text-center text-gray-400 py-16 bg-white rounded-xl shadow-sm border border-gray-100">
@@ -347,32 +459,47 @@ export default function Prescriptions() {
             </div>
           )}
 
-          {!loading && prescriptions.map((prescription) => (
-            <PatientPrescriptionCard
-              key={prescription._id}
-              prescription={prescription}
-              onEdit={handleEdit}
-            />
-          ))}
+          {!loading &&
+            prescriptions.map((prescription) => (
+              <PatientPrescriptionCard
+                key={prescription._id}
+                prescription={prescription}
+                onEdit={handleEdit}
+              />
+            ))}
 
           {!loading && total > 0 && (
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-2 px-1">
               <p className="text-xs text-gray-500">
-                {t("prescriptions.showing")} {prescriptions.length} {t("prescriptions.of")} {total}
+                {t("prescriptions.showing")} {prescriptions.length}{" "}
+                {t("prescriptions.of")} {total}
               </p>
               <div className="flex items-center gap-1.5">
-                <button onClick={() => handlePageChange(Math.max(1, page - 1))} disabled={page === 1} className="px-3 py-1.5 rounded-md text-sm border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-40">
+                <button
+                  onClick={() => handlePageChange(Math.max(1, page - 1))}
+                  disabled={page === 1}
+                  className="px-3 py-1.5 rounded-md text-sm border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-40"
+                >
                   {t("common.previous")}
                 </button>
                 {Array.from({ length: totalPages }, (_, i) => i + 1)
                   .slice(Math.max(0, page - 3), Math.max(0, page - 3) + 5)
                   .map((p) => (
-                    <button key={p} onClick={() => handlePageChange(p)}
-                      className={`w-8 h-8 rounded-md text-sm font-medium ${p === page ? "bg-blue-600 text-white" : "border border-gray-300 text-gray-600 hover:bg-gray-50"}`}>
+                    <button
+                      key={p}
+                      onClick={() => handlePageChange(p)}
+                      className={`w-8 h-8 rounded-md text-sm font-medium ${p === page ? "bg-blue-600 text-white" : "border border-gray-300 text-gray-600 hover:bg-gray-50"}`}
+                    >
                       {p}
                     </button>
                   ))}
-                <button onClick={() => handlePageChange(Math.min(totalPages, page + 1))} disabled={page === totalPages} className="px-3 py-1.5 rounded-md text-sm border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-40">
+                <button
+                  onClick={() =>
+                    handlePageChange(Math.min(totalPages, page + 1))
+                  }
+                  disabled={page === totalPages}
+                  className="px-3 py-1.5 rounded-md text-sm border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-40"
+                >
                   {t("common.next")}
                 </button>
               </div>
@@ -392,8 +519,15 @@ export default function Prescriptions() {
       {editingPrescription && (
         <PrescriptionModal
           isOpen={showEditModal}
-          onClose={() => { setShowEditModal(false); setEditingPrescription(null); }}
-          consultationId={typeof editingPrescription.consultationId === "object" ? editingPrescription.consultationId?._id : editingPrescription.consultationId}
+          onClose={() => {
+            setShowEditModal(false);
+            setEditingPrescription(null);
+          }}
+          consultationId={
+            typeof editingPrescription.consultationId === "object"
+              ? editingPrescription.consultationId?._id
+              : editingPrescription.consultationId
+          }
           patient={editingPrescription.patientId}
           language={editingPrescription.language || "en"}
           existingPrescription={editingPrescription}

@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate, useParams, Link } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Swal from "sweetalert2";
 import { useTranslation } from "react-i18next";
+import { useDispatch } from "react-redux";
+import { setPatientChronicConditions } from "../../slices/patientsSlice";
 import { consultationSchema } from "../../schemas/consultation";
 import { getAllPatients } from "../../api/patient";
 import {
@@ -19,6 +21,7 @@ const ConsultationForm = () => {
   const { t } = useTranslation();
   const { id, patientId } = useParams();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const isEditMode = !!id;
   const [createdId, setCreatedId] = useState("");
   const [patients, setPatients] = useState([]);
@@ -33,6 +36,10 @@ const ConsultationForm = () => {
   const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
   const [savedConsultationId, setSavedConsultationId] = useState("");
   const [existingPrescription, setExistingPrescription] = useState(null);
+  // بنستخدم useState عادي هنا بدل الاعتماد على react-hook-form، بالظبط
+  // زي صفحة الفولو أب (StartFollowUp.jsx) اللي شغالة صح — عشان القيمة متأخرش
+  // في التسجيل مع RHF بسبب إن الحقل بيتركّب في الصفحة بعد رجوع نتيجة الـ AI
+  const [isChronicManual, setIsChronicManual] = useState(false);
 
   const {
     register,
@@ -45,11 +52,10 @@ const ConsultationForm = () => {
     resolver: zodResolver(consultationSchema),
     defaultValues: {
       language: "en",
-      isChronic: false,
     },
   });
 
-  const isChronicChecked = watch("isChronic");
+  const isChronicChecked = isChronicManual;
 
   const loadConsultation = useCallback(
     async (patientsList) => {
@@ -79,7 +85,7 @@ const ConsultationForm = () => {
         );
         setValue("diagnosis", data.diagnosis || "");
         setValue("language", data.language || "en");
-        setValue("isChronic", data.isChronic || false);
+        setIsChronicManual(data.isChronic || false);
         setValue(
           "followUpDate",
           data.followUpDate
@@ -87,6 +93,18 @@ const ConsultationForm = () => {
             : "",
         );
         setAiResult(data);
+
+        // زي صفحة الفولو اب بالظبط: أول ما تفتح Edit، تشوف على طول اللي
+        // كنت كاتبه والبريسكربشن الموجودة مع بعض، من غير ما تحتاج تدوس
+        // حفظ الأول عشان تظهرلك
+        setSavedConsultationId(id);
+        try {
+          const presRes = await getPrescriptionByConsultation(id);
+          setExistingPrescription(presRes?.data || null);
+        } catch {
+          setExistingPrescription(null);
+        }
+        setShowPrescriptionModal(true);
       } catch (err) {
         console.error("Failed to load consultation", err);
       }
@@ -152,7 +170,7 @@ const ConsultationForm = () => {
       rawInput: formValues.rawInput,
       diagnosis: formValues.diagnosis || "",
       language: formValues.language || "en",
-      isChronic: formValues.isChronic || false,
+      isChronic: isChronicManual,
       symptoms: formValues.symptoms
         .split(",")
         .map((s) => s.trim())
@@ -184,7 +202,7 @@ const ConsultationForm = () => {
       rawInput: formData.rawInput,
       diagnosis: formData.diagnosis,
       language: formData.language,
-      isChronic: formData.isChronic,
+      isChronic: isChronicManual,
       symptoms: formData.symptoms
         .split(",")
         .map((s) => s.trim())
@@ -195,19 +213,50 @@ const ConsultationForm = () => {
       followUpDate: isEditMode
         ? formData.followUpDate || ""
         : formData.followUpDate || undefined,
+      // لو الدكتور دوس "Get AI Recommendation" تاني بعد ما عدّل (في وضع
+      // الإدت)، aiResult بيبقى فيه أحدث قراءة من الإيجنت (structuredNote/
+      // suggestedSpecialist/urgencyLevel) — لازم نبعتها مع التحديث عشان
+      // تتحفظ فعليًا على الكونسلتيشن دي بالذات، مش بس تتعرض في الشاشة
+      // وتضيع لو الدكتور دوس Update. لو مفيش aiResult (نادر) منبعتش الحقول
+      // دي خالص عشان منمسحش قيم موجودة بالغلط.
+      ...(aiResult
+        ? {
+            structuredNote: aiResult.structuredNote,
+            suggestedSpecialist: aiResult.suggestedSpecialist,
+            urgencyLevel: aiResult.urgencyLevel,
+          }
+        : {}),
     };
 
     try {
       let consultationId = id;
 
       if (isEditMode) {
-        await updateConsultation(id, payload);
+        const res = await updateConsultation(id, payload);
+        if (res.chronicConditions) {
+          dispatch(
+            setPatientChronicConditions({
+              patientId: payload.patientId,
+              chronicConditions: res.chronicConditions,
+            }),
+          );
+        }
       } else {
         const res = await createConsultation(payload);
         consultationId = res.data._id;
+        if (res.chronicConditions) {
+          dispatch(
+            setPatientChronicConditions({
+              patientId: payload.patientId,
+              chronicConditions: res.chronicConditions,
+            }),
+          );
+        }
       }
 
       Swal.fire({
+        toast: true,
+        position: "top-end",
         title: t("consultations.savedSuccess"),
         text: payload.isChronic
           ? t("consultations.savedChronicText")
@@ -215,6 +264,10 @@ const ConsultationForm = () => {
         icon: "success",
         timer: 1800,
         showConfirmButton: false,
+        // toast: true بيلغي الخلفية الداكنة (backdrop) اللي بتغطي الصفحة كلها
+        // في الـ Swal العادي — عشان كارت الروشتة اللي بيظهر تحت مباشرة يبان
+        // جزء طبيعي من نفس الصفحة، مش حاسس إنه popup فوق خلفية معتمة
+        background: undefined,
       });
 
       setSavedConsultationId(consultationId);
@@ -271,305 +324,312 @@ const ConsultationForm = () => {
   };
 
   return (
-    <div className="p-4 max-w-6xl mx-auto">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Main Form */}
-        <div className="lg:col-span-2 bg-white rounded-xl shadow p-6 sm:p-8">
-          <h2 className="text-xl font-bold text-blue-700 mb-1">
-            {isEditMode
-              ? t("consultations.editConsultation")
-              : t("consultations.newConsultation")}
-          </h2>
-          <p className="text-sm text-gray-500 mb-6 pb-4 border-b">
-            {t("consultations.formSubtitle")}
-          </p>
+    <div className="p-4 max-w-6xl mx-auto space-y-5">
+      <div className="bg-white rounded-xl shadow p-6 sm:p-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          {/* Main Form */}
+          <div className="lg:col-span-2">
+            <h2 className="text-xl font-bold text-blue-700 mb-1">
+              {isEditMode
+                ? t("consultations.editConsultation")
+                : t("consultations.newConsultation")}
+            </h2>
+            <p className="text-sm text-gray-500 mb-6 pb-4 border-b">
+              {t("consultations.formSubtitle")}
+            </p>
 
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Patient */}
-              <div className="md:col-span-2 relative">
-                <label className="block text-sm font-medium text-blue-700 mb-1">
-                  {t("consultations.patient")}
-                </label>
-                <input
-                  type="text"
-                  value={patientSearch}
-                  disabled={isEditMode || !!patientId}
-                  onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
-                  onChange={(e) => {
-                    setPatientSearch(e.target.value);
-                    setSelectedPatientId("");
-                    setValue("patientId", "", { shouldValidate: true });
-                    setShowDropdown(true);
-                  }}
-                  onFocus={() => {
-                    if (!isEditMode && !patientId) setShowDropdown(true);
-                  }}
-                  placeholder={t("consultations.patientPlaceholder")}
-                  className={`w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    isEditMode || patientId ? "bg-gray-100" : ""
-                  }`}
-                />
-                <input type="hidden" {...register("patientId")} />
+            <form onSubmit={handleSubmit(onSubmit)}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Patient */}
+                <div className="md:col-span-2 relative">
+                  <label className="block text-sm font-medium text-blue-700 mb-1">
+                    {t("consultations.patient")}
+                  </label>
+                  <input
+                    type="text"
+                    value={patientSearch}
+                    disabled={isEditMode || !!patientId}
+                    onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
+                    onChange={(e) => {
+                      setPatientSearch(e.target.value);
+                      setSelectedPatientId("");
+                      setValue("patientId", "", { shouldValidate: true });
+                      setShowDropdown(true);
+                    }}
+                    onFocus={() => {
+                      if (!isEditMode && !patientId) setShowDropdown(true);
+                    }}
+                    placeholder={t("consultations.patientPlaceholder")}
+                    className={`w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      isEditMode || patientId ? "bg-gray-100" : ""
+                    }`}
+                  />
+                  <input type="hidden" {...register("patientId")} />
 
-                {!isEditMode &&
-                  !patientId &&
-                  showDropdown &&
-                  filteredPatients.length > 0 && (
-                    <ul className="absolute z-10 w-full bg-white border border-gray-200 rounded-md mt-1 max-h-48 overflow-y-auto shadow-lg">
-                      {filteredPatients.map((p) => (
-                        <li
-                          key={p._id}
-                          onClick={() => handlePatientSelect(p)}
-                          className="px-3 py-2 hover:bg-blue-50 cursor-pointer text-sm"
-                        >
-                          {p.name}
-                        </li>
-                      ))}
-                    </ul>
+                  {!isEditMode &&
+                    !patientId &&
+                    showDropdown &&
+                    filteredPatients.length > 0 && (
+                      <ul className="absolute z-10 w-full bg-white border border-gray-200 rounded-md mt-1 max-h-48 overflow-y-auto shadow-lg">
+                        {filteredPatients.map((p) => (
+                          <li
+                            key={p._id}
+                            onClick={() => handlePatientSelect(p)}
+                            className="px-3 py-2 hover:bg-blue-50 cursor-pointer text-sm"
+                          >
+                            {p.name}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+
+                  {errors.patientId && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors.patientId.message}
+                    </p>
                   )}
+                </div>
 
-                {errors.patientId && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {errors.patientId.message}
-                  </p>
-                )}
-              </div>
+                {/* Doctor's Notes */}
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-blue-700 mb-1">
+                    {t("consultations.doctorNotes")}
+                  </label>
+                  <textarea
+                    {...register("rawInput")}
+                    rows={4}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  {errors.rawInput && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors.rawInput.message}
+                    </p>
+                  )}
+                </div>
 
-              {/* Doctor's Notes */}
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-blue-700 mb-1">
-                  {t("consultations.doctorNotes")}
-                </label>
-                <textarea
-                  {...register("rawInput")}
-                  rows={4}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                {errors.rawInput && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {errors.rawInput.message}
-                  </p>
-                )}
-              </div>
+                {/* Symptoms */}
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-blue-700 mb-1">
+                    {t("consultations.symptoms")}
+                  </label>
+                  <input
+                    type="text"
+                    {...register("symptoms")}
+                    placeholder={t("consultations.symptomsPlaceholder")}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  {errors.symptoms && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors.symptoms.message}
+                    </p>
+                  )}
+                </div>
 
-              {/* Symptoms */}
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-blue-700 mb-1">
-                  {t("consultations.symptoms")}
-                </label>
-                <input
-                  type="text"
-                  {...register("symptoms")}
-                  placeholder={t("consultations.symptomsPlaceholder")}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                {errors.symptoms && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {errors.symptoms.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Language */}
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-blue-700 mb-1">
-                  {t("consultations.language")}
-                </label>
-                <select
-                  {...register("language")}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="en">{t("consultations.english")}</option>
-                  <option value="ar">{t("consultations.arabic")}</option>
-                </select>
-              </div>
-            </div>
-
-            {/* AI Recommendation Result */}
-            {(aiResult || isEditMode) && (
-              <div className="mt-6 p-6 bg-linear-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-xl shadow-sm space-y-4">
-                <h3 className="text-base font-bold text-blue-800 flex items-center gap-2">
-                  <span>📋 {t("consultations.clinicalSupport")}</span>
-                </h3>
-                <p className="text-xs text-gray-500">
-                  {t("consultations.finalizeNote")}
-                </p>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Diagnosis */}
-                  <div>
-                    <div className="flex items-center justify-between gap-2 mb-1">
-                      <label className="block text-sm font-medium text-blue-700">
-                        {t("consultations.diagnosis")}{" "}
-                        <span className="text-red-500">*</span>
-                      </label>
-                      <label className="inline-flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 cursor-pointer text-xs font-bold text-slate-600 transition-all duration-200 hover:bg-blue-50 hover:border-blue-200 select-none">
-                        <input
-                          type="checkbox"
-                          {...register("isChronic")}
-                          className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 cursor-pointer shrink-0"
-                        />
-                        <span
-                          className={`transition-colors duration-200 ${isChronicChecked ? "text-blue-600 font-extrabold" : ""}`}
-                        >
-                          {t("consultations.chronicDisease")}
-                        </span>
-                      </label>
-                    </div>
-                    <input
-                      type="text"
-                      {...register("diagnosis")}
-                      placeholder={t("consultations.diagnosisPlaceholder")}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    {errors.diagnosis && (
-                      <p className="text-red-500 text-xs mt-1">
-                        {errors.diagnosis.message}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Follow-up Date */}
-                  <div>
-                    <label className="block text-sm font-medium text-blue-700 mb-1">
-                      {t("consultations.followUpDate")}
-                    </label>
-                    <input
-                      type="date"
-                      {...register("followUpDate")}
-                      min={minDate}
-                      max={maxDate}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    {errors.followUpDate && (
-                      <p className="text-red-500 text-xs mt-1">
-                        {errors.followUpDate.message}
-                      </p>
-                    )}
-                  </div>
+                {/* Language */}
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-blue-700 mb-1">
+                    {t("consultations.language")}
+                  </label>
+                  <select
+                    {...register("language")}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="en">{t("consultations.english")}</option>
+                    <option value="ar">{t("consultations.arabic")}</option>
+                  </select>
                 </div>
               </div>
-            )}
 
-            {/* Actions */}
-            <div className="flex flex-wrap items-center justify-between gap-3 mt-6 pt-5 border-t">
-              <button
-                type="button"
-                onClick={handleGetAIRecommendation}
-                disabled={isGenerating}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-md font-medium text-sm transition flex items-center gap-2 disabled:opacity-50"
-              >
-                🤖{" "}
-                {isGenerating
-                  ? t("consultations.analyzing")
-                  : t("consultations.getAI")}{" "}
-                →
-              </button>
-
+              {/* AI Recommendation Result */}
               {(aiResult || isEditMode) && (
-                <div className="flex gap-3 ms-auto">
-                  <button
-                    type="submit"
-                    disabled={isLoading}
-                    className="bg-blue-700 hover:bg-blue-800 text-white px-5 py-2 rounded-md font-medium text-sm disabled:opacity-50"
-                  >
-                    {isLoading
-                      ? t("common.saving")
-                      : isEditMode
-                        ? t("common.update")
-                        : t("consultations.saveRecord")}
-                  </button>
-                </div>
-              )}
-            </div>
-          </form>
-        </div>
+                <div className="mt-6 p-6 bg-linear-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-xl shadow-sm space-y-4">
+                  <h3 className="text-base font-bold text-blue-800 flex items-center gap-2">
+                    <span>📋 {t("consultations.clinicalSupport")}</span>
+                  </h3>
+                  <p className="text-xs text-gray-500">
+                    {t("consultations.finalizeNote")}
+                  </p>
 
-        {/* Right Sidebar */}
-        <div className="space-y-5">
-          <div className="bg-white rounded-xl shadow overflow-hidden">
-            <div className="bg-blue-50 px-5 py-3 flex items-center justify-between border-b border-blue-100">
-              <span className="font-semibold text-blue-800 text-sm flex items-center gap-1.5">
-                ⚡ {t("consultations.clinicalInsights")}
-              </span>
-              <span className="text-[10px] bg-blue-600 text-white px-2 py-0.5 rounded-full font-bold">
-                BETA
-              </span>
-            </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Diagnosis */}
+                    <div>
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <label className="block text-sm font-medium text-blue-700">
+                          {t("consultations.diagnosis")}{" "}
+                          <span className="text-red-500">*</span>
+                        </label>
+                        <label className="inline-flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 cursor-pointer text-xs font-bold text-slate-600 transition-all duration-200 hover:bg-blue-50 hover:border-blue-200 select-none">
+                          <input
+                            type="checkbox"
+                            checked={isChronicManual}
+                            onChange={(e) =>
+                              setIsChronicManual(e.target.checked)
+                            }
+                            className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 cursor-pointer shrink-0"
+                          />
+                          <span
+                            className={`transition-colors duration-200 ${isChronicChecked ? "text-blue-600 font-extrabold" : ""}`}
+                          >
+                            {t("consultations.chronicDisease")}
+                          </span>
+                        </label>
+                      </div>
+                      <input
+                        type="text"
+                        {...register("diagnosis")}
+                        placeholder={t("consultations.diagnosisPlaceholder")}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      {errors.diagnosis && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {errors.diagnosis.message}
+                        </p>
+                      )}
+                    </div>
 
-            <div className="p-5">
-              {!aiResult && !isGenerating && (
-                <div className="text-center py-6">
-                  <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl">
-                    🧠
+                    {/* Follow-up Date */}
+                    <div>
+                      <label className="block text-sm font-medium text-blue-700 mb-1">
+                        {t("consultations.followUpDate")}
+                      </label>
+                      <input
+                        type="date"
+                        {...register("followUpDate")}
+                        min={minDate}
+                        max={maxDate}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      {errors.followUpDate && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {errors.followUpDate.message}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                  <p className="font-semibold text-gray-800 text-sm">
-                    {t("consultations.agentReady")}
-                  </p>
-                  <p className="text-xs text-gray-400 mt-1.5 leading-relaxed">
-                    {t("consultations.agentReadyText")}
-                  </p>
                 </div>
               )}
 
-              {isGenerating && (
-                <div className="text-center py-6">
-                  <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-3 animate-pulse text-2xl">
-                    🧠
+              {/* Actions */}
+              <div className="flex flex-wrap items-center justify-between gap-3 mt-6 pt-5 border-t">
+                <button
+                  type="button"
+                  onClick={handleGetAIRecommendation}
+                  disabled={isGenerating}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-md font-medium text-sm transition flex items-center gap-2 disabled:opacity-50"
+                >
+                  🤖{" "}
+                  {isGenerating
+                    ? t("consultations.analyzing")
+                    : t("consultations.getAI")}{" "}
+                  →
+                </button>
+
+                {(aiResult || isEditMode) && (
+                  <div className="flex gap-3 ms-auto">
+                    <button
+                      type="submit"
+                      disabled={isLoading}
+                      className="bg-blue-700 hover:bg-blue-800 text-white px-5 py-2 rounded-md font-medium text-sm disabled:opacity-50"
+                    >
+                      {isLoading
+                        ? t("common.saving")
+                        : isEditMode
+                          ? t("common.update")
+                          : t("consultations.saveRecord")}
+                    </button>
                   </div>
-                  <p className="font-semibold text-gray-800 text-sm">
-                    {t("consultations.analyzing")}
-                  </p>
-                  <p className="text-xs text-gray-400 mt-1.5">
-                    {t("consultations.agentAnalyzing")}
-                  </p>
-                </div>
-              )}
+                )}
+              </div>
+            </form>
+          </div>
 
-              {aiResult && !isGenerating && (
-                <div className="space-y-3">
-                  <div
-                    className={`border rounded-lg p-3 ${getUrgencyColor(aiResult.urgencyLevel)}`}
-                  >
-                    <p className="text-xs font-semibold uppercase tracking-wide mb-1">
-                      {t("consultations.urgencyLevel")}
+          {/* Right Sidebar */}
+          <div className="space-y-5">
+            <div className="border border-gray-100 rounded-xl overflow-hidden">
+              <div className="bg-blue-50 px-5 py-3 flex items-center justify-between border-b border-blue-100">
+                <span className="font-semibold text-blue-800 text-sm flex items-center gap-1.5">
+                  ⚡ {t("consultations.clinicalInsights")}
+                </span>
+                <span className="text-[10px] bg-blue-600 text-white px-2 py-0.5 rounded-full font-bold">
+                  BETA
+                </span>
+              </div>
+
+              <div className="p-5">
+                {!aiResult && !isGenerating && (
+                  <div className="text-center py-6">
+                    <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl">
+                      🧠
+                    </div>
+                    <p className="font-semibold text-gray-800 text-sm">
+                      {t("consultations.agentReady")}
                     </p>
-                    <p className="text-sm font-bold capitalize">
-                      {aiResult.urgencyLevel}
+                    <p className="text-xs text-gray-400 mt-1.5 leading-relaxed">
+                      {t("consultations.agentReadyText")}
                     </p>
                   </div>
+                )}
 
-                  {aiResult.suggestedSpecialist && (
-                    <div className="bg-gray-50 rounded-lg p-3">
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                        {t("consultations.suggestedSpecialist")}
+                {isGenerating && (
+                  <div className="text-center py-6">
+                    <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-3 animate-pulse text-2xl">
+                      🧠
+                    </div>
+                    <p className="font-semibold text-gray-800 text-sm">
+                      {t("consultations.analyzing")}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1.5">
+                      {t("consultations.agentAnalyzing")}
+                    </p>
+                  </div>
+                )}
+
+                {aiResult && !isGenerating && (
+                  <div className="space-y-3">
+                    <div
+                      className={`border rounded-lg p-3 ${getUrgencyColor(aiResult.urgencyLevel)}`}
+                    >
+                      <p className="text-xs font-semibold uppercase tracking-wide mb-1">
+                        {t("consultations.urgencyLevel")}
                       </p>
-                      <p className="text-sm text-gray-800">
-                        {aiResult.suggestedSpecialist}
+                      <p className="text-sm font-bold capitalize">
+                        {aiResult.urgencyLevel}
                       </p>
                     </div>
-                  )}
 
-                  {aiResult.structuredNote && (
-                    <div className="bg-gray-50 rounded-lg p-3">
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                        {t("consultations.structuredNote")}
-                      </p>
-                      <p className="text-sm text-gray-700 leading-relaxed">
-                        {aiResult.structuredNote}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )}
+                    {aiResult.suggestedSpecialist && (
+                      <div className="bg-gray-50 rounded-lg p-3">
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                          {t("consultations.suggestedSpecialist")}
+                        </p>
+                        <p className="text-sm text-gray-800">
+                          {aiResult.suggestedSpecialist}
+                        </p>
+                      </div>
+                    )}
+
+                    {aiResult.structuredNote && (
+                      <div className="bg-gray-50 rounded-lg p-3">
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                          {t("consultations.structuredNote")}
+                        </p>
+                        <p className="text-sm text-gray-700 leading-relaxed">
+                          {aiResult.structuredNote}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
       </div>
 
+      {/* الروشتة: ديف منفصل تمامًا وFull width تحت مربع الكونسلتيشن +
+          الإيجنت، مش جوه أي عمود منهم */}
       {showPrescriptionModal && (
-        <div className="mt-6">
+        <div>
           <PrescriptionModal
             isOpen={showPrescriptionModal}
             onClose={handleClosePrescriptionModal}
