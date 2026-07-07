@@ -101,6 +101,7 @@
     "getAI": "Get AI Recommendation",
     "analyzing": "Analyzing...",
     "saveRecord": "Save Record",
+    "disabledFromPrescriptionsEdit": "Disabled: you got here to edit the prescription only. To edit the consultation itself, open it from the Consultations page.",
     "clinicalInsights": "Clinical Insights",
     "agentReady": "Agent Ready",
     "agentReadyText": "Fill out the consultation form to receive automated diagnosis suggestions and drug safety warnings.",
@@ -151,6 +152,7 @@
     "subtitle": "Manage scheduled reviews and continuity of care for your clinic.",
     "createdAuto": "Created automatically from consultations",
     "scheduledDate": "Scheduled Date",
+    "finished": "Finished",
     "upcoming": "Upcoming",
     "pastDue": "Past Due",
     "completed": "Completed",
@@ -279,7 +281,10 @@
       "confirmedTitle": "Follow-up confirmed",
       "updatedTitle": "Follow-up updated",
       "savedChronicText": "The follow-up was saved and marked as chronic.",
-      "savedText": "The follow-up session was saved successfully."
+      "savedText": "The follow-up session was saved successfully.",
+      "newFollowUpCreatedTitle": "New follow-up scheduled",
+      "newFollowUpCreatedText": "A new follow-up has been created for {{date}}.",
+      "newFollowUpNotConfirmed": "The consultation was saved, but we couldn't confirm a new follow-up was created for that date. Please check the Follow-ups list."
     }
   },
   "prescriptions": {

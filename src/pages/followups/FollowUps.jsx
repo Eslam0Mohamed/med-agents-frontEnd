@@ -4,14 +4,12 @@ import { useTranslation } from "react-i18next";
 import {
   FiAlertTriangle,
   FiCalendar,
-  FiClock,
   FiPlayCircle,
   FiCheckCircle,
   FiEdit3,
 } from "react-icons/fi";
 import Swal from "sweetalert2";
 import { getFollowUps } from "../../api/followup";
-import apiInstance from "../../config/apiInstance";
 import "./followups.css";
 
 const FollowUps = () => {
@@ -19,15 +17,27 @@ const FollowUps = () => {
   const navigate = useNavigate();
 
   const monthNames = [
-    t("followups.months.january"), t("followups.months.february"), t("followups.months.march"),
-    t("followups.months.april"), t("followups.months.may"), t("followups.months.june"),
-    t("followups.months.july"), t("followups.months.august"), t("followups.months.september"),
-    t("followups.months.october"), t("followups.months.november"), t("followups.months.december"),
+    t("followups.months.january"),
+    t("followups.months.february"),
+    t("followups.months.march"),
+    t("followups.months.april"),
+    t("followups.months.may"),
+    t("followups.months.june"),
+    t("followups.months.july"),
+    t("followups.months.august"),
+    t("followups.months.september"),
+    t("followups.months.october"),
+    t("followups.months.november"),
+    t("followups.months.december"),
   ];
 
   const weekDays = [
-    t("followups.weekDays.sun"), t("followups.weekDays.mon"), t("followups.weekDays.tue"),
-    t("followups.weekDays.wed"), t("followups.weekDays.thu"), t("followups.weekDays.fri"),
+    t("followups.weekDays.sun"),
+    t("followups.weekDays.mon"),
+    t("followups.weekDays.tue"),
+    t("followups.weekDays.wed"),
+    t("followups.weekDays.thu"),
+    t("followups.weekDays.fri"),
     t("followups.weekDays.sat"),
   ];
 
@@ -75,37 +85,35 @@ const FollowUps = () => {
 
   const todayKey = toDateKey(new Date());
 
+  // للعناصر المكتملة، التاريخ اللي يهمنا نفلتر ونعرض بيه في الكاليندر هو
+  // تاريخ الإكمال الفعلي (completedAt) مش تاريخ الجدولة الأصلي
+  // (scheduledDate) — عشان الفولو أب يظهر في اليوم اللي حصل فيه Complete
+  // بالفعل، مش اليوم اللي كان متوقع فيه من الأول
+  const getDisplayDate = (item) => {
+    if (isCompleted(item)) return item.completedAt || item.scheduledDate;
+    return item.scheduledDate;
+  };
+
   const isPastDue = (item) => {
     if (isCompleted(item)) return false;
     if (isCancelled(item)) return true;
     if (!item.scheduledDate) return false;
-    return item.status === "pending" && toDateKey(item.scheduledDate) < todayKey;
+    return (
+      item.status === "pending" && toDateKey(item.scheduledDate) < todayKey
+    );
   };
 
   const loadFollowUps = async () => {
     try {
       setLoading(true);
-      const [followupsRes, consultationsRes] = await Promise.all([
-        getFollowUps(),
-        apiInstance.get("/consultations/doctor"),
-      ]);
-
-      const allFollowups = followupsRes?.data || [];
-      const doctorConsultations = consultationsRes?.data?.data || [];
-
-      const doctorConsultationIds = new Set(
-        doctorConsultations.map((consultation) => String(consultation._id))
-      );
-
-      const filteredFollowups = allFollowups.filter((followup) => {
-        const followupConsultationId =
-          typeof followup.consultationId === "object"
-            ? followup.consultationId?._id
-            : followup.consultationId;
-        return doctorConsultationIds.has(String(followupConsultationId));
-      });
-
-      setFollowUps(filteredFollowups);
+      // /followups دلوقتي بيرجّع فولو أبس الدكتور بس من الباك مباشرة
+      // (بالاعتماد على doctorId المسجل على الفولو أب نفسه)، فمش محتاجين
+      // نجيب كونسلتيشنز الدكتور تاني ونعمل cross-reference يدوي زي الأول —
+      // الطريقة القديمة دي كانت بتستبعد غلط أي فولو أب جديدة الكونسلتيشن
+      // بتاعتها جاية من إكمال فولو أب تاني (لأن /consultations/doctor
+      // بيستبعد الكونسلتيشنز دي عمدًا)
+      const followupsRes = await getFollowUps();
+      setFollowUps(followupsRes?.data || []);
     } catch (error) {
       console.error(error);
       Swal.fire(t("common.error"), t("followups.loadError"), "error");
@@ -141,11 +149,11 @@ const FollowUps = () => {
         activeTab === "completed"
           ? isCompleted(item)
           : activeTab === "pastDue"
-          ? isPastDue(item)
-          : !isCompleted(item) && !isPastDue(item);
+            ? isPastDue(item)
+            : !isCompleted(item) && !isPastDue(item);
 
       const matchesSelectedDate = selectedDate
-        ? toDateKey(item.scheduledDate) === toDateKey(selectedDate)
+        ? toDateKey(getDisplayDate(item)) === toDateKey(selectedDate)
         : true;
 
       return matchesTab && matchesSelectedDate;
@@ -153,19 +161,21 @@ const FollowUps = () => {
   }, [validFollowUps, activeTab, selectedDate]);
 
   const pastDueCount = useMemo(
-    () => validFollowUps.filter((item) => !isCompleted(item) && isPastDue(item)).length,
-    [validFollowUps]
+    () =>
+      validFollowUps.filter((item) => !isCompleted(item) && isPastDue(item))
+        .length,
+    [validFollowUps],
   );
 
   const completedCount = useMemo(
     () => validFollowUps.filter((item) => isCompleted(item)).length,
-    [validFollowUps]
+    [validFollowUps],
   );
 
   const selectedDateCount = useMemo(() => {
     if (!selectedDate) return 0;
     return validFollowUps.filter(
-      (item) => toDateKey(item.scheduledDate) === toDateKey(selectedDate)
+      (item) => toDateKey(item.scheduledDate) === toDateKey(selectedDate),
     ).length;
   }, [validFollowUps, selectedDate]);
 
@@ -174,7 +184,7 @@ const FollowUps = () => {
     return validFollowUps.filter(
       (item) =>
         !isCompleted(item) &&
-        toDateKey(item.scheduledDate) === toDateKey(targetDate)
+        toDateKey(item.scheduledDate) === toDateKey(targetDate),
     ).length;
   }, [validFollowUps, selectedDate]);
 
@@ -186,7 +196,7 @@ const FollowUps = () => {
     if (!date) return 0;
     const key = toDateKey(date);
     return validFollowUps.filter(
-      (item) => toDateKey(item.scheduledDate) === key
+      (item) => toDateKey(item.scheduledDate) === key,
     ).length;
   };
 
@@ -209,7 +219,10 @@ const FollowUps = () => {
     const consultation = item.consultationId;
     if (!consultation) return "—";
     if (consultation.diagnosis) return consultation.diagnosis;
-    if (Array.isArray(consultation.symptoms) && consultation.symptoms.length > 0)
+    if (
+      Array.isArray(consultation.symptoms) &&
+      consultation.symptoms.length > 0
+    )
       return consultation.symptoms.join(", ");
     if (consultation.rawInput) return consultation.rawInput;
     return "—";
@@ -217,13 +230,13 @@ const FollowUps = () => {
 
   const handlePreviousMonth = () => {
     setCalendarMonth(
-      (prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1)
+      (prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1),
     );
   };
 
   const handleNextMonth = () => {
     setCalendarMonth(
-      (prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1)
+      (prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1),
     );
   };
 
@@ -310,12 +323,16 @@ const FollowUps = () => {
         <aside className="followups-sidebar">
           <div className="mini-calendar-card">
             <div className="calendar-title">
-              <button type="button" onClick={handlePreviousMonth}>‹</button>
+              <button type="button" onClick={handlePreviousMonth}>
+                ‹
+              </button>
               <span>
                 {monthNames[calendarMonth.getMonth()]}{" "}
                 {calendarMonth.getFullYear()}
               </span>
-              <button type="button" onClick={handleNextMonth}>›</button>
+              <button type="button" onClick={handleNextMonth}>
+                ›
+              </button>
             </div>
 
             <div className="calendar-grid">
@@ -326,7 +343,9 @@ const FollowUps = () => {
               ))}
               {calendarDays.map((day, index) => {
                 if (!day)
-                  return <span key={`empty-${index}`} className="calendar-empty" />;
+                  return (
+                    <span key={`empty-${index}`} className="calendar-empty" />
+                  );
                 const count = getFollowUpsCountForDate(day);
                 const isSelected =
                   selectedDate && toDateKey(day) === toDateKey(selectedDate);
@@ -373,26 +392,35 @@ const FollowUps = () => {
             <h3>{t("followups.aiInsights")}</h3>
             <div className="insight-list">
               <p>
-                {insightDateCount} {t("followups.insightScheduled")} {insightDateLabel}.
+                {insightDateCount} {t("followups.insightScheduled")}{" "}
+                {insightDateLabel}.
               </p>
-              <p>{pastDueCount} {t("followups.insightPastDue")}</p>
-              <p>{completedCount} {t("followups.insightCompleted")}</p>
+              <p>
+                {pastDueCount} {t("followups.insightPastDue")}
+              </p>
+              <p>
+                {completedCount} {t("followups.insightCompleted")}
+              </p>
             </div>
             <button type="button" onClick={handleInsightAction}>
-              {pastDueCount > 0 ? t("followups.reviewPastDue") : t("followups.viewToday")}
+              {pastDueCount > 0
+                ? t("followups.reviewPastDue")
+                : t("followups.viewToday")}
             </button>
           </div>
         </aside>
 
         <main className="followups-content">
           <div className="section-title">
-            {activeTab === "completed" ? <FiCheckCircle /> : <FiAlertTriangle />}
+            {activeTab === "completed" ? (
+              <FiCheckCircle />
+            ) : (
+              <FiAlertTriangle />
+            )}
             <span>{getSectionTitle()}</span>
           </div>
 
-          {loading && (
-            <p className="state-text">{t("common.loading")}</p>
-          )}
+          {loading && <p className="state-text">{t("common.loading")}</p>}
           {!loading && filteredFollowUps.length === 0 && (
             <p className="state-text">{t("common.noData")}</p>
           )}
@@ -403,10 +431,14 @@ const FollowUps = () => {
               return (
                 <article className="followup-card" key={item._id}>
                   <div className="card-top">
-                    <div className="patient-avatar">{getInitials(patientName)}</div>
+                    <div className="patient-avatar">
+                      {getInitials(patientName)}
+                    </div>
                     <div>
                       <h3>{patientName}</h3>
-                      <p>{t("followups.patientId")}: {getPatientId(item)}</p>
+                      <p>
+                        {t("followups.patientId")}: {getPatientId(item)}
+                      </p>
                     </div>
                     <span
                       className={
@@ -420,17 +452,16 @@ const FollowUps = () => {
                   <div className="followup-meta">
                     <p>
                       <FiCalendar />
-                      {t("followups.scheduledDate")}: {formatDate(item.scheduledDate)}
+                      {t("followups.scheduledDate")}:{" "}
+                      {formatDate(item.scheduledDate)}
                     </p>
-                    <p>
-                      <FiClock />
-                      {item.instructions || t("followups.noInstructions")}
-                    </p>
-                  </div>
-
-                  <div className="followup-context">
-                    <span>{t("followups.linkedConsultation")}</span>
-                    <p>{getConsultationSummary(item)}</p>
+                    {isCompleted(item) && item.completedAt && (
+                      <p>
+                        <FiCheckCircle />
+                        {t("followups.finished")}:{" "}
+                        {formatDate(item.completedAt)}
+                      </p>
+                    )}
                   </div>
 
                   <div className="card-actions">

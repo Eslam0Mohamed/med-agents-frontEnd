@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { useTranslation } from "react-i18next";
 import {
@@ -323,7 +322,6 @@ function PatientPrescriptionCard({ prescription, onEdit }) {
 
 export default function Prescriptions() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const [prescriptions, setPrescriptions] = useState([]);
   const [search, setSearch] = useState("");
   const [selectedDate, setSelectedDate] = useState(null);
@@ -389,30 +387,6 @@ export default function Prescriptions() {
   };
 
   const handleEdit = (prescription) => {
-    // بدل ما نعرض ديف تعديل الروشتة لوحدها تحت الصفحة، نوديه للمكان اللي
-    // الروشتة دي اتعملت منه أصلاً (الكونسلتيشن أو الفولو أب) عشان يقدر
-    // يعدّل في السياق الكامل بتاعها (التشخيص/الملاحظات مع الروشتة مع بعض)
-    const consultation = prescription.consultationId;
-    const consultationId =
-      typeof consultation === "object" ? consultation?._id : consultation;
-    const followupId =
-      typeof consultation === "object" ? consultation?.followupId : null;
-
-    if (followupId) {
-      const resolvedFollowupId =
-        typeof followupId === "object" ? followupId?._id : followupId;
-      navigate(`/followups/start/${resolvedFollowupId}`, {
-        state: { mode: "edit" },
-      });
-      return;
-    }
-
-    if (consultationId) {
-      navigate(`/consultations/edit/${consultationId}`);
-      return;
-    }
-
-    // احتياطي: لو مقدرناش نحدد الكونسلتيشن الأصلية لأي سبب، نفضل بالسلوك القديم
     setEditingPrescription(prescription);
     setShowEditModal(true);
   };

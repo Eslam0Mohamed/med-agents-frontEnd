@@ -47,6 +47,7 @@ const ConsultationForm = () => {
     setValue,
     watch,
     trigger,
+    reset,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(consultationSchema),
@@ -54,6 +55,30 @@ const ConsultationForm = () => {
       language: "en",
     },
   });
+
+  // مهم جدًا: الراوت بتاع "إضافة" (consultations/add/:patientId) والراوت بتاع
+  // "تعديل" (consultations/edit/:id) بيستخدموا نفس الكومبوننت ده بالظبط.
+  // React Router مبيعملش remount للكومبوننت لما تتنقل بينهم (لأنه نفس
+  // العنصر)، فكل الـ state القديم (نتيجة الـ AI، isGenerating، مودال
+  // الروشتة...) كان بيفضل شايل من الكونسلتيشن اللي فاتت. الـ effect ده بيعمل
+  // reset كامل لكل حاجة أول ما id أو patientId يتغيروا، عشان يبقى الإحساس
+  // إنها صفحة جديدة فعلًا كل مرة.
+  useEffect(() => {
+    reset({ language: "en" });
+    setAiResult(null);
+    setIsGenerating(false);
+    setIsSaved(false);
+    setIsChronicManual(false);
+    setShowPrescriptionModal(false);
+    setSavedConsultationId("");
+    setExistingPrescription(null);
+    setCreatedId("");
+    if (!patientId) {
+      setSelectedPatientId("");
+      setPatientSearch("");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, patientId]);
 
   const isChronicChecked = isChronicManual;
 
@@ -93,18 +118,6 @@ const ConsultationForm = () => {
             : "",
         );
         setAiResult(data);
-
-        // زي صفحة الفولو اب بالظبط: أول ما تفتح Edit، تشوف على طول اللي
-        // كنت كاتبه والبريسكربشن الموجودة مع بعض، من غير ما تحتاج تدوس
-        // حفظ الأول عشان تظهرلك
-        setSavedConsultationId(id);
-        try {
-          const presRes = await getPrescriptionByConsultation(id);
-          setExistingPrescription(presRes?.data || null);
-        } catch {
-          setExistingPrescription(null);
-        }
-        setShowPrescriptionModal(true);
       } catch (err) {
         console.error("Failed to load consultation", err);
       }
@@ -519,37 +532,42 @@ const ConsultationForm = () => {
                 </div>
               )}
 
-              {/* Actions */}
-              <div className="flex flex-wrap items-center justify-between gap-3 mt-6 pt-5 border-t">
-                <button
-                  type="button"
-                  onClick={handleGetAIRecommendation}
-                  disabled={isGenerating}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-md font-medium text-sm transition flex items-center gap-2 disabled:opacity-50"
-                >
-                  🤖{" "}
-                  {isGenerating
-                    ? t("consultations.analyzing")
-                    : t("consultations.getAI")}{" "}
-                  →
-                </button>
+              {/* الزرارين دول بيختفوا خالص أول ما الكونسلتيشن تتحفظ (يبان
+                  مودال الروشتة) - عشان الدكتور مايرجعش يعمل AI recommendation
+                  أو يدوس Save/Update تاني على نفس الكونسلتيشن من هنا، سواء
+                  في وضع الإنشاء أو التعديل */}
+              {!showPrescriptionModal && (
+                <div className="flex flex-wrap items-center justify-between gap-3 mt-6 pt-5 border-t">
+                  <button
+                    type="button"
+                    onClick={handleGetAIRecommendation}
+                    disabled={isGenerating}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-md font-medium text-sm transition flex items-center gap-2 disabled:opacity-50"
+                  >
+                    🤖{" "}
+                    {isGenerating
+                      ? t("consultations.analyzing")
+                      : t("consultations.getAI")}{" "}
+                    →
+                  </button>
 
-                {(aiResult || isEditMode) && (
-                  <div className="flex gap-3 ms-auto">
-                    <button
-                      type="submit"
-                      disabled={isLoading}
-                      className="bg-blue-700 hover:bg-blue-800 text-white px-5 py-2 rounded-md font-medium text-sm disabled:opacity-50"
-                    >
-                      {isLoading
-                        ? t("common.saving")
-                        : isEditMode
-                          ? t("common.update")
-                          : t("consultations.saveRecord")}
-                    </button>
-                  </div>
-                )}
-              </div>
+                  {(aiResult || isEditMode) && (
+                    <div className="flex gap-3 ms-auto">
+                      <button
+                        type="submit"
+                        disabled={isLoading}
+                        className="bg-blue-700 hover:bg-blue-800 text-white px-5 py-2 rounded-md font-medium text-sm disabled:opacity-50"
+                      >
+                        {isLoading
+                          ? t("common.saving")
+                          : isEditMode
+                            ? t("common.update")
+                            : t("consultations.saveRecord")}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </form>
           </div>
 

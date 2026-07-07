@@ -166,17 +166,10 @@ const StartFollowUp = () => {
     };
   };
 
-  const getBestCompletedConsultation = async (currentFollowUp) => {
-    if (currentFollowUp?.completedConsultation) {
-      return currentFollowUp.completedConsultation;
-    }
-
-    // completionConsultationId هو المرجع الموثوق لزيارة الإكمال — الباك
-    // بيحطه على الفولو أب نفسها وقت ما تتكمّل، وبيرجّعه معبّي (populated)
-    // من getFollowUpById. الاعتماد عليه أوثق بكتير من إننا ندوّر في لستة
-    // "/consultations/doctor" لأن الإندبوينت ده أصلاً بيستبعد زيارات
-    // الإكمال (اللي معاها followupId) من نتايجه، فمكانش بيلاقيها خالص
-    // في الحالات المتسلسلة (فولو اب من فولو اب)
+  const getBestCompletedConsultation = (currentFollowUp) => {
+    // الباك اند (getFollowUpById) بيرجّع completionConsultationId وconsultationId
+    // كاملين (populated) من الأول - مفيش داعي لأي تخمين أو نداء إضافي في
+    // الفرونت، ده بس كان بيزود احتمال إننا نجيب كونسلتيشن غلط أو نفشل بصمت
     if (
       typeof currentFollowUp?.completionConsultationId === "object" &&
       currentFollowUp?.completionConsultationId !== null
@@ -184,58 +177,18 @@ const StartFollowUp = () => {
       return currentFollowUp.completionConsultationId;
     }
 
-    try {
-      const consultationsRes = await apiInstance.get("/consultations/doctor");
-      const doctorConsultations = consultationsRes?.data?.data || [];
-
-      const currentFollowupId = String(followupId);
-      const originalConsultationId = String(
-        getId(currentFollowUp?.consultationId),
-      );
-      const patientId = String(getId(currentFollowUp?.patientId));
-
-      const linkedByFollowupId = doctorConsultations.find((consultation) => {
-        return (
-          String(getId(consultation.followupId)) === currentFollowupId ||
-          String(getId(consultation.sourceFollowupId)) === currentFollowupId
-        );
-      });
-
-      if (linkedByFollowupId) {
-        return linkedByFollowupId;
-      }
-
-      const samePatientConsultations = doctorConsultations
-        .filter((consultation) => {
-          const samePatient =
-            String(getId(consultation.patientId)) === patientId;
-          const notOriginal =
-            String(getId(consultation._id)) !== originalConsultationId;
-
-          return samePatient && notOriginal;
-        })
-        .sort((a, b) => {
-          return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
-        });
-
-      return samePatientConsultations[0] || null;
-    } catch (error) {
-      console.error("Could not load completed follow-up consultation:", error);
-      return null;
+    if (
+      typeof currentFollowUp?.consultationId === "object" &&
+      currentFollowUp?.consultationId !== null
+    ) {
+      return currentFollowUp.consultationId;
     }
+
+    return null;
   };
 
   const fillEditForm = async (currentFollowUp) => {
-    const completedConsultation =
-      await getBestCompletedConsultation(currentFollowUp);
-
-    const originalConsultation =
-      typeof currentFollowUp?.consultationId === "object" &&
-      currentFollowUp?.consultationId !== null
-        ? currentFollowUp.consultationId
-        : null;
-
-    const consultationToEdit = completedConsultation || originalConsultation;
+    const consultationToEdit = getBestCompletedConsultation(currentFollowUp);
 
     if (!consultationToEdit) {
       setForm((prev) => ({
@@ -258,32 +211,18 @@ const StartFollowUp = () => {
     );
 
     setAiResult(normalized);
-
-    // زي ما بيحصل في صفحة الكونسلتيشن بالظبط: أول ما تفتح Edit، تشوف على
-    // طول اللي كنت كاتبه (الملاحظات/التشخيص) والبريسكربشن الموجودة مع بعض،
-    // من غير ما تحتاج تدوس حفظ الأول عشان تظهرلك
-    setSavedConsultationId(consultationToEdit._id);
-    try {
-      const presRes = await getPrescriptionByConsultation(
-        consultationToEdit._id,
-      );
-      setExistingPrescription(presRes?.data || null);
-    } catch {
-      setExistingPrescription(null);
-    }
-    setShowPrescriptionSection(true);
   };
 
   const loadFollowUp = async () => {
     try {
       setLoading(true);
 
-      let data = passedFollowUp;
-
-      if (!data) {
-        const res = await getFollowUpById(followupId);
-        data = res?.data;
-      }
+      // زي صفحة الكونسلتيشن بالظبط: دايمًا نجيب البيانات فريش من الباك اند
+      // بدل الاعتماد على location.state (ممكن تبقى قديمة من وقت تحميل
+      // الليستة)؛ الباك اند أصلاً بيرجّع consultationId وcompletionConsultationId
+      // كاملين (populated)، فمش محتاجين أي "تخمين" إضافي في الفرونت
+      const res = await getFollowUpById(followupId);
+      const data = res?.data;
 
       setFollowUp(data);
 
@@ -483,9 +422,30 @@ const StartFollowUp = () => {
         visitType: "followup",
         sourceFollowupId: followupId,
         parentConsultationId: getId(followUp?.consultationId),
+
+        // من غيرهم، الباك بيرجع للـ default بتاعه (structuredNote = rawInput
+        // و urgencyLevel = "unknown") — بالظبط زي اللي بيحصل في صفحة
+        // الكونسلتيشن، لازم نبعت أحدث قراءة من الإيجنت (aiResult) عشان تتحفظ
+        // فعليًا على الكونسلتيشن دي، وتظهر صح في Clinical Insights وفي
+        // Patient History بعد كده
+        ...(aiResult
+          ? {
+              structuredNote: aiResult.structuredNote,
+              suggestedSpecialist: aiResult.suggestedSpecialist,
+              urgencyLevel: aiResult.urgencyLevel,
+            }
+          : {}),
       };
 
       let savedConsultationId = "";
+      let newFollowUp = null;
+
+      // TEMP DEBUG — هنشيلها بعد ما نلاقي السبب
+      console.log("[StartFollowUp][DEBUG] aiResult before submit:", aiResult);
+      console.log(
+        "[StartFollowUp][DEBUG] consultationPayload being sent:",
+        consultationPayload,
+      );
 
       if (aiResult?._id) {
         // في وضع التعديل، لازم نبعت followUpDate دايمًا حتى لو فاضية — عشان
@@ -496,6 +456,7 @@ const StartFollowUp = () => {
           followUpDate: form.followUpDate || "",
         });
         savedConsultationId = aiResult._id;
+        newFollowUp = updateRes?.newFollowUp || null;
         if (updateRes.chronicConditions) {
           dispatch(
             setPatientChronicConditions({
@@ -507,6 +468,7 @@ const StartFollowUp = () => {
       } else {
         const consultationRes = await createConsultation(consultationPayload);
         savedConsultationId = consultationRes?.data?._id || "";
+        newFollowUp = consultationRes?.newFollowUp || null;
         if (consultationRes.chronicConditions) {
           dispatch(
             setPatientChronicConditions({
@@ -527,12 +489,11 @@ const StartFollowUp = () => {
         }
       }
 
-      await updateFollowUp(followupId, {
-        status: "confirmed",
-        instructions: `Follow-up after ${form.diagnosis.trim()}`,
-        scheduledDate: form.followUpDate || followUp?.scheduledDate,
-        language: form.language,
-      });
+      // الباك اند دلوقتي بيقفل الفولو أب المصدر دي (status: confirmed +
+      // completedAt = تاريخ اليوم) وينشئ/يحدّث الفولو أب الجديدة بالتاريخ
+      // المكتوب، كل ده كجزء من نداء createConsultation/updateConsultation
+      // نفسه فوق - مبقاش محتاجين نداء منفصل هنا، وأي نداء زيادة كان بيكتب
+      // فوق scheduledDate الأصلي بتاريخ الفولو أب الجديد بالغلط
 
       Swal.fire({
         title: isEditMode
@@ -545,6 +506,34 @@ const StartFollowUp = () => {
         timer: 1600,
         showConfirmButton: false,
       });
+
+      // لو الدكتور حدد ميعاد فولو أب جديد، بنتأكد إن الباك اند فعلاً رجّع
+      // فولو أب جديدة (newFollowUp) قبل ما نقول له "اتعملت" - مش بس نفترض
+      // كده لمجرد إن الحفظ نجح
+      if (form.followUpDate) {
+        if (newFollowUp?._id) {
+          await Swal.fire({
+            title: t("followups.messages.newFollowUpCreatedTitle"),
+            text: t("followups.messages.newFollowUpCreatedText", {
+              date: formatDate(form.followUpDate),
+            }),
+            icon: "info",
+            confirmButtonText: t("common.ok"),
+          });
+        } else {
+          console.error(
+            "Expected backend to create/update a follow-up for date",
+            form.followUpDate,
+            "but got no newFollowUp in the response.",
+          );
+          await Swal.fire({
+            title: t("common.warning"),
+            text: t("followups.messages.newFollowUpNotConfirmed"),
+            icon: "warning",
+            confirmButtonText: t("common.ok"),
+          });
+        }
+      }
 
       setSavedConsultationId(savedConsultationId);
       try {
@@ -774,24 +763,26 @@ const StartFollowUp = () => {
               </div>
             </div>
 
-            <div className="flex justify-end mt-6 pt-5 border-t">
-              <button
-                type="button"
-                onClick={handleGetAIRecommendation}
-                disabled={isGenerating}
-                className="w-full sm:w-auto justify-center bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-md font-medium text-sm transition flex items-center gap-2 disabled:opacity-50"
-              >
-                🤖{" "}
-                {isGenerating
-                  ? t("consultations.analyzing")
-                  : aiResult
-                    ? t("followups.start.regenerateAI")
-                    : t("consultations.getAI")}{" "}
-                →
-              </button>
-            </div>
+            {!showPrescriptionSection && (
+              <div className="flex justify-end mt-6 pt-5 border-t">
+                <button
+                  type="button"
+                  onClick={handleGetAIRecommendation}
+                  disabled={isGenerating}
+                  className="w-full sm:w-auto justify-center bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-md font-medium text-sm transition flex items-center gap-2 disabled:opacity-50"
+                >
+                  🤖{" "}
+                  {isGenerating
+                    ? t("consultations.analyzing")
+                    : aiResult
+                      ? t("followups.start.regenerateAI")
+                      : t("consultations.getAI")}{" "}
+                  →
+                </button>
+              </div>
+            )}
 
-            {aiResult && (
+            {aiResult && !showPrescriptionSection && (
               <div className="mt-6 p-4 sm:p-6 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-xl shadow-sm space-y-5">
                 <div className="space-y-1">
                   <h3 className="text-base font-bold text-blue-800 flex items-center gap-2">
@@ -987,40 +978,6 @@ const StartFollowUp = () => {
                       </div>
                     )}
                 </div>
-              )}
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl shadow overflow-hidden">
-            <div className="bg-blue-50 px-5 py-3 border-b border-blue-100">
-              <span className="font-semibold text-blue-800 text-sm">
-                {t("followups.start.statusCardTitle")}
-              </span>
-            </div>
-
-            <div className="p-5 space-y-3 text-sm text-gray-700">
-              <p>{t("followups.start.statusLine1")}</p>
-
-              <p>
-                {isEditMode
-                  ? t("followups.start.statusLine2Edit")
-                  : t("followups.start.statusLine2Start")}
-              </p>
-
-              <p>{t("followups.start.statusLine3")}</p>
-
-              {form.isChronic && (
-                <p className="text-blue-700 font-semibold">
-                  {t("followups.start.chronicFlagEnabled")}
-                </p>
-              )}
-
-              {form.followUpDate && (
-                <p>
-                  {t("followups.start.followUpDateSet", {
-                    date: formatDate(form.followUpDate),
-                  })}
-                </p>
               )}
             </div>
           </div>
