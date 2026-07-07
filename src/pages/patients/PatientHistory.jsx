@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import { fetchPatientHistory } from "../../api/patient";
 import { clearHistory } from "../../slices/patientsSlice";
-
+import LoadingState from "../../components/patient-report/LoadingState";
 const urgencyStyles = {
   low: "bg-green-100 text-green-700",
   moderate: "bg-amber-100 text-amber-700",
@@ -47,9 +47,7 @@ export default function PatientHistory() {
 
   if (isHistoryLoading) {
     return (
-      <div className="text-center text-gray-400 py-10">
-        {t("common.loading")}
-      </div>
+ <LoadingState></LoadingState>
     );
   }
 
