@@ -1,5 +1,6 @@
 {
   "nav": {
+    "subscriptions": "Subscriptions",
     "patients": "Patients",
     "consultations": "Consultations",
     "addConsultation": "Add Consultation",
@@ -26,6 +27,9 @@
     "save": "Save",
     "cancel": "Cancel",
     "edit": "Edit",
+    "history": "History",
+    "report": "Report",
+    "ok": "OK",
     "delete": "Delete",
     "search": "Search",
     "clear": "Clear",
@@ -111,6 +115,7 @@
     "failedSave": "Failed to save consultation",
     "notFound": "Consultation not found",
     "failedLoad": "Failed to load details",
+    "failedLoadList": "Failed to load consultations",
     "specialist": "Specialist",
     "symptomsColumn": "Symptoms",
     "urgencyColumn": "Urgency",

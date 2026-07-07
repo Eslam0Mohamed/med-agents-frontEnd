@@ -414,6 +414,7 @@ export default function PrescriptionModal({
   const [checkingSafety, setCheckingSafety] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const safetyDebounceRef = useRef(null);
+  const requestIdRef = useRef(0);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -432,9 +433,17 @@ export default function PrescriptionModal({
     async (meds) => {
       const validMeds = meds.filter((m) => m.name.trim());
       if (validMeds.length === 0 || !patient?._id) {
+        // بنزود الرقم هنا كمان عشان لو رد قديم لسه ماوصلش يتجاهل، مش يكتب
+        // فوق حالة "مفيش أدوية" دلوقتي
+        requestIdRef.current += 1;
         setCheckedMedications(null);
         return;
       }
+
+      // رقم فريد لكل نداء — بنستخدمه بعدين نتأكد إن الرد اللي وصل هو آخر
+      // نداء اتبعت فعلاً، مش رد قديم وصل متأخر (race condition)
+      const requestId = ++requestIdRef.current;
+
       try {
         setCheckingSafety(true);
         const res = await checkPrescriptionSafety({
@@ -452,11 +461,16 @@ export default function PrescriptionModal({
           })),
           excludePrescriptionId: existingPrescription?._id,
         });
+
+        // لو فيه نداء أحدث اتبعت بعد ده (يعني الدكتور كمّل يكتب)، الرد ده
+        // بقى قديم — نتجاهله تمامًا عشان مايكتبش فوق النتيجة الصح الحالية
+        if (requestId !== requestIdRef.current) return;
+
         setCheckedMedications(res.data?.medications || []);
       } catch {
-        setCheckedMedications(null);
+        if (requestId === requestIdRef.current) setCheckedMedications(null);
       } finally {
-        setCheckingSafety(false);
+        if (requestId === requestIdRef.current) setCheckingSafety(false);
       }
     },
     [patient, existingPrescription],
@@ -530,11 +544,12 @@ export default function PrescriptionModal({
   const handleSave = async () => {
     const validationError = validateMedications();
     if (validationError) {
-      Swal.fire(
-        t("prescriptionModal.incompleteTitle"),
-        validationError,
-        "warning",
-      );
+      Swal.fire({
+        title: t("prescriptionModal.incompleteTitle"),
+        text: validationError,
+        icon: "warning",
+        confirmButtonText: t("common.ok"),
+      });
       return;
     }
 
@@ -568,11 +583,12 @@ export default function PrescriptionModal({
       onSaved?.(res.data);
       onClose();
     } catch (err) {
-      Swal.fire(
-        t("common.error"),
-        err.response?.data?.message || t("prescriptionModal.saveFailed"),
-        "error",
-      );
+      Swal.fire({
+        title: t("common.error"),
+        text: err.response?.data?.message || t("prescriptionModal.saveFailed"),
+        icon: "error",
+        confirmButtonText: t("common.ok"),
+      });
     } finally {
       setIsSaving(false);
     }

@@ -130,9 +130,9 @@ export default function PatientsList() {
                     </td>
                     <td className="px-6 py-3">
                       <div className="flex gap-1.5 items-center justify-end">
-                        <button onClick={() => navigate(`/patients/history/${patient._id}`)} className="w-8 h-8 flex items-center justify-center rounded-md border border-gray-200 text-gray-500 hover:bg-gray-100" title="History">🕓</button>
-                        <button onClick={() => navigate(`/patients/report/${patient._id}`)} className="w-8 h-8 flex items-center justify-center rounded-md border border-gray-200 text-gray-500 hover:bg-gray-100" title="Report">📊</button>
-                        <button onClick={() => navigate(`/patients/edit/${patient._id}`)} className="w-8 h-8 flex items-center justify-center rounded-md border border-gray-200 text-gray-500 hover:bg-gray-100" title="Edit">✏️</button>
+                        <button onClick={() => navigate(`/patients/history/${patient._id}`)} className="w-8 h-8 flex items-center justify-center rounded-md border border-gray-200 text-gray-500 hover:bg-gray-100" title={t('common.history')}>🕓</button>
+                        <button onClick={() => navigate(`/patients/report/${patient._id}`)} className="w-8 h-8 flex items-center justify-center rounded-md border border-gray-200 text-gray-500 hover:bg-gray-100" title={t('common.report')}>📊</button>
+                        <button onClick={() => navigate(`/patients/edit/${patient._id}`)} className="w-8 h-8 flex items-center justify-center rounded-md border border-gray-200 text-gray-500 hover:bg-gray-100" title={t('common.edit')}>✏️</button>
                       </div>
                     </td>
                   </tr>

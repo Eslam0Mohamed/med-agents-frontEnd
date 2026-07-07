@@ -1,5 +1,6 @@
 {
   "nav": {
+    "subscriptions": "الاشتراكات",
     "patients": "المرضى",
     "consultations": "الاستشارات",
     "addConsultation": "إضافة استشارة",
@@ -26,6 +27,9 @@
     "save": "حفظ",
     "cancel": "إلغاء",
     "edit": "تعديل",
+    "history": "السجل",
+    "report": "التقرير",
+    "ok": "حسنًا",
     "delete": "حذف",
     "search": "بحث",
     "clear": "مسح",
@@ -111,6 +115,7 @@
     "failedSave": "فشل حفظ الاستشارة",
     "notFound": "الاستشارة غير موجودة",
     "failedLoad": "فشل تحميل التفاصيل",
+    "failedLoadList": "فشل تحميل الاستشارات",
     "specialist": "الأخصائي",
     "symptomsColumn": "الأعراض",
     "urgencyColumn": "درجة الخطورة",

@@ -22,7 +22,7 @@ const Consultations = () => {
       setConsultations(res.data);
       setFiltered(res.data);
     } catch {
-      Swal.fire("Error", "Failed to load consultations", "error");
+      Swal.fire(t("common.error"), t("consultations.failedLoadList"), "error");
     } finally {
       setLoading(false);
     }

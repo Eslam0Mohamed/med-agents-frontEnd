@@ -188,7 +188,12 @@ const ConsultationForm = () => {
       }
     } catch (err) {
       console.log(err.response?.data);
-      Swal.fire(t("common.error"), t("consultations.failedAI"), "error");
+      Swal.fire({
+        title: t("common.error"),
+        text: t("consultations.failedAI"),
+        icon: "error",
+        confirmButtonText: t("common.ok"),
+      });
     } finally {
       setIsGenerating(false);
     }
@@ -281,7 +286,12 @@ const ConsultationForm = () => {
 
       setShowPrescriptionModal(true);
     } catch {
-      Swal.fire(t("common.error"), t("consultations.failedSave"), "error");
+      Swal.fire({
+        title: t("common.error"),
+        text: t("consultations.failedSave"),
+        icon: "error",
+        confirmButtonText: t("common.ok"),
+      });
     } finally {
       setIsLoading(false);
     }
