@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Swal from 'sweetalert2';
 import { fetchPatients, deletePatient } from '../../api/patient';
-
+import LoadingState from '../../components/patient-report/LoadingState';
 export default function PatientsList() {
   const { t } = useTranslation();
   const dispatch = useDispatch();
@@ -87,7 +87,8 @@ export default function PatientsList() {
       </div>
 
       {isLoading && (
-        <div className="text-center text-gray-400 py-10">{t('common.loading')}</div>
+        <LoadingState></LoadingState>
+        // <div className="text-center text-gray-400 py-10">{t('common.loading')}</div>
       )}
 
       {!isLoading && list.length === 0 && (
