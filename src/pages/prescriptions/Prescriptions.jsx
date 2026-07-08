@@ -203,7 +203,84 @@ function PatientPrescriptionCard({ prescription, onEdit }) {
 
   return (
     <div className="bg-white rounded-2xl shadow-md shadow-slate-100/80 border border-slate-100 overflow-hidden mb-5">
-      <div className="px-5 py-4 flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 bg-slate-50/60">
+      {/* Patient info header — table style, like the Consultations page */}
+      <div className="hidden md:block overflow-x-auto">
+        <table className="w-full text-sm table-auto border-collapse text-left">
+          <thead className="bg-blue-600 text-white/95">
+            <tr>
+              <th className="px-5 py-3 font-bold tracking-wide text-xs uppercase opacity-90">
+                {t("common.name")}
+              </th>
+              <th className="px-5 py-3 font-bold tracking-wide text-xs uppercase opacity-90">
+                {t("prescriptions.id")}
+              </th>
+              <th className="px-5 py-3 font-bold tracking-wide text-xs uppercase opacity-90">
+                {t("prescriptions.age")}
+              </th>
+              <th className="px-5 py-3 font-bold tracking-wide text-xs uppercase opacity-90">
+                {t("patients.allergies")}
+              </th>
+              <th className="px-5 py-3 font-bold tracking-wide text-xs uppercase opacity-90">
+                {t("common.type")}
+              </th>
+              <th className="px-5 py-3 font-bold tracking-wide text-xs uppercase opacity-90">
+                {t("common.date")}
+              </th>
+              <th className="px-5 py-3 font-bold tracking-wide text-xs uppercase opacity-90 text-right">
+                {t("common.actions")}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr className="bg-slate-50/60">
+              <td className="px-5 py-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold shrink-0">
+                    {initials(patient?.name)}
+                  </div>
+                  <span className="font-black text-blue-600 text-base">
+                    {patient?.name || t("prescriptions.unknownPatient")}
+                  </span>
+                </div>
+              </td>
+              <td className="px-5 py-4 text-slate-600 font-semibold">
+                {patient?.nationalID || "—"}
+              </td>
+              <td className="px-5 py-4 text-slate-600 font-semibold">
+                {age !== null ? age : "—"}
+              </td>
+              <td className="px-5 py-4 text-slate-600 font-semibold max-w-[220px] truncate">
+                {patient?.allergies?.length > 0
+                  ? patient.allergies.join(", ")
+                  : t("prescriptions.noneReported")}
+              </td>
+              <td className="px-5 py-4">
+                <span
+                  className={`text-[10px] font-bold px-2.5 py-1 rounded-xl border tracking-wide uppercase shadow-sm ${isFromFollowup ? "bg-purple-50 text-purple-600 border-purple-200/50" : "bg-blue-50 text-blue-600 border-blue-200/50"}`}
+                >
+                  {isFromFollowup
+                    ? t("prescriptions.followupTag")
+                    : t("prescriptions.consultationTag")}
+                </span>
+              </td>
+              <td className="px-5 py-4 text-slate-600 font-semibold whitespace-nowrap">
+                {new Date(prescription.createdAt).toLocaleDateString()}
+              </td>
+              <td className="px-5 py-4 text-right">
+                <button
+                  onClick={() => onEdit(prescription)}
+                  className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-600 hover:text-white px-3.5 py-1.5 rounded-xl text-xs font-bold shadow-sm transition"
+                >
+                  ✏️ {t("common.edit")}
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      {/* Patient info header — mobile card style */}
+      <div className="md:hidden px-5 py-4 border-b border-slate-100 bg-slate-50/60">
         <div className="flex items-center gap-3 min-w-0">
           <div className="w-11 h-11 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-sm font-bold shrink-0">
             {initials(patient?.name)}
@@ -242,14 +319,12 @@ function PatientPrescriptionCard({ prescription, onEdit }) {
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-3 shrink-0">
-          <button
-            onClick={() => onEdit(prescription)}
-            className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-600 hover:text-white px-3.5 py-1.5 rounded-xl text-xs font-bold shadow-sm transition"
-          >
-            ✏️ {t("common.edit")}
-          </button>
-        </div>
+        <button
+          onClick={() => onEdit(prescription)}
+          className="mt-3 w-full inline-flex items-center justify-center gap-1.5 bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-600 hover:text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-sm transition"
+        >
+          ✏️ {t("common.edit")}
+        </button>
       </div>
 
       {/* Desktop table */}
@@ -465,120 +540,120 @@ export default function Prescriptions() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 -mt-12">
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_260px] gap-6 items-start">
-          <div>
-            <div className="mb-6 relative group shadow-sm rounded-2xl">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-600 transition-colors">
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2.5"
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-              </div>
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder={t("prescriptions.searchPlaceholder")}
-                className="w-full bg-white rounded-2xl pl-12 pr-4 py-3.5 sm:py-4 text-sm sm:text-base font-medium border-0 shadow-md focus:outline-none focus:ring-4 focus:ring-blue-500/10 placeholder:text-slate-400"
-              />
-            </div>
-
-            {loading && (
-              <div className="text-center text-gray-400 py-16">
-                {t("prescriptions.loading")}
-              </div>
-            )}
-
-            {!loading && prescriptions.length === 0 && (
-              <div className="text-center text-gray-400 py-16 bg-white rounded-xl shadow-sm border border-gray-100">
-                {t("prescriptions.noData")}
-              </div>
-            )}
-
-            {!loading &&
-              prescriptions.map((prescription) => (
-                <PatientPrescriptionCard
-                  key={prescription._id}
-                  prescription={prescription}
-                  onEdit={handleEdit}
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_260px] gap-6 items-start">
+        <div>
+          <div className="mb-6 relative group shadow-sm rounded-2xl">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-600 transition-colors">
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2.5"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                 />
-              ))}
-
-            {!loading && total > 0 && (
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-2 px-1">
-                <p className="text-xs text-gray-500">
-                  {t("prescriptions.showing")} {prescriptions.length}{" "}
-                  {t("prescriptions.of")} {total}
-                </p>
-                <div className="flex items-center gap-1.5">
-                  <button
-                    onClick={() => handlePageChange(Math.max(1, page - 1))}
-                    disabled={page === 1}
-                    className="px-3 py-1.5 rounded-md text-sm border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-40"
-                  >
-                    {t("common.previous")}
-                  </button>
-                  {Array.from({ length: totalPages }, (_, i) => i + 1)
-                    .slice(Math.max(0, page - 3), Math.max(0, page - 3) + 5)
-                    .map((p) => (
-                      <button
-                        key={p}
-                        onClick={() => handlePageChange(p)}
-                        className={`w-8 h-8 rounded-md text-sm font-medium ${p === page ? "bg-blue-600 text-white" : "border border-gray-300 text-gray-600 hover:bg-gray-50"}`}
-                      >
-                        {p}
-                      </button>
-                    ))}
-                  <button
-                    onClick={() =>
-                      handlePageChange(Math.min(totalPages, page + 1))
-                    }
-                    disabled={page === totalPages}
-                    className="px-3 py-1.5 rounded-md text-sm border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-40"
-                  >
-                    {t("common.next")}
-                  </button>
-                </div>
-              </div>
-            )}
+              </svg>
+            </div>
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder={t("prescriptions.searchPlaceholder")}
+              className="w-full bg-white rounded-2xl pl-12 pr-4 py-3.5 sm:py-4 text-sm sm:text-base font-medium border-0 shadow-md focus:outline-none focus:ring-4 focus:ring-blue-500/10 placeholder:text-slate-400"
+            />
           </div>
 
-          <aside className="order-first lg:order-2 lg:sticky lg:top-4 mt-16 lg:mt-16">
-            <PrescriptionCalendar
-              selectedDate={selectedDate}
-              onSelectDate={setSelectedDate}
-              dateCounts={dateCounts}
-            />
-          </aside>
+          {loading && (
+            <div className="text-center text-gray-400 py-16">
+              {t("prescriptions.loading")}
+            </div>
+          )}
+
+          {!loading && prescriptions.length === 0 && (
+            <div className="text-center text-gray-400 py-16 bg-white rounded-xl shadow-sm border border-gray-100">
+              {t("prescriptions.noData")}
+            </div>
+          )}
+
+          {!loading &&
+            prescriptions.map((prescription) => (
+              <PatientPrescriptionCard
+                key={prescription._id}
+                prescription={prescription}
+                onEdit={handleEdit}
+              />
+            ))}
+
+          {!loading && total > 0 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-2 px-1">
+              <p className="text-xs text-gray-500">
+                {t("prescriptions.showing")} {prescriptions.length}{" "}
+                {t("prescriptions.of")} {total}
+              </p>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => handlePageChange(Math.max(1, page - 1))}
+                  disabled={page === 1}
+                  className="px-3 py-1.5 rounded-md text-sm border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-40"
+                >
+                  {t("common.previous")}
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .slice(Math.max(0, page - 3), Math.max(0, page - 3) + 5)
+                  .map((p) => (
+                    <button
+                      key={p}
+                      onClick={() => handlePageChange(p)}
+                      className={`w-8 h-8 rounded-md text-sm font-medium ${p === page ? "bg-blue-600 text-white" : "border border-gray-300 text-gray-600 hover:bg-gray-50"}`}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                <button
+                  onClick={() =>
+                    handlePageChange(Math.min(totalPages, page + 1))
+                  }
+                  disabled={page === totalPages}
+                  className="px-3 py-1.5 rounded-md text-sm border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-40"
+                >
+                  {t("common.next")}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
-        {editingPrescription && (
-          <PrescriptionModal
-            isOpen={showEditModal}
-            onClose={() => {
-              setShowEditModal(false);
-              setEditingPrescription(null);
-            }}
-            consultationId={
-              typeof editingPrescription.consultationId === "object"
-                ? editingPrescription.consultationId?._id
-                : editingPrescription.consultationId
-            }
-            patient={editingPrescription.patientId}
-            language={editingPrescription.language || "en"}
-            existingPrescription={editingPrescription}
-            onSaved={handleModalSaved}
+        <aside className="order-first lg:order-2 lg:sticky lg:top-4 mt-16 lg:mt-16">
+          <PrescriptionCalendar
+            selectedDate={selectedDate}
+            onSelectDate={setSelectedDate}
+            dateCounts={dateCounts}
           />
-        )}
+        </aside>
+      </div>
+
+      {editingPrescription && (
+        <PrescriptionModal
+          isOpen={showEditModal}
+          onClose={() => {
+            setShowEditModal(false);
+            setEditingPrescription(null);
+          }}
+          consultationId={
+            typeof editingPrescription.consultationId === "object"
+              ? editingPrescription.consultationId?._id
+              : editingPrescription.consultationId
+          }
+          patient={editingPrescription.patientId}
+          language={editingPrescription.language || "en"}
+          existingPrescription={editingPrescription}
+          onSaved={handleModalSaved}
+        />
+      )}
       </div>
     </div>
   );

@@ -45,7 +45,9 @@
     "error": "Error",
     "unknown": "Unknown",
     "previous": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "type": "Type",
+    "date": "Date"
   },
   "patients": {
     "title": "Patients",
@@ -151,6 +153,7 @@
   "followups": {
     "title": "Follow-ups",
     "subtitle": "Manage scheduled reviews and continuity of care for your clinic.",
+    "searchPlaceholder": "Search follow-ups by patient name or national ID",
     "createdAuto": "Created automatically from consultations",
     "scheduledDate": "Scheduled Date",
     "finished": "Finished",
