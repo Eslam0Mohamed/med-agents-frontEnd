@@ -174,10 +174,19 @@ const FollowUps = () => {
 
   const selectedDateCount = useMemo(() => {
     if (!selectedDate) return 0;
-    return validFollowUps.filter(
-      (item) => toDateKey(item.scheduledDate) === toDateKey(selectedDate),
-    ).length;
-  }, [validFollowUps, selectedDate]);
+    return validFollowUps.filter((item) => {
+      const matchesTab =
+        activeTab === "completed"
+          ? isCompleted(item)
+          : activeTab === "pastDue"
+            ? isPastDue(item)
+            : !isCompleted(item) && !isPastDue(item);
+      return (
+        matchesTab &&
+        toDateKey(getDisplayDate(item)) === toDateKey(selectedDate)
+      );
+    }).length;
+  }, [validFollowUps, selectedDate, activeTab]);
 
   const insightDateCount = useMemo(() => {
     const targetDate = selectedDate || new Date();
@@ -195,9 +204,15 @@ const FollowUps = () => {
   const getFollowUpsCountForDate = (date) => {
     if (!date) return 0;
     const key = toDateKey(date);
-    return validFollowUps.filter(
-      (item) => toDateKey(item.scheduledDate) === key,
-    ).length;
+    return validFollowUps.filter((item) => {
+      const matchesTab =
+        activeTab === "completed"
+          ? isCompleted(item)
+          : activeTab === "pastDue"
+            ? isPastDue(item)
+            : !isCompleted(item) && !isPastDue(item);
+      return matchesTab && toDateKey(getDisplayDate(item)) === key;
+    }).length;
   };
 
   const getPatientName = (item) =>
@@ -437,7 +452,9 @@ const FollowUps = () => {
                     <div>
                       <h3>{patientName}</h3>
                       <p>
-                        {t("followups.patientId")}: {getPatientId(item)}
+                        {t("followups.patientId")}:{" "}
+                        {item.patientId?.nationalID ||
+                          t("followups.unknownPatient")}
                       </p>
                     </div>
                     <span

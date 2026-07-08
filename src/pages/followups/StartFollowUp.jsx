@@ -32,6 +32,9 @@ const StartFollowUp = () => {
 
   const passedFollowUp = location.state?.followUp || null;
   const isEditMode = location.state?.mode === "edit";
+  // لو الدكتور جاي من صفحة البريسكربشن عشان يعدّل الروشتة بس، مش عايزينه
+  // يعدّل في الفولو أب نفسها من هنا خالص — بس يشوف السياق ويعدّل الروشتة
+  const prescriptionOnlyEdit = !!location.state?.prescriptionOnlyEdit;
 
   const [followUp, setFollowUp] = useState(null);
   const [form, setForm] = useState(initialForm);
@@ -211,6 +214,19 @@ const StartFollowUp = () => {
     );
 
     setAiResult(normalized);
+
+    if (prescriptionOnlyEdit) {
+      setSavedConsultationId(consultationToEdit._id);
+      try {
+        const presRes = await getPrescriptionByConsultation(
+          consultationToEdit._id,
+        );
+        setExistingPrescription(presRes?.data || null);
+      } catch {
+        setExistingPrescription(null);
+      }
+      setShowPrescriptionSection(true);
+    }
   };
 
   const loadFollowUp = async () => {
@@ -406,6 +422,42 @@ const StartFollowUp = () => {
       return;
     }
 
+    if (form.followUpDate) {
+      // مقارنة بالتواريخ بس (من غير وقت) عشان "النهاردة" و"بكرة" يتقارنوا صح
+      const chosen = new Date(form.followUpDate);
+      const chosenDateOnly = new Date(
+        chosen.getFullYear(),
+        chosen.getMonth(),
+        chosen.getDate(),
+      );
+      const today = new Date();
+      const todayDateOnly = new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate(),
+      );
+
+      if (chosenDateOnly <= todayDateOnly) {
+        Swal.fire(
+          t("common.error"),
+          t("followups.messages.followUpDateBeforeCompletion"),
+          "error",
+        );
+        return;
+      }
+
+      const maxAllowedDate = new Date(todayDateOnly);
+      maxAllowedDate.setMonth(maxAllowedDate.getMonth() + 6);
+      if (chosenDateOnly > maxAllowedDate) {
+        Swal.fire(
+          t("common.error"),
+          t("followups.messages.followUpDateTooFar"),
+          "error",
+        );
+        return;
+      }
+    }
+
     try {
       setSubmitting(true);
 
@@ -507,32 +559,15 @@ const StartFollowUp = () => {
         showConfirmButton: false,
       });
 
-      // لو الدكتور حدد ميعاد فولو أب جديد، بنتأكد إن الباك اند فعلاً رجّع
-      // فولو أب جديدة (newFollowUp) قبل ما نقول له "اتعملت" - مش بس نفترض
-      // كده لمجرد إن الحفظ نجح
-      if (form.followUpDate) {
-        if (newFollowUp?._id) {
-          await Swal.fire({
-            title: t("followups.messages.newFollowUpCreatedTitle"),
-            text: t("followups.messages.newFollowUpCreatedText", {
-              date: formatDate(form.followUpDate),
-            }),
-            icon: "info",
-            confirmButtonText: t("common.ok"),
-          });
-        } else {
-          console.error(
-            "Expected backend to create/update a follow-up for date",
-            form.followUpDate,
-            "but got no newFollowUp in the response.",
-          );
-          await Swal.fire({
-            title: t("common.warning"),
-            text: t("followups.messages.newFollowUpNotConfirmed"),
-            icon: "warning",
-            confirmButtonText: t("common.ok"),
-          });
-        }
+      if (form.followUpDate && !newFollowUp?._id) {
+        // منعرضش أي Alert للدكتور هنا (بناءً على طلبه)، بس بنسجلها في الـ
+        // console عشان لو فيه مشكلة فعلية تفضل قابلة للتتبع من غير ما
+        // نقاطع سير عمل الدكتور بحوار زيادة
+        console.error(
+          "Expected backend to create/update a follow-up for date",
+          form.followUpDate,
+          "but got no newFollowUp in the response.",
+        );
       }
 
       setSavedConsultationId(savedConsultationId);
@@ -561,11 +596,11 @@ const StartFollowUp = () => {
   };
 
   const handlePrescriptionSaved = () => {
-    navigate("/followups");
+    navigate(prescriptionOnlyEdit ? "/prescriptions" : "/followups");
   };
 
   const handlePrescriptionClosed = () => {
-    navigate("/followups");
+    navigate(prescriptionOnlyEdit ? "/prescriptions" : "/followups");
   };
 
   const tomorrow = new Date();
@@ -726,8 +761,9 @@ const StartFollowUp = () => {
                   rows={4}
                   value={form.rawInput}
                   onChange={handleChange}
+                  disabled={prescriptionOnlyEdit}
                   placeholder={t("followups.start.notesPlaceholder")}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
                 />
               </div>
 
@@ -741,8 +777,9 @@ const StartFollowUp = () => {
                   name="symptoms"
                   value={form.symptoms}
                   onChange={handleChange}
+                  disabled={prescriptionOnlyEdit}
                   placeholder={t("followups.start.symptomsPlaceholder")}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
                 />
               </div>
 
@@ -755,7 +792,8 @@ const StartFollowUp = () => {
                   name="language"
                   value={form.language}
                   onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={prescriptionOnlyEdit}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
                 >
                   <option value="en">{t("consultations.english")}</option>
                   <option value="ar">{t("consultations.arabic")}</option>
@@ -763,7 +801,7 @@ const StartFollowUp = () => {
               </div>
             </div>
 
-            {!showPrescriptionSection && (
+            {!showPrescriptionSection && !prescriptionOnlyEdit && (
               <div className="flex justify-end mt-6 pt-5 border-t">
                 <button
                   type="button"
@@ -782,7 +820,7 @@ const StartFollowUp = () => {
               </div>
             )}
 
-            {aiResult && !showPrescriptionSection && (
+            {aiResult && !showPrescriptionSection && !prescriptionOnlyEdit && (
               <div className="mt-6 p-4 sm:p-6 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-xl shadow-sm space-y-5">
                 <div className="space-y-1">
                   <h3 className="text-base font-bold text-blue-800 flex items-center gap-2">
@@ -808,7 +846,8 @@ const StartFollowUp = () => {
                           name="isChronic"
                           checked={form.isChronic}
                           onChange={handleChange}
-                          className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 cursor-pointer shrink-0"
+                          disabled={prescriptionOnlyEdit}
+                          className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 cursor-pointer shrink-0 disabled:cursor-not-allowed"
                         />
 
                         <span
@@ -826,8 +865,9 @@ const StartFollowUp = () => {
                       name="diagnosis"
                       value={form.diagnosis}
                       onChange={handleChange}
+                      disabled={prescriptionOnlyEdit}
                       placeholder={t("consultations.diagnosisPlaceholder")}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
                     />
                   </div>
 
@@ -840,10 +880,11 @@ const StartFollowUp = () => {
                       type="date"
                       name="followUpDate"
                       value={form.followUpDate}
-                      min={isEditMode ? undefined : minDate}
+                      min={minDate}
                       max={maxDate}
                       onChange={handleChange}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      disabled={prescriptionOnlyEdit}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
                     />
                   </div>
                 </div>

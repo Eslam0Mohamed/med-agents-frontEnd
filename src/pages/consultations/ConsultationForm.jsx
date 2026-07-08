@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Swal from "sweetalert2";
@@ -20,7 +20,11 @@ import PrescriptionModal from "../../components/prescriptions/PrescriptionModal"
 const ConsultationForm = () => {
   const { t } = useTranslation();
   const { id, patientId } = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
+  // لو الدكتور جاي من صفحة البريسكربشن عشان يعدّل الروشتة بس، مش عايزينه
+  // يعدّل في الكونسلتيشن نفسها من هنا خالص — بس يشوف السياق ويعدّل الروشتة
+  const prescriptionOnlyEdit = !!location.state?.prescriptionOnlyEdit;
   const dispatch = useDispatch();
   const isEditMode = !!id;
   const [createdId, setCreatedId] = useState("");
@@ -118,11 +122,22 @@ const ConsultationForm = () => {
             : "",
         );
         setAiResult(data);
+
+        if (prescriptionOnlyEdit) {
+          setSavedConsultationId(id);
+          try {
+            const presRes = await getPrescriptionByConsultation(id);
+            setExistingPrescription(presRes?.data || null);
+          } catch {
+            setExistingPrescription(null);
+          }
+          setShowPrescriptionModal(true);
+        }
       } catch (err) {
         console.error("Failed to load consultation", err);
       }
     },
-    [id, setValue],
+    [id, setValue, prescriptionOnlyEdit],
   );
 
   useEffect(() => {
@@ -338,7 +353,7 @@ const ConsultationForm = () => {
 
   const handleClosePrescriptionModal = () => {
     setShowPrescriptionModal(false);
-    navigate("/consultations");
+    navigate(prescriptionOnlyEdit ? "/prescriptions" : "/consultations");
   };
 
   const handlePrescriptionSaved = () => {
@@ -421,7 +436,8 @@ const ConsultationForm = () => {
                   <textarea
                     {...register("rawInput")}
                     rows={4}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    disabled={prescriptionOnlyEdit}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
                   />
                   {errors.rawInput && (
                     <p className="text-red-500 text-xs mt-1">
@@ -439,7 +455,8 @@ const ConsultationForm = () => {
                     type="text"
                     {...register("symptoms")}
                     placeholder={t("consultations.symptomsPlaceholder")}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    disabled={prescriptionOnlyEdit}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
                   />
                   {errors.symptoms && (
                     <p className="text-red-500 text-xs mt-1">
@@ -455,7 +472,8 @@ const ConsultationForm = () => {
                   </label>
                   <select
                     {...register("language")}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    disabled={prescriptionOnlyEdit}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
                   >
                     <option value="en">{t("consultations.english")}</option>
                     <option value="ar">{t("consultations.arabic")}</option>
@@ -485,10 +503,11 @@ const ConsultationForm = () => {
                           <input
                             type="checkbox"
                             checked={isChronicManual}
+                            disabled={prescriptionOnlyEdit}
                             onChange={(e) =>
                               setIsChronicManual(e.target.checked)
                             }
-                            className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 cursor-pointer shrink-0"
+                            className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 cursor-pointer shrink-0 disabled:cursor-not-allowed"
                           />
                           <span
                             className={`transition-colors duration-200 ${isChronicChecked ? "text-blue-600 font-extrabold" : ""}`}
@@ -501,7 +520,8 @@ const ConsultationForm = () => {
                         type="text"
                         {...register("diagnosis")}
                         placeholder={t("consultations.diagnosisPlaceholder")}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        disabled={prescriptionOnlyEdit}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
                       />
                       {errors.diagnosis && (
                         <p className="text-red-500 text-xs mt-1">
@@ -520,7 +540,8 @@ const ConsultationForm = () => {
                         {...register("followUpDate")}
                         min={minDate}
                         max={maxDate}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        disabled={prescriptionOnlyEdit}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
                       />
                       {errors.followUpDate && (
                         <p className="text-red-500 text-xs mt-1">
@@ -536,7 +557,7 @@ const ConsultationForm = () => {
                   مودال الروشتة) - عشان الدكتور مايرجعش يعمل AI recommendation
                   أو يدوس Save/Update تاني على نفس الكونسلتيشن من هنا، سواء
                   في وضع الإنشاء أو التعديل */}
-              {!showPrescriptionModal && (
+              {!showPrescriptionModal && !prescriptionOnlyEdit && (
                 <div className="flex flex-wrap items-center justify-between gap-3 mt-6 pt-5 border-t">
                   <button
                     type="button"

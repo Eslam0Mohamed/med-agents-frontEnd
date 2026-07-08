@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { useTranslation } from "react-i18next";
 import {
@@ -201,45 +202,50 @@ function PatientPrescriptionCard({ prescription, onEdit }) {
   const isFromFollowup = !!prescription.consultationId?.followupId;
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-5">
-      <div className="bg-gray-50 px-5 py-4 flex flex-wrap items-center justify-between gap-3 border-b border-gray-100">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-sm font-semibold shrink-0">
+    <div className="bg-white rounded-2xl shadow-md shadow-slate-100/80 border border-slate-100 overflow-hidden mb-5">
+      <div className="px-5 py-4 flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 bg-slate-50/60">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-11 h-11 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-sm font-bold shrink-0">
             {initials(patient?.name)}
           </div>
-          <div>
-            <p className="text-sm font-semibold text-gray-900 flex items-center gap-2 flex-wrap">
-              {patient?.name || t("prescriptions.unknownPatient")}
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <p className="text-base font-black text-blue-600 truncate">
+                {patient?.name || t("prescriptions.unknownPatient")}
+              </p>
               <span
-                className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${isFromFollowup ? "bg-purple-50 text-purple-700" : "bg-blue-50 text-blue-700"}`}
+                className={`text-[10px] font-bold px-2.5 py-1 rounded-xl border tracking-wide uppercase shadow-sm ${isFromFollowup ? "bg-purple-50 text-purple-600 border-purple-200/50" : "bg-blue-50 text-blue-600 border-blue-200/50"}`}
               >
                 {isFromFollowup
                   ? t("prescriptions.followupTag")
                   : t("prescriptions.consultationTag")}
               </span>
-            </p>
-            <p className="text-xs text-gray-500">
-              {t("prescriptions.id")}: #{patient?._id?.slice(-6) || "—"}
+            </div>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1.5 text-xs text-slate-500 font-semibold">
+              <span>
+                {t("prescriptions.id")}: {patient?.nationalID || "—"}
+              </span>
               {age !== null && (
-                <>
-                  {" "}
-                  • {t("prescriptions.age")}: {age}
-                </>
+                <span>
+                  {t("prescriptions.age")}: {age}
+                </span>
               )}
-              {" • "}
-              {t("patients.allergies")}:{" "}
-              {patient?.allergies?.length > 0
-                ? patient.allergies.join(", ")
-                : t("prescriptions.noneReported")}
-              {" • "}
-              {new Date(prescription.createdAt).toLocaleDateString()}
-            </p>
+              <span>
+                {t("patients.allergies")}:{" "}
+                {patient?.allergies?.length > 0
+                  ? patient.allergies.join(", ")
+                  : t("prescriptions.noneReported")}
+              </span>
+              <span>
+                {new Date(prescription.createdAt).toLocaleDateString()}
+              </span>
+            </div>
           </div>
         </div>
         <div className="flex items-center gap-3 shrink-0">
           <button
             onClick={() => onEdit(prescription)}
-            className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+            className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-600 hover:text-white px-3.5 py-1.5 rounded-xl text-xs font-bold shadow-sm transition"
           >
             ✏️ {t("common.edit")}
           </button>
@@ -322,6 +328,7 @@ function PatientPrescriptionCard({ prescription, onEdit }) {
 
 export default function Prescriptions() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [prescriptions, setPrescriptions] = useState([]);
   const [search, setSearch] = useState("");
   const [selectedDate, setSelectedDate] = useState(null);
@@ -387,6 +394,32 @@ export default function Prescriptions() {
   };
 
   const handleEdit = (prescription) => {
+    // نوديه لصفحة الكونسلتيشن أو الفولو أب اللي الروشتة دي جاية منها، عشان
+    // يشوف السياق الكامل (الأعراض/التشخيص)، بس من غير ما يقدر يعدّل أي حاجة
+    // فيها غير الروشتة نفسها (prescriptionOnlyEdit بيقفل باقي الفورم)
+    const consultation = prescription.consultationId;
+    const consultationId =
+      typeof consultation === "object" ? consultation?._id : consultation;
+    const followupId =
+      typeof consultation === "object" ? consultation?.followupId : null;
+
+    if (followupId) {
+      const resolvedFollowupId =
+        typeof followupId === "object" ? followupId?._id : followupId;
+      navigate(`/followups/start/${resolvedFollowupId}`, {
+        state: { mode: "edit", prescriptionOnlyEdit: true },
+      });
+      return;
+    }
+
+    if (consultationId) {
+      navigate(`/consultations/edit/${consultationId}`, {
+        state: { prescriptionOnlyEdit: true },
+      });
+      return;
+    }
+
+    // احتياطي: لو مقدرناش نحدد الكونسلتيشن الأصلية لأي سبب، نفضل بالمودال المحلي
     setEditingPrescription(prescription);
     setShowEditModal(true);
   };
@@ -399,115 +432,154 @@ export default function Prescriptions() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-6 py-6">
-      <div className="mb-6">
-        <h1 className="text-lg sm:text-xl font-bold text-gray-900">
-          {t("prescriptions.title")}
-        </h1>
-        <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
-          {t("prescriptions.subtitle")}
-        </p>
+    <div className="min-h-screen bg-slate-50/70 antialiased text-slate-800 pb-12 w-full box-border">
+      <div className="bg-gradient-to-r from-blue-700 to-blue-600 text-white pt-6 pb-24 px-4 sm:px-6 shadow-lg">
+        <div className="max-w-7xl mx-auto">
+          <button
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center gap-2 text-blue-100 hover:text-white text-xs font-bold bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg transition mb-4 border border-white/10 backdrop-blur-sm"
+          >
+            <svg
+              className="w-4 h-4 stroke-[2.5]"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M15.75 19.5L8.25 12l7.5-7.5"
+              />
+            </svg>
+            {t("common.back")}
+          </button>
+
+          <h2 className="text-2xl sm:text-3xl font-black tracking-tight flex items-center gap-2">
+            {t("prescriptions.title")}{" "}
+            <span className="w-2 h-2 rounded-full bg-blue-300"></span>
+          </h2>
+          <p className="text-blue-100 text-xs sm:text-sm font-medium mt-1 opacity-90">
+            {t("prescriptions.subtitle")}
+          </p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6 items-start">
-        <div>
-          <div className="mb-5">
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder={t("prescriptions.searchPlaceholder")}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white shadow-sm"
-            />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 -mt-12">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_260px] gap-6 items-start">
+          <div>
+            <div className="mb-6 relative group shadow-sm rounded-2xl">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-600 transition-colors">
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2.5"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+              </div>
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={t("prescriptions.searchPlaceholder")}
+                className="w-full bg-white rounded-2xl pl-12 pr-4 py-3.5 sm:py-4 text-sm sm:text-base font-medium border-0 shadow-md focus:outline-none focus:ring-4 focus:ring-blue-500/10 placeholder:text-slate-400"
+              />
+            </div>
+
+            {loading && (
+              <div className="text-center text-gray-400 py-16">
+                {t("prescriptions.loading")}
+              </div>
+            )}
+
+            {!loading && prescriptions.length === 0 && (
+              <div className="text-center text-gray-400 py-16 bg-white rounded-xl shadow-sm border border-gray-100">
+                {t("prescriptions.noData")}
+              </div>
+            )}
+
+            {!loading &&
+              prescriptions.map((prescription) => (
+                <PatientPrescriptionCard
+                  key={prescription._id}
+                  prescription={prescription}
+                  onEdit={handleEdit}
+                />
+              ))}
+
+            {!loading && total > 0 && (
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-2 px-1">
+                <p className="text-xs text-gray-500">
+                  {t("prescriptions.showing")} {prescriptions.length}{" "}
+                  {t("prescriptions.of")} {total}
+                </p>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => handlePageChange(Math.max(1, page - 1))}
+                    disabled={page === 1}
+                    className="px-3 py-1.5 rounded-md text-sm border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-40"
+                  >
+                    {t("common.previous")}
+                  </button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .slice(Math.max(0, page - 3), Math.max(0, page - 3) + 5)
+                    .map((p) => (
+                      <button
+                        key={p}
+                        onClick={() => handlePageChange(p)}
+                        className={`w-8 h-8 rounded-md text-sm font-medium ${p === page ? "bg-blue-600 text-white" : "border border-gray-300 text-gray-600 hover:bg-gray-50"}`}
+                      >
+                        {p}
+                      </button>
+                    ))}
+                  <button
+                    onClick={() =>
+                      handlePageChange(Math.min(totalPages, page + 1))
+                    }
+                    disabled={page === totalPages}
+                    className="px-3 py-1.5 rounded-md text-sm border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-40"
+                  >
+                    {t("common.next")}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
-          {loading && (
-            <div className="text-center text-gray-400 py-16">
-              {t("prescriptions.loading")}
-            </div>
-          )}
-
-          {!loading && prescriptions.length === 0 && (
-            <div className="text-center text-gray-400 py-16 bg-white rounded-xl shadow-sm border border-gray-100">
-              {t("prescriptions.noData")}
-            </div>
-          )}
-
-          {!loading &&
-            prescriptions.map((prescription) => (
-              <PatientPrescriptionCard
-                key={prescription._id}
-                prescription={prescription}
-                onEdit={handleEdit}
-              />
-            ))}
-
-          {!loading && total > 0 && (
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-2 px-1">
-              <p className="text-xs text-gray-500">
-                {t("prescriptions.showing")} {prescriptions.length}{" "}
-                {t("prescriptions.of")} {total}
-              </p>
-              <div className="flex items-center gap-1.5">
-                <button
-                  onClick={() => handlePageChange(Math.max(1, page - 1))}
-                  disabled={page === 1}
-                  className="px-3 py-1.5 rounded-md text-sm border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-40"
-                >
-                  {t("common.previous")}
-                </button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1)
-                  .slice(Math.max(0, page - 3), Math.max(0, page - 3) + 5)
-                  .map((p) => (
-                    <button
-                      key={p}
-                      onClick={() => handlePageChange(p)}
-                      className={`w-8 h-8 rounded-md text-sm font-medium ${p === page ? "bg-blue-600 text-white" : "border border-gray-300 text-gray-600 hover:bg-gray-50"}`}
-                    >
-                      {p}
-                    </button>
-                  ))}
-                <button
-                  onClick={() =>
-                    handlePageChange(Math.min(totalPages, page + 1))
-                  }
-                  disabled={page === totalPages}
-                  className="px-3 py-1.5 rounded-md text-sm border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-40"
-                >
-                  {t("common.next")}
-                </button>
-              </div>
-            </div>
-          )}
+          <aside className="order-first lg:order-2 lg:sticky lg:top-4 mt-16 lg:mt-16">
+            <PrescriptionCalendar
+              selectedDate={selectedDate}
+              onSelectDate={setSelectedDate}
+              dateCounts={dateCounts}
+            />
+          </aside>
         </div>
 
-        <aside className="lg:sticky lg:top-4">
-          <PrescriptionCalendar
-            selectedDate={selectedDate}
-            onSelectDate={setSelectedDate}
-            dateCounts={dateCounts}
+        {editingPrescription && (
+          <PrescriptionModal
+            isOpen={showEditModal}
+            onClose={() => {
+              setShowEditModal(false);
+              setEditingPrescription(null);
+            }}
+            consultationId={
+              typeof editingPrescription.consultationId === "object"
+                ? editingPrescription.consultationId?._id
+                : editingPrescription.consultationId
+            }
+            patient={editingPrescription.patientId}
+            language={editingPrescription.language || "en"}
+            existingPrescription={editingPrescription}
+            onSaved={handleModalSaved}
           />
-        </aside>
+        )}
       </div>
-
-      {editingPrescription && (
-        <PrescriptionModal
-          isOpen={showEditModal}
-          onClose={() => {
-            setShowEditModal(false);
-            setEditingPrescription(null);
-          }}
-          consultationId={
-            typeof editingPrescription.consultationId === "object"
-              ? editingPrescription.consultationId?._id
-              : editingPrescription.consultationId
-          }
-          patient={editingPrescription.patientId}
-          language={editingPrescription.language || "en"}
-          existingPrescription={editingPrescription}
-          onSaved={handleModalSaved}
-        />
-      )}
     </div>
   );
 }

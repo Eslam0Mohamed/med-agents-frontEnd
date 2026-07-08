@@ -78,6 +78,7 @@
   },
   "consultations": {
     "title": "Consultations",
+    "searchPlaceholder": "Search consultations by patient name or national ID",
     "listSubtitle": "Review clinical consult history, specialist notes, and digital recommendations.",
     "diagnosis": "Diagnosis",
     "newConsultation": "New Consultation",
@@ -271,6 +272,8 @@
       "missingDataTitle": "Missing data",
       "missingClinicalData": "Doctor notes and symptoms are required before AI recommendation.",
       "missingPatientData": "Patient data is missing from this follow-up.",
+      "followUpDateBeforeCompletion": "The new follow-up date can't be on or before the day you're completing this follow-up.",
+      "followUpDateTooFar": "The new follow-up date can't be more than 6 months from today.",
       "noAIResultTitle": "No AI result",
       "noAIResultText": "The backend did not return an AI recommendation.",
       "aiFailed": "Failed to get AI recommendation",
