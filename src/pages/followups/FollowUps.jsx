@@ -313,7 +313,7 @@ const FollowUps = () => {
 
   return (
     <div className="min-h-screen bg-slate-50/70 antialiased text-slate-800 pb-12 w-full box-border">
-      <div className="bg-gradient-to-r from-blue-700 to-blue-600 text-white pt-6 pb-14 px-4 sm:px-6 shadow-lg">
+      <div className="bg-gradient-to-r from-blue-700 to-blue-600 text-white pt-6 pb-14 px-4 sm:px-6 shadow-lg rounded-3xl">
         <div className="max-w-7xl mx-auto">
           <button
             onClick={() => navigate(-1)}

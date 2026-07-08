@@ -205,7 +205,10 @@ function PatientPrescriptionCard({ prescription, onEdit }) {
     <div className="bg-white rounded-2xl shadow-md shadow-slate-100/80 border border-slate-100 overflow-hidden mb-5">
       {/* Patient info header — table style, like the Consultations page */}
       <div className="hidden md:block overflow-x-auto">
-        <table className="w-full text-sm table-auto border-collapse text-left">
+        <table
+          dir="rtl"
+          className="w-full text-sm table-auto border-collapse text-right"
+        >
           <thead className="bg-blue-600 text-white/95">
             <tr>
               <th className="px-5 py-3 font-bold tracking-wide text-xs uppercase opacity-90">
@@ -226,7 +229,7 @@ function PatientPrescriptionCard({ prescription, onEdit }) {
               <th className="px-5 py-3 font-bold tracking-wide text-xs uppercase opacity-90">
                 {t("common.date")}
               </th>
-              <th className="px-5 py-3 font-bold tracking-wide text-xs uppercase opacity-90 text-right">
+              <th className="px-5 py-3 font-bold tracking-wide text-xs uppercase opacity-90 text-left">
                 {t("common.actions")}
               </th>
             </tr>
@@ -266,7 +269,7 @@ function PatientPrescriptionCard({ prescription, onEdit }) {
               <td className="px-5 py-4 text-slate-600 font-semibold whitespace-nowrap">
                 {new Date(prescription.createdAt).toLocaleDateString()}
               </td>
-              <td className="px-5 py-4 text-right">
+              <td className="px-5 py-4 text-left">
                 <button
                   onClick={() => onEdit(prescription)}
                   className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-600 hover:text-white px-3.5 py-1.5 rounded-xl text-xs font-bold shadow-sm transition"
@@ -404,38 +407,34 @@ function PatientPrescriptionCard({ prescription, onEdit }) {
 export default function Prescriptions() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [prescriptions, setPrescriptions] = useState([]);
+  const [allPrescriptions, setAllPrescriptions] = useState([]);
   const [search, setSearch] = useState("");
   const [selectedDate, setSelectedDate] = useState(null);
   const [dateCounts, setDateCounts] = useState({});
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [editingPrescription, setEditingPrescription] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
 
-  const loadPrescriptions = useCallback(
-    async (searchValue, dateValue, pageValue) => {
-      try {
-        setLoading(true);
-        const res = await getAllPrescriptions({
-          search: searchValue,
-          date: dateValue ? toDateKey(dateValue) : "",
-          page: pageValue,
-          limit: PAGE_LIMIT,
-        });
-        setPrescriptions(res.data || []);
-        setTotalPages(res.pagination?.totalPages || 1);
-        setTotal(res.pagination?.total || 0);
-      } catch {
-        Swal.fire(t("common.error"), t("prescriptions.loadError"), "error");
-      } finally {
-        setLoading(false);
-      }
-    },
-    [t],
-  );
+  // زي صفحة الفولو أب بالظبط: نجيب الروشتات كلها مرة واحدة بس أول ما
+  // الصفحة تفتح، وبعدين الفلترة بالبحث والتاريخ والـ pagination كلها
+  // بتتم في المتصفح على طول من غير أي نداء تاني للباك
+  const loadPrescriptions = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await getAllPrescriptions({
+        search: "",
+        date: "",
+        page: 1,
+        limit: 1000,
+      });
+      setAllPrescriptions(res.data || []);
+    } catch {
+      Swal.fire(t("common.error"), t("prescriptions.loadError"), "error");
+    } finally {
+      setLoading(false);
+    }
+  }, [t]);
 
   const loadDateCounts = useCallback(async () => {
     try {
@@ -451,21 +450,43 @@ export default function Prescriptions() {
   }, []);
 
   useEffect(() => {
-    loadPrescriptions("", null, 1);
+    loadPrescriptions();
     loadDateCounts();
-  }, []);
+  }, [loadPrescriptions, loadDateCounts]);
+
+  const filteredPrescriptions = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    const selectedKey = selectedDate ? toDateKey(selectedDate) : "";
+    return allPrescriptions.filter((p) => {
+      const matchesDate = selectedKey
+        ? toDateKey(p.createdAt) === selectedKey
+        : true;
+      const matchesSearch = query
+        ? p.patientId?.name?.toLowerCase().includes(query) ||
+          (p.medications || []).some((m) =>
+            m?.name?.toLowerCase().includes(query),
+          )
+        : true;
+      return matchesDate && matchesSearch;
+    });
+  }, [allPrescriptions, search, selectedDate]);
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredPrescriptions.length / PAGE_LIMIT),
+  );
+  const total = filteredPrescriptions.length;
+  const prescriptions = filteredPrescriptions.slice(
+    (page - 1) * PAGE_LIMIT,
+    page * PAGE_LIMIT,
+  );
 
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      setPage(1);
-      loadPrescriptions(search, selectedDate, 1);
-    }, 400);
-    return () => clearTimeout(timeout);
+    setPage(1);
   }, [search, selectedDate]);
 
   const handlePageChange = (next) => {
     setPage(next);
-    loadPrescriptions(search, selectedDate, next);
   };
 
   const handleEdit = (prescription) => {
@@ -502,13 +523,13 @@ export default function Prescriptions() {
   const handleModalSaved = () => {
     setShowEditModal(false);
     setEditingPrescription(null);
-    loadPrescriptions(search, selectedDate, page);
+    loadPrescriptions();
     loadDateCounts();
   };
 
   return (
     <div className="min-h-screen bg-slate-50/70 antialiased text-slate-800 pb-12 w-full box-border">
-      <div className="bg-gradient-to-r from-blue-700 to-blue-600 text-white pt-6 pb-24 px-4 sm:px-6 shadow-lg">
+      <div className="bg-gradient-to-r from-blue-700 to-blue-600 text-white pt-6 pb-24 px-4 sm:px-6 shadow-lg rounded-3xl">
         <div className="max-w-7xl mx-auto">
           <button
             onClick={() => navigate(-1)}
@@ -540,120 +561,120 @@ export default function Prescriptions() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 -mt-12">
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_260px] gap-6 items-start">
-        <div>
-          <div className="mb-6 relative group shadow-sm rounded-2xl">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-600 transition-colors">
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2.5"
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_260px] gap-6 items-start">
+          <div>
+            <div className="mb-6 relative group shadow-sm rounded-2xl">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-600 transition-colors">
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2.5"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+              </div>
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={t("prescriptions.searchPlaceholder")}
+                className="w-full bg-white rounded-2xl pl-12 pr-4 py-3.5 sm:py-4 text-sm sm:text-base font-medium border-0 shadow-md focus:outline-none focus:ring-4 focus:ring-blue-500/10 placeholder:text-slate-400"
+              />
             </div>
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder={t("prescriptions.searchPlaceholder")}
-              className="w-full bg-white rounded-2xl pl-12 pr-4 py-3.5 sm:py-4 text-sm sm:text-base font-medium border-0 shadow-md focus:outline-none focus:ring-4 focus:ring-blue-500/10 placeholder:text-slate-400"
-            />
+
+            {loading && (
+              <div className="text-center text-gray-400 py-16">
+                {t("prescriptions.loading")}
+              </div>
+            )}
+
+            {!loading && prescriptions.length === 0 && (
+              <div className="text-center text-gray-400 py-16 bg-white rounded-xl shadow-sm border border-gray-100">
+                {t("prescriptions.noData")}
+              </div>
+            )}
+
+            {!loading &&
+              prescriptions.map((prescription) => (
+                <PatientPrescriptionCard
+                  key={prescription._id}
+                  prescription={prescription}
+                  onEdit={handleEdit}
+                />
+              ))}
+
+            {!loading && total > 0 && (
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-2 px-1">
+                <p className="text-xs text-gray-500">
+                  {t("prescriptions.showing")} {prescriptions.length}{" "}
+                  {t("prescriptions.of")} {total}
+                </p>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => handlePageChange(Math.max(1, page - 1))}
+                    disabled={page === 1}
+                    className="px-3 py-1.5 rounded-md text-sm border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-40"
+                  >
+                    {t("common.previous")}
+                  </button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .slice(Math.max(0, page - 3), Math.max(0, page - 3) + 5)
+                    .map((p) => (
+                      <button
+                        key={p}
+                        onClick={() => handlePageChange(p)}
+                        className={`w-8 h-8 rounded-md text-sm font-medium ${p === page ? "bg-blue-600 text-white" : "border border-gray-300 text-gray-600 hover:bg-gray-50"}`}
+                      >
+                        {p}
+                      </button>
+                    ))}
+                  <button
+                    onClick={() =>
+                      handlePageChange(Math.min(totalPages, page + 1))
+                    }
+                    disabled={page === totalPages}
+                    className="px-3 py-1.5 rounded-md text-sm border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-40"
+                  >
+                    {t("common.next")}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
-          {loading && (
-            <div className="text-center text-gray-400 py-16">
-              {t("prescriptions.loading")}
-            </div>
-          )}
-
-          {!loading && prescriptions.length === 0 && (
-            <div className="text-center text-gray-400 py-16 bg-white rounded-xl shadow-sm border border-gray-100">
-              {t("prescriptions.noData")}
-            </div>
-          )}
-
-          {!loading &&
-            prescriptions.map((prescription) => (
-              <PatientPrescriptionCard
-                key={prescription._id}
-                prescription={prescription}
-                onEdit={handleEdit}
-              />
-            ))}
-
-          {!loading && total > 0 && (
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-2 px-1">
-              <p className="text-xs text-gray-500">
-                {t("prescriptions.showing")} {prescriptions.length}{" "}
-                {t("prescriptions.of")} {total}
-              </p>
-              <div className="flex items-center gap-1.5">
-                <button
-                  onClick={() => handlePageChange(Math.max(1, page - 1))}
-                  disabled={page === 1}
-                  className="px-3 py-1.5 rounded-md text-sm border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-40"
-                >
-                  {t("common.previous")}
-                </button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1)
-                  .slice(Math.max(0, page - 3), Math.max(0, page - 3) + 5)
-                  .map((p) => (
-                    <button
-                      key={p}
-                      onClick={() => handlePageChange(p)}
-                      className={`w-8 h-8 rounded-md text-sm font-medium ${p === page ? "bg-blue-600 text-white" : "border border-gray-300 text-gray-600 hover:bg-gray-50"}`}
-                    >
-                      {p}
-                    </button>
-                  ))}
-                <button
-                  onClick={() =>
-                    handlePageChange(Math.min(totalPages, page + 1))
-                  }
-                  disabled={page === totalPages}
-                  className="px-3 py-1.5 rounded-md text-sm border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-40"
-                >
-                  {t("common.next")}
-                </button>
-              </div>
-            </div>
-          )}
+          <aside className="order-first lg:order-2 lg:sticky lg:top-4 mt-16 lg:mt-16">
+            <PrescriptionCalendar
+              selectedDate={selectedDate}
+              onSelectDate={setSelectedDate}
+              dateCounts={dateCounts}
+            />
+          </aside>
         </div>
 
-        <aside className="order-first lg:order-2 lg:sticky lg:top-4 mt-16 lg:mt-16">
-          <PrescriptionCalendar
-            selectedDate={selectedDate}
-            onSelectDate={setSelectedDate}
-            dateCounts={dateCounts}
+        {editingPrescription && (
+          <PrescriptionModal
+            isOpen={showEditModal}
+            onClose={() => {
+              setShowEditModal(false);
+              setEditingPrescription(null);
+            }}
+            consultationId={
+              typeof editingPrescription.consultationId === "object"
+                ? editingPrescription.consultationId?._id
+                : editingPrescription.consultationId
+            }
+            patient={editingPrescription.patientId}
+            language={editingPrescription.language || "en"}
+            existingPrescription={editingPrescription}
+            onSaved={handleModalSaved}
           />
-        </aside>
-      </div>
-
-      {editingPrescription && (
-        <PrescriptionModal
-          isOpen={showEditModal}
-          onClose={() => {
-            setShowEditModal(false);
-            setEditingPrescription(null);
-          }}
-          consultationId={
-            typeof editingPrescription.consultationId === "object"
-              ? editingPrescription.consultationId?._id
-              : editingPrescription.consultationId
-          }
-          patient={editingPrescription.patientId}
-          language={editingPrescription.language || "en"}
-          existingPrescription={editingPrescription}
-          onSaved={handleModalSaved}
-        />
-      )}
+        )}
       </div>
     </div>
   );

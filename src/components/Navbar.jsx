@@ -1,19 +1,18 @@
-import { useState, useRef, useEffect } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { useAuth } from '../context/AuthContext';
-import LanguageSwitcher from './LanguageSwitcher';
-
+import { useState, useRef, useEffect } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { useAuth } from "../context/AuthContext";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 const navItems = [
-  { label: 'Patients', path: '/patients' },
-  { label: 'Consultations', path: '/consultations' },
-  { label: 'Add Consultation', path: '/consultations/search-patient' },
-  { label: 'Prescriptions', path: '/prescriptions' },
-  { label: 'Follow-ups', path: '/followups' },
-  { label: 'AI Chat', path: '/ai-chat' },
-  { label: 'Drug Safety', path: '/drug-safety' },
-  { label: 'Subscriptions', path: '/Subscriptions' },
+  { label: "Patients", path: "/patients" },
+  { label: "Consultations", path: "/consultations" },
+  { label: "Add Consultation", path: "/consultations/search-patient" },
+  { label: "Prescriptions", path: "/prescriptions" },
+  { label: "Follow-ups", path: "/followups" },
+  { label: "AI Chat", path: "/ai-chat" },
+  { label: "Drug Safety", path: "/drug-safety" },
+  { label: "Subscriptions", path: "/Subscriptions" },
 ];
 
 export default function Navbar() {
@@ -25,14 +24,14 @@ export default function Navbar() {
   const menuRef = useRef(null);
 
   const navItems = [
-    { label: t('nav.patients'), path: '/patients' },
-    { label: t('nav.consultations'), path: '/consultations' },
-    { label: t('nav.addConsultation'), path: '/consultations/search-patient' },
-    { label: t('nav.prescriptions'), path: '/prescriptions' },
-    { label: t('nav.followups'), path: '/followups' },
-    { label: t('nav.aiChat'), path: '/ai-chat' },
-    { label: t('nav.drugSafety'), path: '/drug-safety' },
-    { label: t('nav.subscriptions'), path: '/subscriptions' },
+    { label: t("nav.patients"), path: "/patients" },
+    { label: t("nav.consultations"), path: "/consultations" },
+    { label: t("nav.addConsultation"), path: "/consultations/search-patient" },
+    { label: t("nav.prescriptions"), path: "/prescriptions" },
+    { label: t("nav.followups"), path: "/followups" },
+    { label: t("nav.aiChat"), path: "/ai-chat" },
+    { label: t("nav.drugSafety"), path: "/drug-safety" },
+    { label: t("nav.subscriptions"), path: "/subscriptions" },
   ];
 
   useEffect(() => {
@@ -41,38 +40,43 @@ export default function Navbar() {
         setMenuOpen(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const initials =
     user?.name
-      ?.split(' ')
+      ?.split(" ")
       .slice(0, 2)
       .map((w) => w[0])
-      .join('')
-      .toUpperCase() || 'DR';
+      .join("")
+      .toUpperCase() || "DR";
 
   return (
-    <nav className="bg-white border-b border-gray-200">
+    <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
       <div className="flex items-center justify-between px-4 py-3">
-
         <div className="flex items-center gap-3">
           <button
             className="md:hidden flex flex-col gap-1.5 p-1 cursor-pointer"
             onClick={() => setMobileOpen((prev) => !prev)}
           >
-            <span className={`block w-5 h-0.5 bg-gray-600 transition-transform ${mobileOpen ? 'rotate-45 translate-y-2' : ''}`}></span>
-            <span className={`block w-5 h-0.5 bg-gray-600 transition-opacity ${mobileOpen ? 'opacity-0' : ''}`}></span>
-            <span className={`block w-5 h-0.5 bg-gray-600 transition-transform ${mobileOpen ? '-rotate-45 -translate-y-2' : ''}`}></span>
+            <span
+              className={`block w-5 h-0.5 bg-gray-600 transition-transform ${mobileOpen ? "rotate-45 translate-y-2" : ""}`}
+            ></span>
+            <span
+              className={`block w-5 h-0.5 bg-gray-600 transition-opacity ${mobileOpen ? "opacity-0" : ""}`}
+            ></span>
+            <span
+              className={`block w-5 h-0.5 bg-gray-600 transition-transform ${mobileOpen ? "-rotate-45 -translate-y-2" : ""}`}
+            ></span>
           </button>
 
-        <h1
-  className="text-lg font-bold text-gray-900 cursor-pointer"
-  onClick={() => navigate('/')}
->
-  Med<span className="text-blue-600">Agents</span>
-</h1>
+          <h1
+            className="text-lg font-bold text-gray-900 cursor-pointer"
+            onClick={() => navigate("/")}
+          >
+            Med<span className="text-blue-600">Agents</span>
+          </h1>
         </div>
 
         <div className="hidden md:flex items-center gap-1">
@@ -82,9 +86,10 @@ export default function Navbar() {
               end
               to={item.path}
               className={({ isActive }) =>
-                `px-3 py-2 rounded-md text-sm font-medium transition ${isActive
-                  ? 'text-blue-600 bg-blue-50'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                `px-3 py-2 rounded-md text-sm font-medium transition ${
+                  isActive
+                    ? "text-blue-600 bg-blue-50"
+                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
                 }`
               }
             >
@@ -107,34 +112,45 @@ export default function Navbar() {
 
             {menuOpen && (
               // <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                  <div className="absolute end-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                
+              <div className="absolute end-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
                 <button
-                  onClick={() => { setMenuOpen(false); navigate('/profile'); }}
+                  onClick={() => {
+                    setMenuOpen(false);
+                    navigate("/profile");
+                  }}
                   className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 border-b cursor-pointer"
                 >
-                  {user?.name || 'Doctor'}
+                  {user?.name || "Doctor"}
                 </button>
 
                 <button
-                  onClick={() => { setMenuOpen(false); navigate('/'); }}
+                  onClick={() => {
+                    setMenuOpen(false);
+                    navigate("/");
+                  }}
                   className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 border-b cursor-pointer"
                 >
-                  {t('nav.home')}
+                  {t("nav.home")}
                 </button>
 
                 <button
-                  onClick={() => { setMenuOpen(false); navigate('/contact'); }}
+                  onClick={() => {
+                    setMenuOpen(false);
+                    navigate("/contact");
+                  }}
                   className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 border-b cursor-pointer"
                 >
-                  {t('nav.contactUs')}
+                  {t("nav.contactUs")}
                 </button>
 
                 <button
-                  onClick={() => { setMenuOpen(false); logout(); }}
+                  onClick={() => {
+                    setMenuOpen(false);
+                    logout();
+                  }}
                   className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 cursor-pointer"
                 >
-                  {t('nav.logout')}
+                  {t("nav.logout")}
                 </button>
               </div>
             )}
@@ -150,9 +166,10 @@ export default function Navbar() {
               to={item.path}
               onClick={() => setMobileOpen(false)}
               className={({ isActive }) =>
-                `px-3 py-2 rounded-md text-sm font-medium transition ${isActive
-                  ? 'text-blue-600 bg-blue-50'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                `px-3 py-2 rounded-md text-sm font-medium transition ${
+                  isActive
+                    ? "text-blue-600 bg-blue-50"
+                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
                 }`
               }
             >
