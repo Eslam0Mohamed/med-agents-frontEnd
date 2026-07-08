@@ -339,7 +339,10 @@ const StartFollowUp = () => {
         sourceFollowupId: followupId,
         parentConsultationId: getId(followUp?.consultationId),
 
-        previousInstructions: followUp?.instructions || "",
+        previousInstructions:
+          getPreviousConsultation()?.structuredNote ||
+          getPreviousConsultation()?.rawInput ||
+          "",
         previousDiagnosis: getPreviousDiagnosis(),
         previousSymptoms: getPreviousSymptoms(),
         previousNotes: getPreviousNotes(),
@@ -697,7 +700,8 @@ const StartFollowUp = () => {
                 </p>
 
                 <p className="text-sm text-gray-800 whitespace-pre-wrap">
-                  {followUp.instructions ||
+                  {getPreviousConsultation()?.structuredNote ||
+                    getPreviousConsultation()?.rawInput ||
                     t("followups.start.noInstructionsRecorded")}
                 </p>
               </div>

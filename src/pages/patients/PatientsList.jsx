@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -9,17 +9,34 @@ export default function PatientsList() {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { list, pagination, isLoading } = useSelector(
-    (state) => state.patients,
-  );
+  const { list, isLoading } = useSelector((state) => state.patients);
 
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const limit = 10;
 
+  // زي صفحة الفولو أب: بنجيب المرضى كلهم مرة واحدة بس (من غير search
+  // parameter)، وبعدين الفلترة والـ pagination بيتعملوا في المتصفح على
+  // طول، من غير أي نداء تاني للباك مع كل حرف بيتكتب
   useEffect(() => {
-    dispatch(fetchPatients({ search, page, limit }));
-  }, [dispatch, search, page]);
+    dispatch(fetchPatients({ search: "", page: 1, limit: 1000 }));
+  }, [dispatch]);
+
+  const filteredPatients = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query) return list || [];
+    return (list || []).filter(
+      (p) =>
+        p.name?.toLowerCase().includes(query) ||
+        p.nationalID?.toLowerCase().includes(query),
+    );
+  }, [list, search]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredPatients.length / limit));
+  const pagedPatients = filteredPatients.slice(
+    (page - 1) * limit,
+    page * limit,
+  );
 
   const calculateAge = (dob) => {
     const today = new Date();
@@ -61,11 +78,9 @@ export default function PatientsList() {
     });
   };
 
-  const totalPages = pagination?.totalPages || 0;
-
   return (
     <div className="min-h-screen bg-slate-50/70 antialiased text-slate-800 pb-12 w-full box-border">
-      <div className="bg-gradient-to-r from-blue-700 to-blue-600 text-white pt-6 pb-24 px-4 sm:px-6 shadow-lg">
+      <div className="bg-gradient-to-r from-blue-700 to-blue-600 text-white pt-6 pb-24 px-4 sm:px-6 shadow-lg rounded-3xl">
         <div className="max-w-7xl mx-auto">
           <button
             onClick={() => navigate(-1)}
@@ -137,7 +152,7 @@ export default function PatientsList() {
           </div>
           <input
             type="text"
-            placeholder={t("common.search") + "..."}
+            placeholder={t("patients.searchPlaceholder")}
             value={search}
             onChange={(e) => handleSearch(e.target.value)}
             className="w-full border-0 rounded-2xl pl-12 pr-4 py-3.5 sm:py-4 text-sm sm:text-base bg-white shadow-md focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all duration-200 placeholder-slate-400 font-medium text-slate-700"
@@ -149,16 +164,19 @@ export default function PatientsList() {
           // <div className="text-center text-gray-400 py-10">{t('common.loading')}</div>
         )}
 
-        {!isLoading && list.length === 0 && (
+        {!isLoading && filteredPatients.length === 0 && (
           <div className="text-center text-gray-400 py-10">
             {t("common.noData")}
           </div>
         )}
 
-        {!isLoading && list.length > 0 && (
+        {!isLoading && pagedPatients.length > 0 && (
           <div className="hidden md:block bg-white rounded-2xl shadow-xl shadow-slate-100/80 border border-slate-100 overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-sm table-auto border-collapse text-left">
+              <table
+                dir="rtl"
+                className="w-full text-sm table-auto border-collapse text-right"
+              >
                 <thead className="bg-blue-600 text-white/95">
                   <tr>
                     <th className="px-6 py-4 font-bold tracking-wide text-xs uppercase opacity-90">
@@ -173,13 +191,13 @@ export default function PatientsList() {
                     <th className="px-6 py-4 font-bold tracking-wide text-xs uppercase opacity-90">
                       {t("patients.gender")}
                     </th>
-                    <th className="px-6 py-4 font-bold tracking-wide text-xs uppercase opacity-90 text-right">
+                    <th className="px-6 py-4 font-bold tracking-wide text-xs uppercase opacity-90 text-left">
                       {t("common.actions")}
                     </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100/70">
-                  {list.map((patient) => (
+                  {pagedPatients.map((patient) => (
                     <tr
                       key={patient._id}
                       className="hover:bg-slate-50/70 transition-all duration-150 group"
@@ -251,9 +269,9 @@ export default function PatientsList() {
           </div>
         )}
 
-        {!isLoading && list.length > 0 && (
+        {!isLoading && pagedPatients.length > 0 && (
           <div className="md:hidden bg-white rounded-2xl shadow-xl shadow-slate-100/80 border border-slate-100 divide-y divide-slate-100">
-            {list.map((patient) => (
+            {pagedPatients.map((patient) => (
               <div
                 key={patient._id}
                 className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
@@ -309,10 +327,10 @@ export default function PatientsList() {
           </div>
         )}
 
-        {!isLoading && list.length > 0 && (
+        {!isLoading && pagedPatients.length > 0 && (
           <div className="flex items-center justify-between px-4 py-3 mt-4 bg-white rounded-2xl shadow-xl shadow-slate-100/80 border border-slate-100">
             <span className="text-sm text-gray-500">
-              {list.length} / {pagination?.total || list.length}
+              {pagedPatients.length} / {filteredPatients.length}
             </span>
             {totalPages > 1 && !search && (
               <div className="flex items-center gap-1">

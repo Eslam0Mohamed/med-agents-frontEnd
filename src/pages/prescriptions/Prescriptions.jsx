@@ -203,7 +203,87 @@ function PatientPrescriptionCard({ prescription, onEdit }) {
 
   return (
     <div className="bg-white rounded-2xl shadow-md shadow-slate-100/80 border border-slate-100 overflow-hidden mb-5">
-      <div className="px-5 py-4 flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 bg-slate-50/60">
+      {/* Patient info header — table style, like the Consultations page */}
+      <div className="hidden md:block overflow-x-auto">
+        <table
+          dir="rtl"
+          className="w-full text-sm table-auto border-collapse text-right"
+        >
+          <thead className="bg-blue-600 text-white/95">
+            <tr>
+              <th className="px-5 py-3 font-bold tracking-wide text-xs uppercase opacity-90">
+                {t("common.name")}
+              </th>
+              <th className="px-5 py-3 font-bold tracking-wide text-xs uppercase opacity-90">
+                {t("prescriptions.id")}
+              </th>
+              <th className="px-5 py-3 font-bold tracking-wide text-xs uppercase opacity-90">
+                {t("prescriptions.age")}
+              </th>
+              <th className="px-5 py-3 font-bold tracking-wide text-xs uppercase opacity-90">
+                {t("patients.allergies")}
+              </th>
+              <th className="px-5 py-3 font-bold tracking-wide text-xs uppercase opacity-90">
+                {t("common.type")}
+              </th>
+              <th className="px-5 py-3 font-bold tracking-wide text-xs uppercase opacity-90">
+                {t("common.date")}
+              </th>
+              <th className="px-5 py-3 font-bold tracking-wide text-xs uppercase opacity-90 text-left">
+                {t("common.actions")}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr className="bg-slate-50/60">
+              <td className="px-5 py-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold shrink-0">
+                    {initials(patient?.name)}
+                  </div>
+                  <span className="font-black text-blue-600 text-base">
+                    {patient?.name || t("prescriptions.unknownPatient")}
+                  </span>
+                </div>
+              </td>
+              <td className="px-5 py-4 text-slate-600 font-semibold">
+                {patient?.nationalID || "—"}
+              </td>
+              <td className="px-5 py-4 text-slate-600 font-semibold">
+                {age !== null ? age : "—"}
+              </td>
+              <td className="px-5 py-4 text-slate-600 font-semibold max-w-[220px] truncate">
+                {patient?.allergies?.length > 0
+                  ? patient.allergies.join(", ")
+                  : t("prescriptions.noneReported")}
+              </td>
+              <td className="px-5 py-4">
+                <span
+                  className={`text-[10px] font-bold px-2.5 py-1 rounded-xl border tracking-wide uppercase shadow-sm ${isFromFollowup ? "bg-purple-50 text-purple-600 border-purple-200/50" : "bg-blue-50 text-blue-600 border-blue-200/50"}`}
+                >
+                  {isFromFollowup
+                    ? t("prescriptions.followupTag")
+                    : t("prescriptions.consultationTag")}
+                </span>
+              </td>
+              <td className="px-5 py-4 text-slate-600 font-semibold whitespace-nowrap">
+                {new Date(prescription.createdAt).toLocaleDateString()}
+              </td>
+              <td className="px-5 py-4 text-left">
+                <button
+                  onClick={() => onEdit(prescription)}
+                  className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-600 hover:text-white px-3.5 py-1.5 rounded-xl text-xs font-bold shadow-sm transition"
+                >
+                  ✏️ {t("common.edit")}
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      {/* Patient info header — mobile card style */}
+      <div className="md:hidden px-5 py-4 border-b border-slate-100 bg-slate-50/60">
         <div className="flex items-center gap-3 min-w-0">
           <div className="w-11 h-11 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-sm font-bold shrink-0">
             {initials(patient?.name)}
@@ -242,14 +322,12 @@ function PatientPrescriptionCard({ prescription, onEdit }) {
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-3 shrink-0">
-          <button
-            onClick={() => onEdit(prescription)}
-            className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-600 hover:text-white px-3.5 py-1.5 rounded-xl text-xs font-bold shadow-sm transition"
-          >
-            ✏️ {t("common.edit")}
-          </button>
-        </div>
+        <button
+          onClick={() => onEdit(prescription)}
+          className="mt-3 w-full inline-flex items-center justify-center gap-1.5 bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-600 hover:text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-sm transition"
+        >
+          ✏️ {t("common.edit")}
+        </button>
       </div>
 
       {/* Desktop table */}
@@ -329,38 +407,34 @@ function PatientPrescriptionCard({ prescription, onEdit }) {
 export default function Prescriptions() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [prescriptions, setPrescriptions] = useState([]);
+  const [allPrescriptions, setAllPrescriptions] = useState([]);
   const [search, setSearch] = useState("");
   const [selectedDate, setSelectedDate] = useState(null);
   const [dateCounts, setDateCounts] = useState({});
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [editingPrescription, setEditingPrescription] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
 
-  const loadPrescriptions = useCallback(
-    async (searchValue, dateValue, pageValue) => {
-      try {
-        setLoading(true);
-        const res = await getAllPrescriptions({
-          search: searchValue,
-          date: dateValue ? toDateKey(dateValue) : "",
-          page: pageValue,
-          limit: PAGE_LIMIT,
-        });
-        setPrescriptions(res.data || []);
-        setTotalPages(res.pagination?.totalPages || 1);
-        setTotal(res.pagination?.total || 0);
-      } catch {
-        Swal.fire(t("common.error"), t("prescriptions.loadError"), "error");
-      } finally {
-        setLoading(false);
-      }
-    },
-    [t],
-  );
+  // زي صفحة الفولو أب بالظبط: نجيب الروشتات كلها مرة واحدة بس أول ما
+  // الصفحة تفتح، وبعدين الفلترة بالبحث والتاريخ والـ pagination كلها
+  // بتتم في المتصفح على طول من غير أي نداء تاني للباك
+  const loadPrescriptions = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await getAllPrescriptions({
+        search: "",
+        date: "",
+        page: 1,
+        limit: 1000,
+      });
+      setAllPrescriptions(res.data || []);
+    } catch {
+      Swal.fire(t("common.error"), t("prescriptions.loadError"), "error");
+    } finally {
+      setLoading(false);
+    }
+  }, [t]);
 
   const loadDateCounts = useCallback(async () => {
     try {
@@ -376,21 +450,43 @@ export default function Prescriptions() {
   }, []);
 
   useEffect(() => {
-    loadPrescriptions("", null, 1);
+    loadPrescriptions();
     loadDateCounts();
-  }, []);
+  }, [loadPrescriptions, loadDateCounts]);
+
+  const filteredPrescriptions = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    const selectedKey = selectedDate ? toDateKey(selectedDate) : "";
+    return allPrescriptions.filter((p) => {
+      const matchesDate = selectedKey
+        ? toDateKey(p.createdAt) === selectedKey
+        : true;
+      const matchesSearch = query
+        ? p.patientId?.name?.toLowerCase().includes(query) ||
+          (p.medications || []).some((m) =>
+            m?.name?.toLowerCase().includes(query),
+          )
+        : true;
+      return matchesDate && matchesSearch;
+    });
+  }, [allPrescriptions, search, selectedDate]);
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredPrescriptions.length / PAGE_LIMIT),
+  );
+  const total = filteredPrescriptions.length;
+  const prescriptions = filteredPrescriptions.slice(
+    (page - 1) * PAGE_LIMIT,
+    page * PAGE_LIMIT,
+  );
 
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      setPage(1);
-      loadPrescriptions(search, selectedDate, 1);
-    }, 400);
-    return () => clearTimeout(timeout);
+    setPage(1);
   }, [search, selectedDate]);
 
   const handlePageChange = (next) => {
     setPage(next);
-    loadPrescriptions(search, selectedDate, next);
   };
 
   const handleEdit = (prescription) => {
@@ -427,13 +523,13 @@ export default function Prescriptions() {
   const handleModalSaved = () => {
     setShowEditModal(false);
     setEditingPrescription(null);
-    loadPrescriptions(search, selectedDate, page);
+    loadPrescriptions();
     loadDateCounts();
   };
 
   return (
     <div className="min-h-screen bg-slate-50/70 antialiased text-slate-800 pb-12 w-full box-border">
-      <div className="bg-gradient-to-r from-blue-700 to-blue-600 text-white pt-6 pb-24 px-4 sm:px-6 shadow-lg">
+      <div className="bg-gradient-to-r from-blue-700 to-blue-600 text-white pt-6 pb-24 px-4 sm:px-6 shadow-lg rounded-3xl">
         <div className="max-w-7xl mx-auto">
           <button
             onClick={() => navigate(-1)}

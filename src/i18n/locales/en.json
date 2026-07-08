@@ -45,10 +45,13 @@
     "error": "Error",
     "unknown": "Unknown",
     "previous": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "type": "Type",
+    "date": "Date"
   },
   "patients": {
     "title": "Patients",
+    "searchPlaceholder": "Search patient by name or national ID",
     "addPatient": "Add Patient",
     "fullName": "Full Name in Arabic",
     "nationalId": "National ID",
@@ -78,7 +81,7 @@
   },
   "consultations": {
     "title": "Consultations",
-    "searchPlaceholder": "Search consultations by patient name or national ID",
+    "searchPlaceholder": "Search consultation by name or national ID",
     "listSubtitle": "Review clinical consult history, specialist notes, and digital recommendations.",
     "diagnosis": "Diagnosis",
     "newConsultation": "New Consultation",
@@ -131,7 +134,7 @@
     },
     "searchPatient": "Search Patient",
     "searchSubtitle": "Find a patient by name or National ID to start a new consultation",
-    "searchPlaceholder": "Type patient name or National ID...",
+    "searchPatientPlaceholder": "Search patient by name or national ID",
     "searchingPatients": "Searching patients ...",
     "noPatientsFound": "No patients found",
     "noPatientsHint": "Please check the spelling or check the National ID number.",
@@ -151,6 +154,7 @@
   "followups": {
     "title": "Follow-ups",
     "subtitle": "Manage scheduled reviews and continuity of care for your clinic.",
+    "searchPlaceholder": "Search follow-up by name or national ID",
     "createdAuto": "Created automatically from consultations",
     "scheduledDate": "Scheduled Date",
     "finished": "Finished",
@@ -293,7 +297,7 @@
   "prescriptions": {
     "title": "Prescriptions",
     "subtitle": "All prescriptions you've issued, with live safety screening.",
-    "searchPlaceholder": "Search by patient name or national ID...",
+    "searchPlaceholder": "Search prescription by name or national ID",
     "loading": "Loading prescriptions...",
     "noData": "No prescriptions found.",
     "showing": "Showing",
