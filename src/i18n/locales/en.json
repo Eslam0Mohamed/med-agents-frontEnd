@@ -50,7 +50,7 @@
   "patients": {
     "title": "Patients",
     "addPatient": "Add Patient",
-    "fullName": "Full Name",
+    "fullName": "Full Name in Arabic",
     "nationalId": "National ID",
     "dateOfBirth": "Date of Birth",
     "gender": "Gender",

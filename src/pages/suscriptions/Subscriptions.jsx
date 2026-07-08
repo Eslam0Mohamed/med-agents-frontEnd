@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { getMySubscription } from "../../api/subscription";
 import { initiatePayment } from "../../api/payment";
 import { getSubscriptionMessage } from '../../utils/subscriptions';
-import LoadingState from '../../components/patient-report/LoadingState';
+
 const PLAN_PRICES = { Basic: 200, Pro: 350 };
 const MONTHS_OPTIONS = [1, 3, 6, 12];
 const Subscriptions = () => {
@@ -59,7 +59,7 @@ const Subscriptions = () => {
 useEffect(()=>{
     fetchSubscription()
 },[])
-    if (loading) return <LoadingState></LoadingState>;
+    if (loading) return <h2>Loading...</h2>;
     if (error) {
         return (
             <div className="flex justify-center items-center min-h-[60vh]">
@@ -104,6 +104,14 @@ useEffect(()=>{
   subscription.status === "trial"
     ? (subscription.daysLeft / 14) * 100
     : Math.min((subscription.daysLeft / 30) * 100, 100);
+
+    const RENEWAL_WINDOW_DAYS = 3;
+    const isSwitchingPlan = subscription.status === "active" && selectedPlan !== subscription.plan;
+    const canRenew =
+        subscription.status !== "active" ||
+        subscription.daysLeft <= RENEWAL_WINDOW_DAYS ||
+        isSwitchingPlan;
+
     return (
         <div className="max-w-5xl mx-auto mt-10 rounded-2xl bg-white shadow-lg p-10">
 
@@ -191,6 +199,14 @@ useEffect(()=>{
                     {subscription.status === "active" ? "Renew Subscription" : "Subscribe Now"}
                 </h3>
 
+                {isSwitchingPlan && (
+                    <div className="mb-4 rounded-lg bg-amber-50 border border-amber-200 p-3 text-amber-700 text-sm">
+                        You currently have {subscription.daysLeft} day(s) left on the {subscription.plan} plan.
+                        Switching to {selectedPlan} now will start a new subscription from today —
+                        your remaining {subscription.plan} days will not be carried over.
+                    </div>
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
 
                     <div>
@@ -222,14 +238,24 @@ useEffect(()=>{
 
                     <button
                         onClick={handleUpgrade}
-                        disabled={payLoading}
-                        className="bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white px-5 py-2 rounded-lg transition font-semibold"
+                        disabled={payLoading || !canRenew}
+                        className="bg-blue-600 hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed text-white px-5 py-2 rounded-lg transition font-semibold"
                     >
                         {payLoading
                             ? "Redirecting..."
+                            : !canRenew
+                            ? "Not available yet"
                             : `Pay ${PLAN_PRICES[selectedPlan] * selectedMonths} EGP`}
                     </button>
                 </div>
+
+                {!canRenew && (
+                    <p className="text-gray-500 text-sm mt-3">
+                        You already have an active subscription with {subscription.daysLeft} days remaining on {subscription.plan}.
+                        You can renew the same plan starting {RENEWAL_WINDOW_DAYS} days before it expires,
+                        or pick a different plan above to switch right away.
+                    </p>
+                )}
 
                 {payError && (
                     <p className="text-red-600 text-sm mt-3">{payError}</p>

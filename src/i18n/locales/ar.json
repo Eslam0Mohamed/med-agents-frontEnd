@@ -50,7 +50,7 @@
   "patients": {
     "title": "المرضى",
     "addPatient": "إضافة مريض",
-    "fullName": "الاسم بالكامل",
+    "fullName": " الاسم بالكامل باللغه العربيه",
     "nationalId": "الرقم القومي",
     "dateOfBirth": "تاريخ الميلاد",
     "gender": "النوع",
