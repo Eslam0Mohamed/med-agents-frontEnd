@@ -195,19 +195,34 @@ function SafetyCell({ medication }) {
 }
 
 function PatientPrescriptionCard({ prescription, onEdit }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  // في الإنجليزي عايزين الاسم/الدواء يبقوا على الشمال (يعني الجدول
+  // بيتعكس LTR)، وفي العربي يفضلوا على اليمين زي الأصل (RTL)
+  const tableDir = i18n.language === "ar" ? "rtl" : "ltr";
+  const tableAlign = i18n.language === "ar" ? "text-right" : "text-left";
   const patient = prescription.patientId;
   const age = calculateAge(patient?.dateOfBirth);
   const medications = (prescription.medications || []).filter(Boolean);
   const isFromFollowup = !!prescription.consultationId?.followupId;
+
+  // زرار الـ Edit بيتقفل بعد 5 دقايق من وقت إنشاء الروشتة
+  const [nowTick, setNowTick] = useState(() => Date.now());
+  useEffect(() => {
+    const interval = setInterval(() => setNowTick(Date.now()), 30000);
+    return () => clearInterval(interval);
+  }, []);
+  const EDIT_LOCK_MS = 4 * 60 * 60 * 1000; // 4 ساعات
+  const createdAtMs = new Date(prescription.createdAt).getTime();
+  const editLocked =
+    !Number.isNaN(createdAtMs) && nowTick - createdAtMs > EDIT_LOCK_MS;
 
   return (
     <div className="bg-white rounded-2xl shadow-md shadow-slate-100/80 border border-slate-100 overflow-hidden mb-5">
       {/* Patient info header — table style, like the Consultations page */}
       <div className="hidden md:block overflow-x-auto">
         <table
-          dir="rtl"
-          className="w-full text-sm table-auto border-collapse text-right"
+          dir={tableDir}
+          className={`w-full text-sm table-auto border-collapse ${tableAlign}`}
         >
           <thead className="bg-blue-600 text-white/95">
             <tr>
@@ -229,7 +244,9 @@ function PatientPrescriptionCard({ prescription, onEdit }) {
               <th className="px-5 py-3 font-bold tracking-wide text-xs uppercase opacity-90">
                 {t("common.date")}
               </th>
-              <th className="px-5 py-3 font-bold tracking-wide text-xs uppercase opacity-90 text-left">
+              <th
+                className={`px-5 py-3 font-bold tracking-wide text-xs uppercase opacity-90 ${i18n.language === "ar" ? "text-left" : "text-right"}`}
+              >
                 {t("common.actions")}
               </th>
             </tr>
@@ -269,10 +286,18 @@ function PatientPrescriptionCard({ prescription, onEdit }) {
               <td className="px-5 py-4 text-slate-600 font-semibold whitespace-nowrap">
                 {new Date(prescription.createdAt).toLocaleDateString()}
               </td>
-              <td className="px-5 py-4 text-left">
+              <td
+                className={`px-5 py-4 ${i18n.language === "ar" ? "text-left" : "text-right"}`}
+              >
                 <button
                   onClick={() => onEdit(prescription)}
-                  className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-600 hover:text-white px-3.5 py-1.5 rounded-xl text-xs font-bold shadow-sm transition"
+                  disabled={editLocked}
+                  title={editLocked ? t("prescriptions.editLocked") : undefined}
+                  className={
+                    editLocked
+                      ? "inline-flex items-center gap-1.5 bg-slate-50 text-slate-300 border border-slate-100 px-3.5 py-1.5 rounded-xl text-xs font-bold cursor-not-allowed"
+                      : "inline-flex items-center gap-1.5 bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-600 hover:text-white px-3.5 py-1.5 rounded-xl text-xs font-bold shadow-sm transition"
+                  }
                 >
                   ✏️ {t("common.edit")}
                 </button>
@@ -324,81 +349,110 @@ function PatientPrescriptionCard({ prescription, onEdit }) {
         </div>
         <button
           onClick={() => onEdit(prescription)}
-          className="mt-3 w-full inline-flex items-center justify-center gap-1.5 bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-600 hover:text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-sm transition"
+          disabled={editLocked}
+          title={editLocked ? t("prescriptions.editLocked") : undefined}
+          className={
+            editLocked
+              ? "mt-3 w-full inline-flex items-center justify-center gap-1.5 bg-slate-50 text-slate-300 border border-slate-100 px-3.5 py-2 rounded-xl text-xs font-bold cursor-not-allowed"
+              : "mt-3 w-full inline-flex items-center justify-center gap-1.5 bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-600 hover:text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-sm transition"
+          }
         >
           ✏️ {t("common.edit")}
         </button>
       </div>
 
       {/* Desktop table */}
-      <div className="hidden md:block overflow-x-auto">
-        <table className="w-full text-left">
-          <thead>
-            <tr className="text-xs font-semibold text-gray-500 uppercase">
-              <th className="px-5 py-3">{t("prescriptions.medication")}</th>
-              <th className="px-5 py-3">
-                {t("prescriptions.dosageFrequency")}
-              </th>
-              <th className="px-5 py-3">
-                {t("prescriptions.safetyScreening")}
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {medications.map((med, i) => (
-              <tr key={i}>
-                <td className="px-5 py-4 align-top">
-                  <p className="text-sm font-semibold text-gray-900">
-                    {med.name || t("prescriptions.unknownMedication")}
-                  </p>
-                  {med.activeIngredient && (
-                    <p className="text-xs text-gray-400">
-                      {med.activeIngredient}
-                    </p>
-                  )}
-                  {med.isChronic && (
-                    <p className="text-xs text-gray-400">
-                      {t("prescriptions.chronic")}
-                    </p>
-                  )}
-                </td>
-                <td className="px-5 py-4 align-top">
-                  <p className="text-sm text-gray-700">{med.dose || "—"}</p>
-                  <p className="text-sm text-gray-500">
-                    {med.frequency || "—"}
-                    {!med.isChronic && med.duration && <> · {med.duration}</>}
-                  </p>
-                </td>
-                <td className="px-5 py-4 align-top">
-                  <SafetyCell medication={med} />
-                </td>
+      <div className="hidden md:block border-t-2 border-slate-100 bg-slate-50/50 px-5 pt-4 pb-3">
+        <h4 className="text-xs font-black text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+          💊 {t("prescriptions.medication")}
+        </h4>
+        <div className="bg-white rounded-xl border border-slate-200">
+          <table
+            dir={tableDir}
+            className={`w-full ${tableAlign} border-collapse`}
+          >
+            <thead>
+              <tr className="text-[11px] font-bold text-slate-400 uppercase tracking-wide border-b border-slate-200">
+                <th className="px-4 py-2.5">{t("prescriptions.medication")}</th>
+                <th className="px-4 py-2.5 border-r border-slate-100">
+                  {t("prescriptions.dosageFrequency")}
+                </th>
+                <th className="px-4 py-2.5 border-r border-slate-100">
+                  {t("prescriptions.safetyScreening")}
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {medications.map((med, i) => (
+                <tr key={i}>
+                  <td className="px-4 py-3.5 align-top">
+                    <p className="text-sm font-bold text-slate-900">
+                      {med.name || t("prescriptions.unknownMedication")}
+                    </p>
+                    {med.activeIngredient && (
+                      <p className="text-xs text-slate-400">
+                        {med.activeIngredient}
+                      </p>
+                    )}
+                    {med.isChronic && (
+                      <span className="inline-block mt-1 text-[10px] font-bold text-blue-600 bg-blue-50 border border-blue-100 rounded-full px-2 py-0.5">
+                        {t("prescriptions.chronic")}
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3.5 align-top border-r border-slate-100">
+                    <p className="text-sm font-semibold text-slate-700">
+                      {med.dose || "—"}
+                    </p>
+                    <p className="text-sm text-slate-500">
+                      {med.frequency || "—"}
+                      {!med.isChronic && med.duration && <> · {med.duration}</>}
+                    </p>
+                  </td>
+                  <td className="px-4 py-3.5 align-top border-r border-slate-100">
+                    <SafetyCell medication={med} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Mobile list */}
-      <div className="md:hidden divide-y divide-gray-100">
-        {medications.map((med, i) => (
-          <div key={i} className="px-4 py-4">
-            <div className="mb-1">
-              <p className="text-sm font-semibold text-gray-900">
-                {med.name || t("prescriptions.unknownMedication")}
+      <div className="md:hidden border-t-2 border-slate-100 bg-slate-50/50 px-4 pt-4 pb-2">
+        <h4 className="text-xs font-black text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+          💊 {t("prescriptions.medication")}
+        </h4>
+        <div className="bg-white rounded-xl border border-slate-200 divide-y divide-slate-100">
+          {medications.map((med, i) => (
+            <div key={i} className="px-4 py-3.5">
+              <div className="mb-1">
+                <p className="text-sm font-bold text-slate-900">
+                  {med.name || t("prescriptions.unknownMedication")}
+                </p>
+                {med.activeIngredient && (
+                  <p className="text-xs text-slate-400">
+                    {med.activeIngredient}
+                  </p>
+                )}
+                <p className="text-xs font-semibold text-slate-600 mt-0.5">
+                  {med.dose || "—"}
+                </p>
+              </div>
+              <p className="text-xs text-slate-500 mb-2">
+                {med.frequency || "—"}
+                {!med.isChronic && med.duration && <> · {med.duration}</>}
+                {med.isChronic && (
+                  <span className="inline-block ms-1 text-[10px] font-bold text-blue-600 bg-blue-50 border border-blue-100 rounded-full px-2 py-0.5">
+                    {t("prescriptions.chronic")}
+                  </span>
+                )}
               </p>
-              {med.activeIngredient && (
-                <p className="text-xs text-gray-400">{med.activeIngredient}</p>
-              )}
-              <p className="text-xs text-gray-500">{med.dose || "—"}</p>
+              <SafetyCell medication={med} />
             </div>
-            <p className="text-xs text-gray-500 mb-2">
-              {med.frequency || "—"}
-              {!med.isChronic && med.duration && <> · {med.duration}</>}
-              {med.isChronic && <> · {t("prescriptions.chronic")}</>}
-            </p>
-            <SafetyCell medication={med} />
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -610,10 +664,10 @@ export default function Prescriptions() {
               ))}
 
             {!loading && total > 0 && (
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-2 px-1">
-                <p className="text-xs text-gray-500">
-                  {t("prescriptions.showing")} {prescriptions.length}{" "}
-                  {t("prescriptions.of")} {total}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 bg-white rounded-2xl shadow-xl shadow-slate-100/80 border border-slate-100 px-4 py-3">
+                <p className="text-xs text-gray-500 font-semibold">
+                  {t("common.showing")} {prescriptions.length} {t("common.of")}{" "}
+                  {total}
                 </p>
                 <div className="flex items-center gap-1.5">
                   <button

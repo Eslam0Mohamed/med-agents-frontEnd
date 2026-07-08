@@ -6,7 +6,7 @@ import Swal from "sweetalert2";
 import { fetchPatients, deletePatient } from "../../api/patient";
 import LoadingState from "../../components/patient-report/LoadingState";
 export default function PatientsList() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { list, isLoading } = useSelector((state) => state.patients);
@@ -174,8 +174,8 @@ export default function PatientsList() {
           <div className="hidden md:block bg-white rounded-2xl shadow-xl shadow-slate-100/80 border border-slate-100 overflow-hidden">
             <div className="overflow-x-auto">
               <table
-                dir="rtl"
-                className="w-full text-sm table-auto border-collapse text-right"
+                dir={i18n.language === "ar" ? "rtl" : "ltr"}
+                className={`w-full text-sm table-auto border-collapse ${i18n.language === "ar" ? "text-right" : "text-left"}`}
               >
                 <thead className="bg-blue-600 text-white/95">
                   <tr>
@@ -191,7 +191,9 @@ export default function PatientsList() {
                     <th className="px-6 py-4 font-bold tracking-wide text-xs uppercase opacity-90">
                       {t("patients.gender")}
                     </th>
-                    <th className="px-6 py-4 font-bold tracking-wide text-xs uppercase opacity-90 text-left">
+                    <th
+                      className={`px-6 py-4 font-bold tracking-wide text-xs uppercase opacity-90 ${i18n.language === "ar" ? "text-left" : "text-right"}`}
+                    >
                       {t("common.actions")}
                     </th>
                   </tr>
@@ -327,40 +329,39 @@ export default function PatientsList() {
           </div>
         )}
 
-        {!isLoading && pagedPatients.length > 0 && (
-          <div className="flex items-center justify-between px-4 py-3 mt-4 bg-white rounded-2xl shadow-xl shadow-slate-100/80 border border-slate-100">
-            <span className="text-sm text-gray-500">
-              {pagedPatients.length} / {filteredPatients.length}
-            </span>
-            {totalPages > 1 && !search && (
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  className="px-2 py-1 text-sm rounded-md border border-gray-200 disabled:opacity-40"
-                >
-                  ←
-                </button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                  (p) => (
-                    <button
-                      key={p}
-                      onClick={() => setPage(p)}
-                      className={`px-3 py-1 text-sm rounded-md border ${page === p ? "bg-blue-700 text-white border-blue-700" : "border-gray-200 text-gray-600 hover:bg-gray-50"}`}
-                    >
-                      {p}
-                    </button>
-                  ),
-                )}
-                <button
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages}
-                  className="px-2 py-1 text-sm rounded-md border border-gray-200 disabled:opacity-40"
-                >
-                  →
-                </button>
-              </div>
-            )}
+        {!isLoading && filteredPatients.length > 0 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 bg-white rounded-2xl shadow-xl shadow-slate-100/80 border border-slate-100 px-4 py-3">
+            <p className="text-xs text-gray-500 font-semibold">
+              {t("common.showing")} {pagedPatients.length} {t("common.of")}{" "}
+              {filteredPatients.length}
+            </p>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="px-3 py-1.5 rounded-md text-sm border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-40"
+              >
+                {t("common.previous")}
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .slice(Math.max(0, page - 3), Math.max(0, page - 3) + 5)
+                .map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    className={`w-8 h-8 rounded-md text-sm font-medium ${p === page ? "bg-blue-600 text-white" : "border border-gray-300 text-gray-600 hover:bg-gray-50"}`}
+                  >
+                    {p}
+                  </button>
+                ))}
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="px-3 py-1.5 rounded-md text-sm border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-40"
+              >
+                {t("common.next")}
+              </button>
+            </div>
           </div>
         )}
       </div>

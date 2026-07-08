@@ -46,6 +46,8 @@
     "unknown": "Unknown",
     "previous": "Previous",
     "next": "Next",
+    "showing": "Showing",
+    "of": "of",
     "type": "Type",
     "date": "Date"
   },
@@ -81,6 +83,7 @@
   },
   "consultations": {
     "title": "Consultations",
+    "editLocked": "Editing is locked 4 hours after completion",
     "searchPlaceholder": "Search consultation by name or national ID",
     "listSubtitle": "Review clinical consult history, specialist notes, and digital recommendations.",
     "diagnosis": "Diagnosis",
@@ -153,6 +156,7 @@
   },
   "followups": {
     "title": "Follow-ups",
+    "editLocked": "Editing is locked 4 hours after completion",
     "subtitle": "Manage scheduled reviews and continuity of care for your clinic.",
     "searchPlaceholder": "Search follow-up by name or national ID",
     "createdAuto": "Created automatically from consultations",
@@ -296,6 +300,7 @@
   },
   "prescriptions": {
     "title": "Prescriptions",
+    "editLocked": "Editing is locked 4 hours after the prescription was issued",
     "subtitle": "All prescriptions you've issued, with live safety screening.",
     "searchPlaceholder": "Search prescription by name or national ID",
     "loading": "Loading prescriptions...",

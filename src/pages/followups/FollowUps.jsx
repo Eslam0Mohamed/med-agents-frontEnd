@@ -51,7 +51,23 @@ const FollowUps = () => {
   });
 
   const [selectedDate, setSelectedDate] = useState(null);
+  // بيتحدث كل 30 ثانية عشان زرار الـ Edit يتقفل تلقائيًا بعد 5 دقايق من
+  // اكتمال الفولو أب من غير ما نحتاج refresh
+  const [nowTick, setNowTick] = useState(() => Date.now());
+  useEffect(() => {
+    const interval = setInterval(() => setNowTick(Date.now()), 30000);
+    return () => clearInterval(interval);
+  }, []);
+  const EDIT_LOCK_MS = 4 * 60 * 60 * 1000; // 4 ساعات
+  const isEditLocked = (item) => {
+    if (!isCompleted(item)) return false;
+    const completedAtMs = new Date(item.completedAt).getTime();
+    if (Number.isNaN(completedAtMs)) return false;
+    return nowTick - completedAtMs > EDIT_LOCK_MS;
+  };
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const FOLLOWUPS_PER_PAGE = 10;
 
   const getId = (value) => {
     if (!value) return "";
@@ -167,6 +183,19 @@ const FollowUps = () => {
       return matchesTab && matchesSelectedDate && matchesSearch;
     });
   }, [validFollowUps, activeTab, selectedDate, search]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [activeTab, selectedDate, search]);
+
+  const followupsTotalPages = Math.max(
+    1,
+    Math.ceil(filteredFollowUps.length / FOLLOWUPS_PER_PAGE),
+  );
+  const pagedFollowUps = filteredFollowUps.slice(
+    (page - 1) * FOLLOWUPS_PER_PAGE,
+    page * FOLLOWUPS_PER_PAGE,
+  );
 
   const pastDueCount = useMemo(
     () =>
@@ -508,7 +537,7 @@ const FollowUps = () => {
               )}
 
               <div className="followups-grid">
-                {filteredFollowUps.map((item) => {
+                {pagedFollowUps.map((item) => {
                   const patientName = getPatientName(item);
                   return (
                     <article className="followup-card" key={item._id}>
@@ -571,6 +600,20 @@ const FollowUps = () => {
                             <button
                               className="edit-btn"
                               onClick={() => handleEditFollowUp(item)}
+                              disabled={isEditLocked(item)}
+                              title={
+                                isEditLocked(item)
+                                  ? t("followups.editLocked")
+                                  : undefined
+                              }
+                              style={
+                                isEditLocked(item)
+                                  ? {
+                                      opacity: 0.4,
+                                      cursor: "not-allowed",
+                                    }
+                                  : undefined
+                              }
                             >
                               <FiEdit3 />
                               {t("common.edit")}
@@ -582,6 +625,47 @@ const FollowUps = () => {
                   );
                 })}
               </div>
+
+              {filteredFollowUps.length > 0 && (
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 bg-white rounded-2xl shadow-xl shadow-slate-100/80 border border-slate-100 px-4 py-3">
+                  <p className="text-xs text-gray-500 font-semibold">
+                    {t("common.showing")} {pagedFollowUps.length}{" "}
+                    {t("common.of")} {filteredFollowUps.length}
+                  </p>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => setPage((p) => Math.max(1, p - 1))}
+                      disabled={page === 1}
+                      className="px-3 py-1.5 rounded-md text-sm border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-40"
+                    >
+                      {t("common.previous")}
+                    </button>
+                    {Array.from(
+                      { length: followupsTotalPages },
+                      (_, i) => i + 1,
+                    )
+                      .slice(Math.max(0, page - 3), Math.max(0, page - 3) + 5)
+                      .map((p) => (
+                        <button
+                          key={p}
+                          onClick={() => setPage(p)}
+                          className={`w-8 h-8 rounded-md text-sm font-medium ${p === page ? "bg-blue-600 text-white" : "border border-gray-300 text-gray-600 hover:bg-gray-50"}`}
+                        >
+                          {p}
+                        </button>
+                      ))}
+                    <button
+                      onClick={() =>
+                        setPage((p) => Math.min(followupsTotalPages, p + 1))
+                      }
+                      disabled={page === followupsTotalPages}
+                      className="px-3 py-1.5 rounded-md text-sm border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-40"
+                    >
+                      {t("common.next")}
+                    </button>
+                  </div>
+                </div>
+              )}
             </main>
           </div>
         </section>

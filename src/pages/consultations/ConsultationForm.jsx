@@ -16,9 +16,10 @@ import {
 } from "../../api/consultation";
 import { getPrescriptionByConsultation } from "../../api/prescription";
 import PrescriptionModal from "../../components/prescriptions/PrescriptionModal";
+import LanguageToggle from "../../components/LanguageToggle";
 
 const ConsultationForm = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { id, patientId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
@@ -56,7 +57,7 @@ const ConsultationForm = () => {
   } = useForm({
     resolver: zodResolver(consultationSchema),
     defaultValues: {
-      language: "en",
+      language: i18n.language || "en",
     },
   });
 
@@ -68,7 +69,7 @@ const ConsultationForm = () => {
   // reset كامل لكل حاجة أول ما id أو patientId يتغيروا، عشان يبقى الإحساس
   // إنها صفحة جديدة فعلًا كل مرة.
   useEffect(() => {
-    reset({ language: "en" });
+    reset({ language: i18n.language || "en" });
     setAiResult(null);
     setIsGenerating(false);
     setIsSaved(false);
@@ -367,11 +368,18 @@ const ConsultationForm = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
           {/* Main Form */}
           <div className="lg:col-span-2">
-            <h2 className="text-xl font-bold text-blue-700 mb-1">
-              {isEditMode
-                ? t("consultations.editConsultation")
-                : t("consultations.newConsultation")}
-            </h2>
+            <div className="flex items-center justify-between gap-3 mb-1">
+              <h2 className="text-xl font-bold text-blue-700">
+                {isEditMode
+                  ? t("consultations.editConsultation")
+                  : t("consultations.newConsultation")}
+              </h2>
+              <LanguageToggle
+                variant="light"
+                value={watch("language")}
+                onChange={(lang) => setValue("language", lang)}
+              />
+            </div>
             <p className="text-sm text-gray-500 mb-6 pb-4 border-b">
               {t("consultations.formSubtitle")}
             </p>
@@ -465,20 +473,9 @@ const ConsultationForm = () => {
                   )}
                 </div>
 
-                {/* Language */}
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-blue-700 mb-1">
-                    {t("consultations.language")}
-                  </label>
-                  <select
-                    {...register("language")}
-                    disabled={prescriptionOnlyEdit}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                  >
-                    <option value="en">{t("consultations.english")}</option>
-                    <option value="ar">{t("consultations.arabic")}</option>
-                  </select>
-                </div>
+                {/* اللغة بقت بتتحدد من زرار EN/AR اللي فوق الصفحة، مش من
+                    جوه الفورم نفسه */}
+                <input type="hidden" {...register("language")} />
               </div>
 
               {/* AI Recommendation Result */}

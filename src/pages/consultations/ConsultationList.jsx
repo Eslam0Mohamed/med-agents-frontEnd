@@ -156,6 +156,21 @@ const Consultations = () => {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  // بيتحدث كل 30 ثانية عشان زرار الـ Edit يتقفل تلقائيًا لما تعدي 5 دقايق من
+  // غير ما المستخدم يحتاج يعمل refresh للصفحة
+  const [nowTick, setNowTick] = useState(() => Date.now());
+  useEffect(() => {
+    const interval = setInterval(() => setNowTick(Date.now()), 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const EDIT_LOCK_MS = 4 * 60 * 60 * 1000; // 4 ساعات
+  const isEditLocked = (dateStr) => {
+    if (!dateStr) return false;
+    const completedAt = new Date(dateStr).getTime();
+    if (Number.isNaN(completedAt)) return false;
+    return nowTick - completedAt > EDIT_LOCK_MS;
+  };
   const [selectedDate, setSelectedDate] = useState(null);
 
   const loadConsultations = useCallback(async () => {
@@ -462,12 +477,21 @@ const Consultations = () => {
                                 />
                               </svg>
                             </Link>
-                            <Link
-                              to={`/consultations/edit/${c._id}`}
-                              className="inline-flex items-center justify-center bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-600 hover:text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-sm transition"
-                            >
-                              {t("common.edit")}
-                            </Link>
+                            {isEditLocked(c.createdAt) ? (
+                              <span
+                                title={t("consultations.editLocked")}
+                                className="inline-flex items-center justify-center bg-slate-50 text-slate-300 border border-slate-100 px-3 py-1.5 rounded-xl text-xs font-bold cursor-not-allowed select-none"
+                              >
+                                {t("common.edit")}
+                              </span>
+                            ) : (
+                              <Link
+                                to={`/consultations/edit/${c._id}`}
+                                className="inline-flex items-center justify-center bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-600 hover:text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-sm transition"
+                              >
+                                {t("common.edit")}
+                              </Link>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -556,12 +580,21 @@ const Consultations = () => {
                       </svg>
                       View
                     </Link>
-                    <Link
-                      to={`/consultations/edit/${c._id}`}
-                      className="flex-1 inline-flex items-center justify-center bg-blue-50 text-blue-600 py-2.5 rounded-xl text-xs font-bold border border-blue-100 transition"
-                    >
-                      {t("common.edit")}
-                    </Link>
+                    {isEditLocked(c.createdAt) ? (
+                      <span
+                        title={t("consultations.editLocked")}
+                        className="flex-1 inline-flex items-center justify-center bg-slate-50 text-slate-300 py-2.5 rounded-xl text-xs font-bold border border-slate-100 cursor-not-allowed select-none"
+                      >
+                        {t("common.edit")}
+                      </span>
+                    ) : (
+                      <Link
+                        to={`/consultations/edit/${c._id}`}
+                        className="flex-1 inline-flex items-center justify-center bg-blue-50 text-blue-600 py-2.5 rounded-xl text-xs font-bold border border-blue-100 transition"
+                      >
+                        {t("common.edit")}
+                      </Link>
+                    )}
                   </div>
                 </div>
               ))}
@@ -575,38 +608,42 @@ const Consultations = () => {
               </div>
             )}
 
-            {totalPages > 1 && (
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 px-2">
-                <p className="text-[10px] sm:text-xs text-slate-400 font-extrabold tracking-wider uppercase">
-                  {(currentPage - 1) * ITEMS_PER_PAGE + 1} –{" "}
-                  {Math.min(currentPage * ITEMS_PER_PAGE, safeFiltered.length)}{" "}
-                  of {safeFiltered.length}
+            {safeFiltered.length > 0 && (
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 bg-white rounded-2xl shadow-xl shadow-slate-100/80 border border-slate-100 px-4 py-3">
+                <p className="text-xs text-gray-500 font-semibold">
+                  {t("common.showing")}{" "}
+                  {Math.min(currentPage * ITEMS_PER_PAGE, safeFiltered.length) -
+                    (currentPage - 1) * ITEMS_PER_PAGE}{" "}
+                  {t("common.of")} {safeFiltered.length}
                 </p>
-                <div className="flex items-center gap-1.5 flex-wrap justify-center">
+                <div className="flex items-center gap-1.5">
                   <button
                     onClick={() => goToPage(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className="px-3 py-2 rounded-xl text-xs font-bold bg-white border border-slate-200 text-slate-600 disabled:opacity-40 hover:bg-slate-50 shadow-sm transition"
+                    className="px-3 py-1.5 rounded-md text-sm border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-40"
                   >
-                    Prev
+                    {t("common.previous")}
                   </button>
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                    (page) => (
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .slice(
+                      Math.max(0, currentPage - 3),
+                      Math.max(0, currentPage - 3) + 5,
+                    )
+                    .map((page) => (
                       <button
                         key={page}
                         onClick={() => goToPage(page)}
-                        className={`w-8 h-8 rounded-xl text-xs font-black border transition-all ${page === currentPage ? "bg-blue-600 text-white border-blue-600 shadow-md" : "bg-white border-slate-200 hover:bg-slate-50 text-slate-600"}`}
+                        className={`w-8 h-8 rounded-md text-sm font-medium ${page === currentPage ? "bg-blue-600 text-white" : "border border-gray-300 text-gray-600 hover:bg-gray-50"}`}
                       >
                         {page}
                       </button>
-                    ),
-                  )}
+                    ))}
                   <button
                     onClick={() => goToPage(currentPage + 1)}
                     disabled={currentPage === totalPages}
-                    className="px-3 py-2 rounded-xl text-xs font-bold bg-white border border-slate-200 text-slate-600 disabled:opacity-40 hover:bg-slate-50 shadow-sm transition"
+                    className="px-3 py-1.5 rounded-md text-sm border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-40"
                   >
-                    Next
+                    {t("common.next")}
                   </button>
                 </div>
               </div>

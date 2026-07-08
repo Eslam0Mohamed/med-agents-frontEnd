@@ -13,6 +13,7 @@ import {
 import { getPrescriptionByConsultation } from "../../api/prescription";
 import PrescriptionModal from "../../components/prescriptions/PrescriptionModal";
 import apiInstance from "../../config/apiInstance";
+import LanguageToggle from "../../components/LanguageToggle";
 
 const initialForm = {
   rawInput: "",
@@ -650,11 +651,20 @@ const StartFollowUp = () => {
     <div className="p-2 sm:p-4 max-w-6xl mx-auto w-full box-border">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div className="lg:col-span-2 bg-white rounded-xl shadow p-4 sm:p-8">
-          <h2 className="text-xl font-bold text-blue-700 mb-1">
-            {isEditMode
-              ? t("followups.start.editTitle")
-              : t("followups.start.title")}
-          </h2>
+          <div className="flex items-center justify-between gap-3 mb-1">
+            <h2 className="text-xl font-bold text-blue-700">
+              {isEditMode
+                ? t("followups.start.editTitle")
+                : t("followups.start.title")}
+            </h2>
+            <LanguageToggle
+              variant="light"
+              value={form.language}
+              onChange={(lang) =>
+                setForm((prev) => ({ ...prev, language: lang }))
+              }
+            />
+          </div>
 
           <p className="text-sm text-gray-500 mb-6 pb-4 border-b">
             {isEditMode
@@ -727,16 +737,6 @@ const StartFollowUp = () => {
                   </p>
                 </div>
               </div>
-
-              <div className="bg-white/80 rounded-lg p-3 border border-blue-100">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                  {t("followups.start.previousNotes")}
-                </p>
-
-                <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
-                  {getPreviousNotes()}
-                </p>
-              </div>
             </div>
           </div>
 
@@ -787,22 +787,7 @@ const StartFollowUp = () => {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-blue-700 mb-1">
-                  {t("consultations.language")}
-                </label>
-
-                <select
-                  name="language"
-                  value={form.language}
-                  onChange={handleChange}
-                  disabled={prescriptionOnlyEdit}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                >
-                  <option value="en">{t("consultations.english")}</option>
-                  <option value="ar">{t("consultations.arabic")}</option>
-                </select>
-              </div>
+              {/* اللغة بقت بتتحدد من زرار EN/AR اللي فوق الصفحة */}
             </div>
 
             {!showPrescriptionSection && !prescriptionOnlyEdit && (
