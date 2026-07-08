@@ -401,11 +401,20 @@
     "failedUpdate": "Failed to update profile."
   },
   "home": {
+    "aiPowered": "AI-Powered Healthcare",
     "heroTitle": "Smarter tools for",
     "heroHighlight": "better patient care",
     "heroSubtitle": "MedAgents helps doctors manage patients, consultations, and prescriptions - backed by AI assistance every step of the way.",
     "doctorLogin": "Doctor Login",
     "contactUs": "Contact Us",
+    "learnMore": "Learn more",
+    "securePrivate": "Secure & Private",
+    "aiPoweredBadge": "AI-Powered",
+    "trustedDoctors": "Trusted by Doctors",
+    "statsPatients": "Patients Managed",
+    "statsDoctors": "Doctors Trust Us",
+    "statsAccuracy": "AI Accuracy",
+    "statsSupport": "AI Support",
     "allRights": "All rights reserved.",
     "feature1Title": "Patient Management",
     "feature1Desc": "Keep every patient's history, consultations, and follow-ups organized in one place.",
@@ -413,6 +422,9 @@
     "feature2Desc": "Get intelligent support during consultations, from drug safety checks to smart suggestions.",
     "feature3Title": "Digital Prescriptions",
     "feature3Desc": "Create and manage prescriptions digitally, reducing errors and saving time."
+  },
+  "footer": {
+    "description": "AI-powered platform for doctors to manage patients, consultations, and prescriptions with ease."
   },
   "contact": {
     "title": "Contact Us",
@@ -576,6 +588,7 @@
     "retry": "Retry",
     "notFound": "No Subscription Found",
     "expiredBanner": "You were redirected here because your subscription has expired. Please renew below to continue using MedAgents.",
+    "upgradeBanner": "This feature (AI Chat / Drug Safety) is available on the {{plan}} plan only. Upgrade below to unlock it.",
     "title": "My Subscription",
     "statusActive": "Premium",
     "statusExpired": "Expired",
@@ -593,6 +606,9 @@
     "perMonth": "EGP / month",
     "loadError": "Failed to load subscription. Please try again.",
     "paymentError": "Failed to start payment, please try again",
+    "switchingPlanWarning": "You currently have {{days}} day(s) left on the {{plan}} plan. Switching to {{newPlan}} now will start a new subscription from today — your remaining {{plan}} days will not be carried over.",
+    "notAvailableYet": "Not available yet",
+    "renewNotice": "You already have an active subscription with {{days}} days remaining on {{plan}}. You can renew the same plan starting {{window}} days before it expires, or pick a different plan above to switch right away.",
     "status": {
       "expiredTitle": "Subscription Expired",
       "expiredMessage": "Your subscription has expired. Renew now to regain access to all features.",

@@ -76,21 +76,23 @@ export default function PatientHistory() {
           <div>
             <div className="flex items-start sm:items-center  sm:flex-row gap-2 mb-2">
               <h1 className="text-xl font-bold text-gray-900">
-                {patient.name}
+                <bdi>{patient.name}</bdi>
               </h1>
-            <div>
+            <div className="flex items-center flex-wrap gap-2">
               <span className=" text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-medium uppercase">
-                {patient.gender === "male"
-                  ? t("patients.male")
-                  : t("patients.female")}
+                <bdi>
+                  {patient.gender === "male"
+                    ? t("patients.male")
+                    : t("patients.female")}
+                </bdi>
               </span>
               <span className=" text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 font-medium">
-                {t("patients.age")}: {calculateAge(patient.dateOfBirth)}
+                {t("patients.age")}: <bdi>{calculateAge(patient.dateOfBirth)}</bdi>
               </span>
               <span className=" text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 font-medium">
-                {patient.bloodType}
+                <bdi>{patient.bloodType}</bdi>
               </span>
-                   </div>
+            </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 mt-3">
@@ -198,7 +200,7 @@ export default function PatientHistory() {
               <span
                 className={`text-xs px-2.5 py-1 rounded-full font-semibold uppercase ${urgencyStyles[item.urgencyLevel?.toLowerCase()] || "bg-gray-100 text-gray-700"}`}
               >
-                {item.urgencyLevel}
+                {t(`consultations.urgency.${item.urgencyLevel?.toLowerCase()}`, item.urgencyLevel)}
               </span>
             </div>
 
@@ -215,7 +217,7 @@ export default function PatientHistory() {
 
             <div>
               <p className="text-xs font-semibold text-gray-400 uppercase mb-2">
-                Symptoms
+                {t("consultations.symptomsColumn")}
               </p>
               <div className="flex flex-wrap gap-1.5 mb-3">
                 {item.symptoms.map((s, i) => (
