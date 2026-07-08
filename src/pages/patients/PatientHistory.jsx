@@ -79,8 +79,6 @@ export default function PatientHistory() {
                 {patient.name}
               </h1>
             <div>
-
-       
               <span className=" text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-medium uppercase">
                 {patient.gender === "male"
                   ? t("patients.male")
