@@ -3,6 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import { fetchPatientHistory } from "../../api/patient";
+import { discontinueMedication, reactivateMedication } from "../../api/patient";
+import Swal from "sweetalert2";
 import { clearHistory } from "../../slices/patientsSlice";
 import LoadingState from "../../components/patient-report/LoadingState";
 const urgencyStyles = {
@@ -28,6 +30,42 @@ export default function PatientHistory() {
     return () => dispatch(clearHistory());
   }, [id, dispatch]);
 
+  const handleDiscontinue = async (prescriptionId, medicationId, medName) => {
+    const confirm = await Swal.fire({
+      title: t("patients.discontinueConfirmTitle"),
+      text: t("patients.discontinueConfirmText", { name: medName }),
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: t("patients.discontinueConfirmButton"),
+      cancelButtonText: t("common.cancel"),
+    });
+    if (!confirm.isConfirmed) return;
+
+    try {
+      await discontinueMedication(id, { prescriptionId, medicationId });
+      dispatch(fetchPatientHistory(id));
+    } catch (err) {
+      Swal.fire(
+        t("common.error"),
+        err?.response?.data?.message || t("common.somethingWentWrong"),
+        "error",
+      );
+    }
+  };
+
+  const handleReactivate = async (medicationId) => {
+    try {
+      await reactivateMedication(id, medicationId);
+      dispatch(fetchPatientHistory(id));
+    } catch (err) {
+      Swal.fire(
+        t("common.error"),
+        err?.response?.data?.message || t("common.somethingWentWrong"),
+        "error",
+      );
+    }
+  };
+
   const calculateAge = (dob) => {
     const today = new Date();
     const birth = new Date(dob);
@@ -46,9 +84,7 @@ export default function PatientHistory() {
       .toUpperCase();
 
   if (isHistoryLoading) {
-    return (
- <LoadingState></LoadingState>
-    );
+    return <LoadingState></LoadingState>;
   }
 
   if (error) {
@@ -78,21 +114,22 @@ export default function PatientHistory() {
               <h1 className="text-xl font-bold text-gray-900">
                 <bdi>{patient.name}</bdi>
               </h1>
-            <div className="flex items-center flex-wrap gap-2">
-              <span className=" text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-medium uppercase">
-                <bdi>
-                  {patient.gender === "male"
-                    ? t("patients.male")
-                    : t("patients.female")}
-                </bdi>
-              </span>
-              <span className=" text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 font-medium">
-                {t("patients.age")}: <bdi>{calculateAge(patient.dateOfBirth)}</bdi>
-              </span>
-              <span className=" text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 font-medium">
-                <bdi>{patient.bloodType}</bdi>
-              </span>
-            </div>
+              <div className="flex items-center flex-wrap gap-2">
+                <span className=" text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-medium uppercase">
+                  <bdi>
+                    {patient.gender === "male"
+                      ? t("patients.male")
+                      : t("patients.female")}
+                  </bdi>
+                </span>
+                <span className=" text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 font-medium">
+                  {t("patients.age")}:{" "}
+                  <bdi>{calculateAge(patient.dateOfBirth)}</bdi>
+                </span>
+                <span className=" text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 font-medium">
+                  <bdi>{patient.bloodType}</bdi>
+                </span>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 mt-3">
@@ -200,7 +237,10 @@ export default function PatientHistory() {
               <span
                 className={`text-xs px-2.5 py-1 rounded-full font-semibold uppercase ${urgencyStyles[item.urgencyLevel?.toLowerCase()] || "bg-gray-100 text-gray-700"}`}
               >
-                {t(`consultations.urgency.${item.urgencyLevel?.toLowerCase()}`, item.urgencyLevel)}
+                {t(
+                  `consultations.urgency.${item.urgencyLevel?.toLowerCase()}`,
+                  item.urgencyLevel,
+                )}
               </span>
             </div>
 
@@ -281,21 +321,65 @@ export default function PatientHistory() {
                 <div className="flex flex-col gap-1.5">
                   {item.prescription.medications.map((med, i) => (
                     <div
-                      key={i}
-                      className="bg-gray-50 rounded-lg px-3 py-2 text-sm"
+                      key={med._id || i}
+                      className={`rounded-lg px-3 py-2 text-sm flex items-center justify-between gap-2 flex-wrap ${
+                        med.isDiscontinued
+                          ? "bg-slate-50 opacity-60"
+                          : "bg-gray-50"
+                      }`}
                     >
-                      <span className="font-medium text-gray-900">
-                        {med.name}
-                      </span>
-                      {med.dose && (
-                        <span className="text-gray-500"> — {med.dose}</span>
-                      )}
-                      {med.frequency && (
-                        <span className="text-gray-500">
-                          {" "}
-                          ({med.frequency})
+                      <div>
+                        <span className="font-medium text-gray-900">
+                          {med.name}
                         </span>
-                      )}
+                        {med.dose && (
+                          <span className="text-gray-500"> — {med.dose}</span>
+                        )}
+                        {med.frequency && (
+                          <span className="text-gray-500">
+                            {" "}
+                            ({med.frequency})
+                          </span>
+                        )}
+                        {med.isChronic && (
+                          <span className="ms-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-600 border border-purple-100 uppercase">
+                            {t("patients.chronic")}
+                          </span>
+                        )}
+                      </div>
+
+                      {med.isChronic &&
+                        (med.isDiscontinued ? (
+                          <div className="flex items-center gap-2 text-xs">
+                            <span className="text-slate-500">
+                              {t("patients.discontinuedOn")}{" "}
+                              {new Date(
+                                med.discontinuedAt,
+                              ).toLocaleDateString()}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => handleReactivate(med._id)}
+                              className="text-blue-600 hover:text-blue-800 font-semibold"
+                            >
+                              {t("patients.undoDiscontinue")}
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleDiscontinue(
+                                item.prescription._id,
+                                med._id,
+                                med.name,
+                              )
+                            }
+                            className="text-xs font-bold px-2.5 py-1 rounded-lg bg-rose-50 text-rose-600 border border-rose-100 hover:bg-rose-600 hover:text-white transition"
+                          >
+                            {t("patients.discontinue")}
+                          </button>
+                        ))}
                     </div>
                   ))}
                 </div>
