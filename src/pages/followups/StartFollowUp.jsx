@@ -649,81 +649,69 @@ const StartFollowUp = () => {
 
   return (
     <div className="p-2 sm:p-4 max-w-6xl mx-auto w-full box-border">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        <div className="lg:col-span-2 bg-white rounded-xl shadow p-4 sm:p-8">
-          <div className="flex items-center justify-between gap-3 mb-1">
-            <h2 className="text-xl font-bold text-blue-700">
-              {isEditMode
-                ? t("followups.start.editTitle")
-                : t("followups.start.title")}
-            </h2>
-            <LanguageToggle
-              variant="light"
-              value={form.language}
-              onChange={(lang) =>
-                setForm((prev) => ({ ...prev, language: lang }))
-              }
-            />
-          </div>
-
-          <p className="text-sm text-gray-500 mb-6 pb-4 border-b">
-            {isEditMode
-              ? t("followups.start.editSubtitle")
-              : t("followups.start.subtitle")}
-          </p>
-
-          <div className="mb-6 p-4 sm:p-5 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-xl shadow-sm">
-            <div className="space-y-1 mb-4">
-              <h3 className="text-base font-bold text-blue-800 flex items-center gap-2">
-                <span>📌 {t("followups.start.previousContextTitle")}</span>
-              </h3>
-
-              <p className="text-xs text-gray-500">
-                {t("followups.start.previousContextSubtitle")}
-              </p>
+      <div className="bg-white rounded-xl shadow overflow-hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 p-4 sm:p-8">
+          <div className="lg:col-span-2">
+            <div className="flex items-center justify-between gap-3 mb-1">
+              <h2 className="text-xl font-bold text-blue-700">
+                {isEditMode
+                  ? t("followups.start.editTitle")
+                  : t("followups.start.title")}
+              </h2>
+              <LanguageToggle
+                variant="light"
+                value={form.language}
+                onChange={(lang) =>
+                  setForm((prev) => ({ ...prev, language: lang }))
+                }
+              />
             </div>
 
-            <div className="grid grid-cols-1 gap-3 text-sm text-gray-700">
-              <div className="bg-white/80 rounded-lg p-3 border border-blue-100">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                  {t("consultations.patient")}
-                </p>
+            <p className="text-sm text-gray-500 mb-6 pb-4 border-b">
+              {isEditMode
+                ? t("followups.start.editSubtitle")
+                : t("followups.start.subtitle")}
+            </p>
 
-                <p className="text-sm font-semibold text-gray-800">
-                  {getPatientName()}
-                </p>
-              </div>
+            <div className="mb-6 p-4 sm:p-5 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-xl shadow-sm">
+              <div className="space-y-1 mb-4">
+                <h3 className="text-base font-bold text-blue-800 flex items-center gap-2">
+                  <span>📌 {t("followups.start.previousContextTitle")}</span>
+                </h3>
 
-              <div className="bg-white/80 rounded-lg p-3 border border-blue-100">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                  {t("followups.start.scheduledFollowUp")}
-                </p>
-
-                <p className="text-sm text-gray-800">
-                  {formatDate(followUp.scheduledDate)}
+                <p className="text-xs text-gray-500">
+                  {t("followups.start.previousContextSubtitle")}
                 </p>
               </div>
 
-              <div className="bg-white/80 rounded-lg p-3 border border-blue-100">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                  {t("followups.start.previousInstructions")}
-                </p>
-
-                <p className="text-sm text-gray-800 whitespace-pre-wrap">
-                  {getPreviousConsultation()?.structuredNote ||
-                    getPreviousConsultation()?.rawInput ||
-                    t("followups.start.noInstructionsRecorded")}
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 text-sm text-gray-700">
                 <div className="bg-white/80 rounded-lg p-3 border border-blue-100">
                   <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                    {t("followups.start.previousDiagnosis")}
+                    {t("consultations.patient")}
+                  </p>
+
+                  <p className="text-sm font-semibold text-gray-800">
+                    {getPatientName()}
+                  </p>
+                </div>
+
+                <div className="bg-white/80 rounded-lg p-3 border border-blue-100">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                    {t("followups.start.scheduledFollowUp")}
                   </p>
 
                   <p className="text-sm text-gray-800">
-                    {getPreviousDiagnosis()}
+                    {formatDate(followUp.scheduledDate)}
+                  </p>
+                </div>
+
+                <div className="bg-white/80 rounded-lg p-3 border border-blue-100">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                    {t("followups.start.doctorsNotes")}
+                  </p>
+
+                  <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
+                    {getPreviousNotes()}
                   </p>
                 </div>
 
@@ -736,279 +724,305 @@ const StartFollowUp = () => {
                     {getPreviousSymptoms()}
                   </p>
                 </div>
-              </div>
-            </div>
-          </div>
 
-          <form onSubmit={handleConfirmFollowUp} className="space-y-4">
-            <div className="grid grid-cols-1 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-blue-700 mb-1">
-                  {t("consultations.patient")}
-                </label>
+                <div className="bg-white/80 rounded-lg p-3 border border-blue-100">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                    {t("followups.start.previousInstructions")}
+                  </p>
 
-                <input
-                  type="text"
-                  value={getPatientName()}
-                  disabled
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-100"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-blue-700 mb-1">
-                  {t("consultations.doctorNotes")}
-                </label>
-
-                <textarea
-                  name="rawInput"
-                  rows={4}
-                  value={form.rawInput}
-                  onChange={handleChange}
-                  disabled={prescriptionOnlyEdit}
-                  placeholder={t("followups.start.notesPlaceholder")}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-blue-700 mb-1">
-                  {t("consultations.symptoms")}
-                </label>
-
-                <input
-                  type="text"
-                  name="symptoms"
-                  value={form.symptoms}
-                  onChange={handleChange}
-                  disabled={prescriptionOnlyEdit}
-                  placeholder={t("followups.start.symptomsPlaceholder")}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                />
-              </div>
-
-              {/* اللغة بقت بتتحدد من زرار EN/AR اللي فوق الصفحة */}
-            </div>
-
-            {!showPrescriptionSection && !prescriptionOnlyEdit && (
-              <div className="flex justify-end mt-6 pt-5 border-t">
-                <button
-                  type="button"
-                  onClick={handleGetAIRecommendation}
-                  disabled={isGenerating}
-                  className="w-full sm:w-auto justify-center bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-md font-medium text-sm transition flex items-center gap-2 disabled:opacity-50"
-                >
-                  🤖{" "}
-                  {isGenerating
-                    ? t("consultations.analyzing")
-                    : aiResult
-                      ? t("followups.start.regenerateAI")
-                      : t("consultations.getAI")}{" "}
-                  →
-                </button>
-              </div>
-            )}
-
-            {aiResult && !showPrescriptionSection && !prescriptionOnlyEdit && (
-              <div className="mt-6 p-4 sm:p-6 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-xl shadow-sm space-y-5">
-                <div className="space-y-1">
-                  <h3 className="text-base font-bold text-blue-800 flex items-center gap-2">
-                    <span>📋 {t("consultations.clinicalSupport")}</span>
-                  </h3>
-
-                  <p className="text-xs text-gray-500">
-                    {t("consultations.finalizeNote")}
+                  <p className="text-sm text-gray-800 whitespace-pre-wrap">
+                    {getPreviousConsultation()?.structuredNote ||
+                      getPreviousConsultation()?.rawInput ||
+                      t("followups.start.noInstructionsRecorded")}
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
-                  <div className="space-y-2">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <label className="block text-sm font-medium text-blue-700">
-                        {t("consultations.diagnosis")}{" "}
-                        <span className="text-red-500">*</span>
-                      </label>
+                <div className="bg-white/80 rounded-lg p-3 border border-blue-100">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                    {t("followups.start.previousDiagnosis")}
+                  </p>
 
-                      <label className="inline-flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 cursor-pointer text-xs font-bold text-slate-600 transition-all duration-200 hover:bg-blue-50 hover:border-blue-200 select-none w-max max-w-full">
-                        <input
-                          type="checkbox"
-                          name="isChronic"
-                          checked={form.isChronic}
-                          onChange={handleChange}
-                          disabled={prescriptionOnlyEdit}
-                          className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 cursor-pointer shrink-0 disabled:cursor-not-allowed"
-                        />
+                  <p className="text-sm text-gray-800">
+                    {getPreviousDiagnosis()}
+                  </p>
+                </div>
+              </div>
+            </div>
 
-                        <span
-                          className={`transition-colors duration-200 truncate ${
-                            form.isChronic ? "text-blue-600 font-extrabold" : ""
-                          }`}
-                        >
-                          {t("consultations.chronicDisease")}
-                        </span>
-                      </label>
-                    </div>
+            <form onSubmit={handleConfirmFollowUp} className="space-y-4">
+              <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-blue-700 mb-1">
+                    {t("consultations.patient")}
+                  </label>
 
-                    <input
-                      type="text"
-                      name="diagnosis"
-                      value={form.diagnosis}
-                      onChange={handleChange}
-                      disabled={prescriptionOnlyEdit}
-                      placeholder={t("consultations.diagnosisPlaceholder")}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-blue-700 sm:h-[28px] sm:flex sm:items-center">
-                      {t("consultations.followUpDate")}
-                    </label>
-
-                    <input
-                      type="date"
-                      name="followUpDate"
-                      value={form.followUpDate}
-                      min={minDate}
-                      max={maxDate}
-                      onChange={handleChange}
-                      disabled={prescriptionOnlyEdit}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                    />
-                  </div>
+                  <input
+                    type="text"
+                    value={getPatientName()}
+                    disabled
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-100"
+                  />
                 </div>
 
-                {form.isChronic && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                    <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1">
-                      {t("followups.start.chronicUpdateTitle")}
+                <div>
+                  <label className="block text-sm font-medium text-blue-700 mb-1">
+                    {t("consultations.doctorNotes")}
+                  </label>
+
+                  <textarea
+                    name="rawInput"
+                    rows={4}
+                    value={form.rawInput}
+                    onChange={handleChange}
+                    disabled={prescriptionOnlyEdit}
+                    placeholder={t("followups.start.notesPlaceholder")}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-blue-700 mb-1">
+                    {t("consultations.symptoms")}
+                  </label>
+
+                  <input
+                    type="text"
+                    name="symptoms"
+                    value={form.symptoms}
+                    onChange={handleChange}
+                    disabled={prescriptionOnlyEdit}
+                    placeholder={t("followups.start.symptomsPlaceholder")}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                  />
+                </div>
+
+                {/* اللغة بقت بتتحدد من زرار EN/AR اللي فوق الصفحة */}
+              </div>
+
+              {!showPrescriptionSection && !prescriptionOnlyEdit && (
+                <div className="flex justify-end mt-6 pt-5 border-t">
+                  <button
+                    type="button"
+                    onClick={handleGetAIRecommendation}
+                    disabled={isGenerating}
+                    className="w-full sm:w-auto justify-center bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-md font-medium text-sm transition flex items-center gap-2 disabled:opacity-50"
+                  >
+                    🤖{" "}
+                    {isGenerating
+                      ? t("consultations.analyzing")
+                      : aiResult
+                        ? t("followups.start.regenerateAI")
+                        : t("consultations.getAI")}{" "}
+                    →
+                  </button>
+                </div>
+              )}
+
+              {aiResult &&
+                !showPrescriptionSection &&
+                !prescriptionOnlyEdit && (
+                  <div className="mt-6 p-4 sm:p-6 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-xl shadow-sm space-y-5">
+                    <div className="space-y-1">
+                      <h3 className="text-base font-bold text-blue-800 flex items-center gap-2">
+                        <span>📋 {t("consultations.clinicalSupport")}</span>
+                      </h3>
+
+                      <p className="text-xs text-gray-500">
+                        {t("consultations.finalizeNote")}
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
+                      <div className="space-y-2">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <label className="block text-sm font-medium text-blue-700">
+                            {t("consultations.diagnosis")}{" "}
+                            <span className="text-red-500">*</span>
+                          </label>
+
+                          <label className="inline-flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 cursor-pointer text-xs font-bold text-slate-600 transition-all duration-200 hover:bg-blue-50 hover:border-blue-200 select-none w-max max-w-full">
+                            <input
+                              type="checkbox"
+                              name="isChronic"
+                              checked={form.isChronic}
+                              onChange={handleChange}
+                              disabled={prescriptionOnlyEdit}
+                              className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 cursor-pointer shrink-0 disabled:cursor-not-allowed"
+                            />
+
+                            <span
+                              className={`transition-colors duration-200 truncate ${
+                                form.isChronic
+                                  ? "text-blue-600 font-extrabold"
+                                  : ""
+                              }`}
+                            >
+                              {t("consultations.chronicDisease")}
+                            </span>
+                          </label>
+                        </div>
+
+                        <input
+                          type="text"
+                          name="diagnosis"
+                          value={form.diagnosis}
+                          onChange={handleChange}
+                          disabled={prescriptionOnlyEdit}
+                          placeholder={t("consultations.diagnosisPlaceholder")}
+                          className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-blue-700 sm:h-[28px] sm:flex sm:items-center">
+                          {t("consultations.followUpDate")}
+                        </label>
+
+                        <input
+                          type="date"
+                          name="followUpDate"
+                          value={form.followUpDate}
+                          min={minDate}
+                          max={maxDate}
+                          onChange={handleChange}
+                          disabled={prescriptionOnlyEdit}
+                          className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                        />
+                      </div>
+                    </div>
+
+                    {form.isChronic && (
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                        <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1">
+                          {t("followups.start.chronicUpdateTitle")}
+                        </p>
+
+                        <p className="text-sm text-blue-900 leading-relaxed">
+                          {t("followups.start.chronicUpdateText")}
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="flex flex-col sm:flex-row gap-2.5 sm:justify-end pt-3 border-t border-blue-100/60">
+                      <button
+                        type="submit"
+                        disabled={submitting}
+                        className="bg-blue-700 hover:bg-blue-800 text-white px-5 py-2 rounded-md font-semibold text-sm disabled:opacity-50 block w-full sm:w-auto"
+                      >
+                        {submitting
+                          ? t("common.saving")
+                          : isEditMode || savedConsultationId
+                            ? t("followups.start.saveChanges")
+                            : t("followups.start.confirmButton")}
+                      </button>
+                    </div>
+                  </div>
+                )}
+            </form>
+          </div>
+
+          <div className="space-y-5 lg:border-l lg:border-slate-100 lg:pl-5">
+            <div className="bg-slate-50 rounded-xl overflow-hidden border border-slate-100">
+              <div className="bg-blue-50 px-5 py-3 flex items-center justify-between border-b border-blue-100">
+                <span className="font-semibold text-blue-800 text-sm flex items-center gap-1.5">
+                  ⚡ {t("consultations.clinicalInsights")}
+                </span>
+
+                <span className="text-[10px] bg-blue-600 text-white px-2 py-0.5 rounded-full font-bold">
+                  BETA
+                </span>
+              </div>
+
+              <div className="p-5">
+                {!aiResult && !isGenerating && (
+                  <div className="text-center py-6">
+                    <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl">
+                      🧠
+                    </div>
+
+                    <p className="font-semibold text-gray-800 text-sm">
+                      {t("consultations.agentReady")}
                     </p>
 
-                    <p className="text-sm text-blue-900 leading-relaxed">
-                      {t("followups.start.chronicUpdateText")}
+                    <p className="text-xs text-gray-400 mt-1.5 leading-relaxed">
+                      {t("followups.start.agentReadyText")}
                     </p>
                   </div>
                 )}
 
-                <div className="flex flex-col sm:flex-row gap-2.5 sm:justify-end pt-3 border-t border-blue-100/60">
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="bg-blue-700 hover:bg-blue-800 text-white px-5 py-2 rounded-md font-semibold text-sm disabled:opacity-50 block w-full sm:w-auto"
-                  >
-                    {submitting
-                      ? t("common.saving")
-                      : isEditMode || savedConsultationId
-                        ? t("followups.start.saveChanges")
-                        : t("followups.start.confirmButton")}
-                  </button>
-                </div>
-              </div>
-            )}
-          </form>
-        </div>
+                {isGenerating && (
+                  <div className="text-center py-6">
+                    <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-3 animate-pulse text-2xl">
+                      🧠
+                    </div>
 
-        <div className="space-y-5">
-          <div className="bg-white rounded-xl shadow overflow-hidden">
-            <div className="bg-blue-50 px-5 py-3 flex items-center justify-between border-b border-blue-100">
-              <span className="font-semibold text-blue-800 text-sm flex items-center gap-1.5">
-                ⚡ {t("consultations.clinicalInsights")}
-              </span>
-
-              <span className="text-[10px] bg-blue-600 text-white px-2 py-0.5 rounded-full font-bold">
-                BETA
-              </span>
-            </div>
-
-            <div className="p-5">
-              {!aiResult && !isGenerating && (
-                <div className="text-center py-6">
-                  <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl">
-                    🧠
-                  </div>
-
-                  <p className="font-semibold text-gray-800 text-sm">
-                    {t("consultations.agentReady")}
-                  </p>
-
-                  <p className="text-xs text-gray-400 mt-1.5 leading-relaxed">
-                    {t("followups.start.agentReadyText")}
-                  </p>
-                </div>
-              )}
-
-              {isGenerating && (
-                <div className="text-center py-6">
-                  <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-3 animate-pulse text-2xl">
-                    🧠
-                  </div>
-
-                  <p className="font-semibold text-gray-800 text-sm">
-                    {t("consultations.analyzing")}
-                  </p>
-
-                  <p className="text-xs text-gray-400 mt-1.5">
-                    {t("followups.start.agentAnalyzingText")}
-                  </p>
-                </div>
-              )}
-
-              {aiResult && !isGenerating && (
-                <div className="space-y-3">
-                  <div
-                    className={`border rounded-lg p-3 ${getUrgencyColor(
-                      aiResult.urgencyLevel,
-                    )}`}
-                  >
-                    <p className="text-xs font-semibold uppercase tracking-wide mb-1">
-                      {t("consultations.urgencyLevel")}
+                    <p className="font-semibold text-gray-800 text-sm">
+                      {t("consultations.analyzing")}
                     </p>
 
-                    <p className="text-sm font-bold capitalize">
-                      {aiResult.urgencyLevel ||
-                        t("followups.start.notProvided")}
+                    <p className="text-xs text-gray-400 mt-1.5">
+                      {t("followups.start.agentAnalyzingText")}
                     </p>
                   </div>
+                )}
 
-                  {aiResult.suggestedSpecialist && (
-                    <div className="bg-gray-50 rounded-lg p-3">
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                        {t("consultations.suggestedSpecialist")}
+                {aiResult && !isGenerating && (
+                  <div className="space-y-3">
+                    <div
+                      className={`border rounded-lg p-3 ${getUrgencyColor(
+                        aiResult.urgencyLevel,
+                      )}`}
+                    >
+                      <p className="text-xs font-semibold uppercase tracking-wide mb-1">
+                        {t("consultations.urgencyLevel")}
                       </p>
 
-                      <p className="text-sm text-gray-800">
-                        {aiResult.suggestedSpecialist}
-                      </p>
-                    </div>
-                  )}
-
-                  {aiResult.structuredNote && (
-                    <div className="bg-gray-50 rounded-lg p-3">
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                        {t("consultations.structuredNote")}
-                      </p>
-
-                      <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
-                        {aiResult.structuredNote}
+                      <p className="text-sm font-bold capitalize">
+                        {aiResult.urgencyLevel ||
+                          t("followups.start.notProvided")}
                       </p>
                     </div>
-                  )}
 
-                  {!aiResult.structuredNote &&
-                    !aiResult.suggestedSpecialist &&
-                    !aiResult.urgencyLevel && (
-                      <div className="bg-yellow-50 rounded-lg p-3 border border-yellow-200">
-                        <p className="text-xs font-semibold text-yellow-800 uppercase tracking-wide mb-1">
-                          {t("followups.start.agentOutputTitle")}
+                    {aiResult.suggestedSpecialist && (
+                      <div className="bg-gray-50 rounded-lg p-3">
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                          {t("consultations.suggestedSpecialist")}
                         </p>
 
-                        <p className="text-sm text-yellow-900 leading-relaxed">
-                          {t("followups.start.agentOutputText")}
+                        <p className="text-sm text-gray-800">
+                          {aiResult.suggestedSpecialist}
                         </p>
                       </div>
                     )}
-                </div>
-              )}
+
+                    {aiResult.structuredNote && (
+                      <div className="bg-gray-50 rounded-lg p-3">
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                          {t("consultations.structuredNote")}
+                        </p>
+
+                        <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+                          {aiResult.structuredNote}
+                        </p>
+                      </div>
+                    )}
+
+                    {!aiResult.structuredNote &&
+                      !aiResult.suggestedSpecialist &&
+                      !aiResult.urgencyLevel && (
+                        <div className="bg-yellow-50 rounded-lg p-3 border border-yellow-200">
+                          <p className="text-xs font-semibold text-yellow-800 uppercase tracking-wide mb-1">
+                            {t("followups.start.agentOutputTitle")}
+                          </p>
+
+                          <p className="text-sm text-yellow-900 leading-relaxed">
+                            {t("followups.start.agentOutputText")}
+                          </p>
+                        </div>
+                      )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

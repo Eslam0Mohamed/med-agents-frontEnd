@@ -201,7 +201,11 @@ const PatientSearch = () => {
                         <span
                           className={`px-2.5 py-1 rounded-lg border uppercase ${p.gender?.toLowerCase() === "male" ? "bg-blue-50/60 text-blue-600 border-blue-100" : "bg-rose-50/60 text-rose-600 border-rose-100"}`}
                         >
-                          {p.gender || "N/A"}
+                          {p.gender?.toLowerCase() === "male"
+                            ? t("patients.male")
+                            : p.gender?.toLowerCase() === "female"
+                              ? t("patients.female")
+                              : "N/A"}
                         </span>
                       </div>
                     </div>
