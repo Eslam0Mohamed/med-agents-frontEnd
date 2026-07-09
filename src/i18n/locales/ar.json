@@ -26,6 +26,7 @@
   "common": {
     "save": "حفظ",
     "cancel": "إلغاء",
+    "optional": "اختياري",
     "somethingWentWrong": "حصل خطأ ما",
     "edit": "تعديل",
     "history": "السجل",
@@ -68,6 +69,9 @@
     "discontinueConfirmTitle": "توقيف الدواء ده؟",
     "discontinueConfirmText": "\"{{name}}\" مش هيتحسب دواء شغال في فحوصات التعارض والجرعات الجاية. الروشتة الأصلية مش هتتغير خالص.",
     "discontinueConfirmButton": "أيوه، وقفه",
+    "undoConfirmTitle": "ترجيع الدواء ده تاني؟",
+    "undoConfirmText": "\"{{name}}\" هيتحسب دواء شغال تاني في فحوصات التعارض والجرعات الجاية.",
+    "undoConfirmButton": "أيوه، رجّعه",
     "female": "أنثى",
     "bloodType": "فصيلة الدم",
     "allergies": "الحساسية",
@@ -86,6 +90,8 @@
     "manageInfo": "إدارة البيانات الديموغرافية والتاريخ الطبي للمرضى.",
     "addAllergy": "إضافة حساسية...",
     "addCondition": "إضافة مرض مزمن...",
+    "chronicMedications": "الأدوية الكرونيك",
+    "addMedication": "إضافة دواء...",
     "privacyTitle": "حماية الخصوصية",
     "privacyText": "جميع البيانات المدخلة هنا مشفّرة ومحفوظة وفقًا للوائح الرعاية الصحية المحلية."
   },

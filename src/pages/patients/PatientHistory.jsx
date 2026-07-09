@@ -53,7 +53,17 @@ export default function PatientHistory() {
     }
   };
 
-  const handleReactivate = async (medicationId) => {
+  const handleReactivate = async (medicationId, medName) => {
+    const confirm = await Swal.fire({
+      title: t("patients.undoConfirmTitle"),
+      text: t("patients.undoConfirmText", { name: medName }),
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: t("patients.undoConfirmButton"),
+      cancelButtonText: t("common.cancel"),
+    });
+    if (!confirm.isConfirmed) return;
+
     try {
       await reactivateMedication(id, medicationId);
       dispatch(fetchPatientHistory(id));
@@ -166,6 +176,27 @@ export default function PatientHistory() {
                         className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 font-medium"
                       >
                         {c}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-xs text-gray-400">
+                      {t("patients.none")}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-gray-400 uppercase mb-1">
+                  {t("patients.chronicMedications")}
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {patient.chronicMedications?.length > 0 ? (
+                    patient.chronicMedications.map((m, i) => (
+                      <span
+                        key={i}
+                        className="text-xs px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 font-medium"
+                      >
+                        {m}
                       </span>
                     ))
                   ) : (
@@ -359,8 +390,10 @@ export default function PatientHistory() {
                             </span>
                             <button
                               type="button"
-                              onClick={() => handleReactivate(med._id)}
-                              className="text-blue-600 hover:text-blue-800 font-semibold"
+                              onClick={() =>
+                                handleReactivate(med._id, med.name)
+                              }
+                              className="text-xs font-bold px-2.5 py-1 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-600 hover:text-white transition"
                             >
                               {t("patients.undoDiscontinue")}
                             </button>

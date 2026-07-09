@@ -26,6 +26,7 @@
   "common": {
     "save": "Save",
     "cancel": "Cancel",
+    "optional": "optional",
     "somethingWentWrong": "Something went wrong",
     "edit": "Edit",
     "history": "History",
@@ -68,6 +69,9 @@
     "discontinueConfirmTitle": "Discontinue this medication?",
     "discontinueConfirmText": "\"{{name}}\" will no longer be counted as an active medication in future interaction/dosage checks. The original prescription record will not be changed.",
     "discontinueConfirmButton": "Yes, discontinue",
+    "undoConfirmTitle": "Reactivate this medication?",
+    "undoConfirmText": "\"{{name}}\" will be counted as an active medication again in future interaction/dosage checks.",
+    "undoConfirmButton": "Yes, reactivate",
     "female": "Female",
     "bloodType": "Blood Type",
     "allergies": "Allergies",
@@ -86,6 +90,8 @@
     "manageInfo": "Manage demographics and medical history for new or existing patients.",
     "addAllergy": "Add allergy...",
     "addCondition": "Add condition...",
+    "chronicMedications": "Chronic Medications",
+    "addMedication": "Add medication...",
     "privacyTitle": "Privacy Compliance",
     "privacyText": "All data entered here is encrypted and stored in compliance with local healthcare regulations."
   },
