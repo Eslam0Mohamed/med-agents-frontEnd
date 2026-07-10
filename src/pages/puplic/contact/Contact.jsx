@@ -100,13 +100,13 @@ const Contact = () => {
           isDark ? "text-slate-400" : "text-gray-500"
         }`}>
           {t("contact.orEmail")}{" "}
-          <a href="mailto:em7076155@gmail.com" className="text-blue-600 font-medium">support@medagents.com</a>
+          <a href="mailto:eslama202002@gmail.com" className="text-blue-600 font-medium">eslama202002@gmail.com</a>
         </div>
         <div className={`text-center mt-8 text-sm transition-colors ${
           isDark ? "text-slate-400" : "text-gray-500"
         }`}>
           {t("contact.whatsapp")}{" "}
-          <a href="" className="text-blue-600 font-medium" >01275772311</a>
+          <a href="https://wa.me/201275772311" target="_blank" className="text-blue-600 font-medium" >01275772311</a>
         </div>
       </section>
       <Footer />
