@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "../../../context/ThemeContext";
 import PublicNavbar from "../puplicNavbar/PuplicNavbar";
+import Footer from "../../../components/Footer";
 import { sendContactMessage } from "../../../api/contact";
 
 const Contact = () => {
@@ -32,11 +33,11 @@ const Contact = () => {
   };
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${
+    <div className={`min-h-screen flex flex-col transition-colors duration-300 ${
       isDark ? "bg-slate-950 text-slate-100" : "bg-slate-50/50 text-gray-800"
     }`} dir={isRtl ? "rtl" : "ltr"}>
       <PublicNavbar />
-      <section className="max-w-3xl mx-auto px-6 pt-16 pb-24">
+      <section className="max-w-3xl mx-auto px-6 pt-16 pb-24 flex-1 w-full">
         <div className="text-center mb-10">
           <h1 className={`text-3xl font-bold transition-colors ${
             isDark ? "text-white" : "text-gray-900"
@@ -102,6 +103,7 @@ const Contact = () => {
           <a href="mailto:support@medagents.com" className="text-blue-600 font-medium">support@medagents.com</a>
         </div>
       </section>
+      <Footer />
     </div>
   );
 };

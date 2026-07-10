@@ -7,6 +7,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { loginSchema } from '../../schemas/loginSchema';
 import PublicNavbar from "../puplic/puplicNavbar/PuplicNavbar"
+import Footer from '../../components/Footer';
 import LanguageSwitcher from '../../components/LanguageSwitcher';
 
 export default function Login() {
@@ -129,6 +130,7 @@ export default function Login() {
           </form>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }
