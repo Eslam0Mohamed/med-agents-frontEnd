@@ -106,7 +106,12 @@ useEffect(()=>{
     : Math.min((subscription.daysLeft / 30) * 100, 100);
 
     const RENEWAL_WINDOW_DAYS = 3;
-    const isSwitchingPlan = subscription.status === "active" && selectedPlan !== subscription.plan;
+    // مسموح تخطي القيد ده في حالة واحدة بس: الدكتور على Basic وعايز يرقّي لـ Pro
+    // أي حالة تانية (نفس الخطة، أو Pro عايز يعمل أي حاجة) بتتقيد بنفس قاعدة الانتظار
+    const isSwitchingPlan =
+        subscription.status === "active" &&
+        subscription.plan === "Basic" &&
+        selectedPlan === "Pro";
     const canRenew =
         subscription.status !== "active" ||
         subscription.daysLeft <= RENEWAL_WINDOW_DAYS ||

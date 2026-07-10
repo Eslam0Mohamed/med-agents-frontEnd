@@ -460,6 +460,7 @@
     "successTitle": "تم إرسال الرسالة",
     "successText": "شكراً للتواصل معنا، سنرد عليك قريباً.",
     "orEmail": "أو راسلنا مباشرة على",
+    "whatsapp": "واتساب ",
     "errorFallback": "حدث خطأ، يرجى المحاولة مجدداً"
   },
   "patientReport": {

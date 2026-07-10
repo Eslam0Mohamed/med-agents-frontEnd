@@ -9,17 +9,14 @@ html.dark body {
 /* Override white cards and layouts */
 html.dark .bg-white,
 html.dark .bg-gray-50,
-html.dark .bg-gray-100,
 html.dark .bg-slate-50\/50,
-html.dark [class*="bg-white"],
-html.dark [class*="bg-slate-50"],
-html.dark [class*="bg-gray-50"],
-html.dark [class*="bg-gray-100"] {
+html.dark [class*="bg-white"] {
   background-color: #0f172a !important; /* bg-slate-900 */
   color: #f1f5f9 !important;
 }
 
 /* Override borders */
+html.dark border,
 html.dark [class*="border-gray-"],
 html.dark [class*="border-slate-"],
 html.dark .border,
@@ -82,15 +79,6 @@ html.dark table {
   border-color: #1e293b !important;
 }
 
-/* الشادو الفاتح اللون (shadow-slate-100, shadow-gray-100...) بيبقى غامق بدل الهالة البيضا */
-html.dark [class*="shadow-slate-100"],
-html.dark [class*="shadow-gray-100"],
-html.dark [class*="shadow-slate-200"],
-html.dark [class*="shadow-gray-200"] {
-  --tw-shadow-color: rgba(0, 0, 0, 0.6) !important;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5) !important;
-}
-
 html.dark th {
   background-color: #1e293b !important;
   color: #ffffff !important;
@@ -146,88 +134,12 @@ html.dark [class*="hover:bg-blue-50"]:hover {
   background-color: rgba(59, 130, 246, 0.25) !important;
 }
 
-/* Status/alert colors - Subscriptions, Payment, Contact pages */
-html.dark .bg-green-50,
-html.dark [class*="bg-green-50"] {
-  background-color: rgba(34, 197, 94, 0.12) !important;
-}
-html.dark .border-green-500,
-html.dark .border-green-200,
-html.dark [class*="border-green-"] {
-  border-color: rgba(34, 197, 94, 0.4) !important;
-}
-html.dark .text-green-700,
-html.dark .text-green-600,
-html.dark [class*="text-green-"] {
-  color: #4ade80 !important;
-}
-
-html.dark .bg-red-50,
-html.dark [class*="bg-red-50"] {
-  background-color: rgba(239, 68, 68, 0.12) !important;
-}
-html.dark .border-red-500,
-html.dark .border-red-200,
-html.dark [class*="border-red-"] {
-  border-color: rgba(239, 68, 68, 0.4) !important;
-}
-html.dark .text-red-700,
-html.dark .text-red-600,
-html.dark [class*="text-red-"] {
-  color: #f87171 !important;
-}
-
-html.dark .bg-yellow-50,
-html.dark [class*="bg-yellow-50"] {
-  background-color: rgba(234, 179, 8, 0.12) !important;
-}
-html.dark .border-yellow-500,
-html.dark .border-yellow-200,
-html.dark [class*="border-yellow-"] {
-  border-color: rgba(234, 179, 8, 0.4) !important;
-}
-html.dark .text-yellow-700,
-html.dark .text-yellow-600,
-html.dark [class*="text-yellow-"] {
-  color: #facc15 !important;
-}
-
-html.dark .bg-amber-50,
-html.dark [class*="bg-amber-50"] {
-  background-color: rgba(245, 158, 11, 0.12) !important;
-}
-html.dark .border-amber-500,
-html.dark .border-amber-200,
-html.dark [class*="border-amber-"] {
-  border-color: rgba(245, 158, 11, 0.4) !important;
-}
-html.dark .text-amber-700,
-html.dark .text-amber-600,
-html.dark [class*="text-amber-"] {
-  color: #fbbf24 !important;
-}
-
-html.dark .bg-purple-50,
-html.dark [class*="bg-purple-50"] {
-  background-color: rgba(168, 85, 247, 0.12) !important;
-}
-html.dark .border-purple-500,
-html.dark .border-purple-200,
-html.dark [class*="border-purple-"] {
-  border-color: rgba(168, 85, 247, 0.4) !important;
-}
-html.dark .text-purple-700,
-html.dark .text-purple-600,
-html.dark [class*="text-purple-"] {
-  color: #c084fc !important;
-}
-
 /* Adjust blue header gradients and action buttons at the top of pages in dark mode */
 html.dark [class*="bg-gradient-to-"][class*="from-blue-"],
 html.dark [class*="bg-gradient-to-r"][class*="from-blue-"],
 html.dark .bg-gradient-to-r.from-blue-700.to-blue-600 {
-  background-image: linear-gradient(to right, #1e3a8a, #1e293b) !important; /* أزرق غامق واضح، مش نفس لون الخلفية */
-  border: 1px solid #334155 !important;
+  background-image: linear-gradient(to right, #0f172a, #1e293b) !important; /* Premium dark gradient */
+  border: 1px solid #1e293b !important;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4) !important;
 }
 
