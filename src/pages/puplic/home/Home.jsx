@@ -200,7 +200,8 @@ const Home = () => {
       </section>
 
       {/* 3-Column Features Section */}
-      <section className="max-w-6xl mx-auto px-6 pb-24">
+     
+     <section className="max-w-6xl mx-auto px-6 pb-24">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           
           {/* Card 1: Patient Management */}
@@ -217,11 +218,7 @@ const Home = () => {
               </svg>
             </div>
             <h3 className={`text-lg font-bold mb-3 transition-colors ${isDark ? "text-white" : "text-slate-900"}`}>{t("home.feature1Title")}</h3>
-            <p className={`text-sm leading-relaxed mb-6 transition-colors ${isDark ? "text-slate-400" : "text-slate-500"}`}>{t("home.feature1Desc")}</p>
-            <Link to="/login" className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-500 hover:text-blue-400">
-              {t("home.learnMore", "Learn more")}
-              <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
-            </Link>
+            <p className={`text-sm leading-relaxed transition-colors ${isDark ? "text-slate-400" : "text-slate-500"}`}>{t("home.feature1Desc")}</p>
           </div>
 
           {/* Card 2: AI Consultations */}
@@ -238,11 +235,7 @@ const Home = () => {
               </svg>
             </div>
             <h3 className={`text-lg font-bold mb-3 transition-colors ${isDark ? "text-white" : "text-slate-900"}`}>{t("home.feature2Title")}</h3>
-            <p className={`text-sm leading-relaxed mb-6 transition-colors ${isDark ? "text-slate-400" : "text-slate-500"}`}>{t("home.feature2Desc")}</p>
-            <Link to="/login" className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-500 hover:text-blue-400">
-              {t("home.learnMore", "Learn more")}
-              <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
-            </Link>
+            <p className={`text-sm leading-relaxed transition-colors ${isDark ? "text-slate-400" : "text-slate-500"}`}>{t("home.feature2Desc")}</p>
           </div>
 
           {/* Card 3: Digital Prescriptions */}
@@ -259,11 +252,7 @@ const Home = () => {
               </svg>
             </div>
             <h3 className={`text-lg font-bold mb-3 transition-colors ${isDark ? "text-white" : "text-slate-900"}`}>{t("home.feature3Title")}</h3>
-            <p className={`text-sm leading-relaxed mb-6 transition-colors ${isDark ? "text-slate-400" : "text-slate-500"}`}>{t("home.feature3Desc")}</p>
-            <Link to="/login" className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-500 hover:text-blue-400">
-              {t("home.learnMore", "Learn more")}
-              <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
-            </Link>
+            <p className={`text-sm leading-relaxed transition-colors ${isDark ? "text-slate-400" : "text-slate-500"}`}>{t("home.feature3Desc")}</p>
           </div>
 
         </div>
