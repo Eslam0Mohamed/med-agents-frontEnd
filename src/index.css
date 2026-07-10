@@ -1,1 +1,157 @@
 @import "tailwindcss";
+
+/* Global Dark Mode overrides for all pages and components */
+html.dark body {
+  background-color: #020617 !important; /* bg-slate-950 */
+  color: #f1f5f9 !important; /* text-slate-100 */
+}
+
+/* Override white cards and layouts */
+html.dark .bg-white,
+html.dark .bg-gray-50,
+html.dark .bg-slate-50\/50,
+html.dark [class*="bg-white"] {
+  background-color: #0f172a !important; /* bg-slate-900 */
+  color: #f1f5f9 !important;
+}
+
+/* Override borders */
+html.dark border,
+html.dark [class*="border-gray-"],
+html.dark [class*="border-slate-"],
+html.dark .border,
+html.dark .border-t,
+html.dark .border-b,
+html.dark .border-r,
+html.dark .border-l {
+  border-color: #1e293b !important; /* border-slate-800 */
+}
+
+/* Override text colors */
+html.dark h1,
+html.dark h2,
+html.dark h3,
+html.dark h4,
+html.dark h5,
+html.dark h6,
+html.dark .text-gray-900,
+html.dark .text-slate-900,
+html.dark .text-gray-800,
+html.dark [class*="text-gray-900"] {
+  color: #ffffff !important;
+}
+
+html.dark p,
+html.dark span,
+html.dark label,
+html.dark .text-gray-600,
+html.dark .text-gray-500,
+html.dark .text-slate-500,
+html.dark [class*="text-gray-600"] {
+  color: #94a3b8 !important; /* text-slate-400 */
+}
+
+html.dark .text-gray-700,
+html.dark [class*="text-gray-700"] {
+  color: #cbd5e1 !important; /* text-slate-300 */
+}
+
+/* Override inputs, textareas and select fields */
+html.dark input,
+html.dark textarea,
+html.dark select,
+html.dark [type="text"],
+html.dark [type="email"],
+html.dark [type="password"] {
+  background-color: #020617 !important; /* bg-slate-950 */
+  color: #f1f5f9 !important;
+  border-color: #1e293b !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #475569 !important; /* text-slate-600 */
+}
+
+/* Tables styling in dark mode */
+html.dark table {
+  background-color: #0f172a !important;
+  border-color: #1e293b !important;
+}
+
+html.dark th {
+  background-color: #1e293b !important;
+  color: #ffffff !important;
+  border-color: #334155 !important;
+}
+
+html.dark td {
+  border-color: #1e293b !important;
+  color: #cbd5e1 !important;
+}
+
+html.dark tbody tr:hover,
+html.dark tr:hover {
+  background-color: #1e293b70 !important;
+}
+
+/* Lists and dropdown menus */
+html.dark li,
+html.dark .hover\:bg-gray-50:hover,
+html.dark .hover\:bg-slate-50:hover,
+html.dark [class*="hover:bg-gray-"]:hover {
+  background-color: #1e293b !important;
+  color: #ffffff !important;
+}
+
+/* Modals and dialog overlays */
+html.dark .modal-content,
+html.dark [role="dialog"],
+html.dark .bg-black\/50 {
+  background-color: #0f172a !important;
+  border-color: #1e293b !important;
+}
+
+/* Adjust light blue backgrounds and blue accents in dark mode */
+html.dark .bg-blue-50,
+html.dark .bg-blue-100,
+html.dark [class*="bg-blue-50"],
+html.dark [class*="bg-blue-100"] {
+  background-color: rgba(59, 130, 246, 0.15) !important; /* Soft transparent blue */
+  color: #60a5fa !important; /* Readable light blue text */
+}
+
+html.dark .text-blue-600,
+html.dark .text-blue-700,
+html.dark [class*="text-blue-600"],
+html.dark [class*="text-blue-700"] {
+  color: #60a5fa !important; /* Premium light blue */
+}
+
+html.dark .hover\:bg-blue-50:hover,
+html.dark .hover\:bg-blue-100:hover,
+html.dark [class*="hover:bg-blue-50"]:hover {
+  background-color: rgba(59, 130, 246, 0.25) !important;
+}
+
+/* Adjust blue header gradients and action buttons at the top of pages in dark mode */
+html.dark [class*="bg-gradient-to-"][class*="from-blue-"],
+html.dark [class*="bg-gradient-to-r"][class*="from-blue-"],
+html.dark .bg-gradient-to-r.from-blue-700.to-blue-600 {
+  background-image: linear-gradient(to right, #0f172a, #1e293b) !important; /* Premium dark gradient */
+  border: 1px solid #1e293b !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Make action buttons in headers stand out properly in dark mode */
+html.dark .bg-white.text-blue-600,
+html.dark [class*="bg-white"][class*="text-blue-600"] {
+  background-color: #2563eb !important; /* solid blue */
+  color: #ffffff !important;
+  border-color: #1d4ed8 !important;
+}
+
+html.dark .bg-white.text-blue-600:hover,
+html.dark [class*="bg-white"][class*="text-blue-600"]:hover {
+  background-color: #1d4ed8 !important;
+}

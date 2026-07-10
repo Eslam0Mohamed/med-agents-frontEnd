@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useTheme } from "../../../context/ThemeContext";
 import PublicNavbar from "../puplicNavbar/PuplicNavbar";
 import doctorHero from "../../../assets/doctor-hero.png";
 
@@ -8,19 +9,7 @@ const Home = () => {
   const { t, i18n } = useTranslation();
   const currentLang = i18n.language || "en";
   const isRtl = currentLang === "ar";
-
-  // Dark/Light Theme State
-  const [isDark, setIsDark] = useState(() => {
-    return localStorage.getItem("theme") === "dark";
-  });
-
-  const toggleTheme = () => {
-    setIsDark((prev) => {
-      const next = !prev;
-      localStorage.setItem("theme", next ? "dark" : "light");
-      return next;
-    });
-  };
+  const { isDark } = useTheme();
 
   // AI Sandbox State
   const [customInput, setCustomInput] = useState("");
@@ -99,7 +88,7 @@ const Home = () => {
       isDark ? "bg-slate-950 text-slate-100" : "bg-slate-50/50 text-gray-800"
     }`} dir={isRtl ? "rtl" : "ltr"}>
       
-      <PublicNavbar isDark={isDark} toggleTheme={toggleTheme} />
+      <PublicNavbar />
 
       {/* Hero Section */}
       <section className="relative max-w-6xl mx-auto px-6 pt-16 pb-20 md:pt-24 md:pb-28">
