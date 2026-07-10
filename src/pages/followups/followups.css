@@ -682,3 +682,141 @@
   border-color: #bfdbfe;
   background: #eff6ff;
 }
+
+/* ── Dark Mode Overrides for Followups Page ── */
+html.dark .followups-page {
+  color: #f1f5f9 !important;
+}
+
+html.dark .followups-header h1 {
+  color: #ffffff !important;
+}
+
+html.dark .followups-header p {
+  color: #94a3b8 !important;
+}
+
+html.dark .header-note {
+  background: rgba(59, 130, 246, 0.15) !important;
+  color: #60a5fa !important;
+  border-color: rgba(59, 130, 246, 0.3) !important;
+}
+
+html.dark .followups-tabs {
+  background: #0f172a !important;
+  border-color: #1e293b !important;
+}
+
+html.dark .followups-tabs button {
+  color: #cbd5e1 !important;
+}
+
+html.dark .followups-tabs button.active {
+  background: #2563eb !important;
+  color: #ffffff !important;
+}
+
+html.dark .mini-calendar-card,
+html.dark .ai-insights-card,
+html.dark .followup-card,
+html.dark .state-text {
+  background: #0f172a !important;
+  border-color: #1e293b !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  color: #f1f5f9 !important;
+}
+
+html.dark .calendar-day {
+  color: #cbd5e1 !important;
+}
+
+html.dark .calendar-day.other-month {
+  color: #475569 !important;
+}
+
+html.dark .calendar-day:hover {
+  background: #1e293b !important;
+}
+
+html.dark .calendar-title button,
+html.dark .calendar-footer button {
+  background: #1e293b !important;
+  color: #60a5fa !important;
+}
+
+html.dark .calendar-day.today {
+  border-color: #3b82f6 !important;
+}
+
+html.dark .calendar-day.selected {
+  background: #2563eb !important;
+  color: #ffffff !important;
+}
+
+html.dark .calendar-day.selected small {
+  color: #2563eb !important;
+  background: #ffffff !important;
+}
+
+html.dark .details-btn {
+  background: #1e293b !important;
+  color: #60a5fa !important;
+  border-color: #334155 !important;
+}
+
+html.dark .details-btn:hover {
+  background: #2563eb !important;
+  color: #ffffff !important;
+}
+
+html.dark .edit-btn {
+  background: #1e293b !important;
+  color: #cbd5e1 !important;
+  border-color: #334155 !important;
+}
+
+html.dark .edit-btn:hover {
+  background: #334155 !important;
+}
+
+html.dark .icon-btn:hover {
+  color: #60a5fa !important;
+  border-color: #334155 !important;
+  background: #1e293b !important;
+}
+
+html.dark .stat-num {
+  color: #ffffff !important;
+}
+
+html.dark .card-header h3 {
+  color: #ffffff !important;
+}
+
+html.dark .calendar-weekday {
+  color: #64748b !important;
+}
+
+html.dark .insight-item {
+  border-color: #1e293b !important;
+}
+
+html.dark .insight-item p {
+  color: #94a3b8 !important;
+}
+
+html.dark .time-badge {
+  background: rgba(59, 130, 246, 0.15) !important;
+  color: #60a5fa !important;
+}
+
+html.dark .status-badge.completed {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #10b981 !important;
+}
+
+html.dark .status-badge.pending {
+  background: rgba(245, 158, 11, 0.15) !important;
+  color: #f59e0b !important;
+}
+
