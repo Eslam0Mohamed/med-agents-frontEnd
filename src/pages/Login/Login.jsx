@@ -111,7 +111,7 @@ export default function Login() {
                     ? 'border-red-400' 
                     : isDark 
                     ? 'bg-slate-950 border-slate-800 text-slate-100' 
-                    : 'bg-white border-gray-300 text-gray-805'
+                    : 'bg-white border-gray-300 text-gray-800'
                 }`}
                 placeholder="••••••••"
               />
