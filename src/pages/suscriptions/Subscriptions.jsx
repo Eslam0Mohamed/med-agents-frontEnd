@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { getMySubscription } from "../../api/subscription";
 import { initiatePayment } from "../../api/payment";
 import { getSubscriptionMessage } from '../../utils/subscriptions';
+import Loading from '../../components/Loading';
 
 const PLAN_PRICES = { Basic: 200, Pro: 350 };
 const MONTHS_OPTIONS = [1, 3, 6, 12];
@@ -59,7 +60,7 @@ const Subscriptions = () => {
 useEffect(()=>{
     fetchSubscription()
 },[])
-    if (loading) return <h2>{t('subscriptionsPage.loading')}</h2>;
+    if (loading) return <Loading/>;
     if (error) {
         return (
             <div className="flex justify-center items-center min-h-[60vh]">

@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Swal from "sweetalert2";
 import { fetchPatients, deletePatient } from "../../api/patient";
-import LoadingState from "../../components/patient-report/LoadingState";
+import Loading from "../../components/Loading";
 export default function PatientsList() {
   const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
@@ -77,6 +77,9 @@ export default function PatientsList() {
       }
     });
   };
+  if (isLoading) {
+    return<Loading/>
+  }
 
   return (
     <div className="min-h-screen bg-slate-50/70 antialiased text-slate-800 pb-12 w-full box-border">
@@ -159,11 +162,7 @@ export default function PatientsList() {
           />
         </div>
 
-        {isLoading && (
-          <LoadingState></LoadingState>
-          // <div className="text-center text-gray-400 py-10">{t('common.loading')}</div>
-        )}
-
+       
         {!isLoading && filteredPatients.length === 0 && (
           <div className="text-center text-gray-400 py-10">
             {t("common.noData")}

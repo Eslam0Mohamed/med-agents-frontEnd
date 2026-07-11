@@ -6,6 +6,7 @@ const Footer = () => {
   const { t, i18n } = useTranslation();
   const currentLang = i18n.language || "en";
   const isRtl = currentLang === "ar";
+  
   return (
     <footer className="py-8 border-t bg-blue-100 border-blue-200 text-slate-700 mt-auto">
       <div className={`max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-12 gap-6 ${isRtl ? "text-right" : "text-left"}`}>
@@ -17,9 +18,12 @@ const Footer = () => {
           <p className="text-sm leading-relaxed max-w-sm text-slate-600">
             {t("footer.description", "AI-powered platform for doctors to manage patients, consultations, and prescriptions with ease.")}
           </p>
- <a href="mailto:eslama202002@gmail.com" className= "block text-slate-700 hover:text-blue-600 transition">eslama202002@gmail.com</a>
-            <a href="https://wa.me/201275772311" target="_blank" className="block text-slate-700 hover:text-blue-600 transition" >01275772311</a>
-
+          <a href="mailto:eslama202002@gmail.com" className="block text-slate-700 hover:text-blue-600 transition">
+            eslama202002@gmail.com
+          </a>
+          <a href="https://wa.me/201275772311" target="_blank" rel="noopener noreferrer" className="block text-slate-700 hover:text-blue-600 transition">
+            01275772311
+          </a>
         </div>
 
         {/* Column 2: Navigation */}
@@ -34,27 +38,26 @@ const Footer = () => {
         </div>
 
         {/* Column 3: Features */}
-        <div className="md:col-span-4 space-y-3">
+        <div className="md:col-span-4 space-y-4">
+          {/* تم تعديل اللون هنا من text-slate-200 إلى text-slate-800 ليصبح واضحاً */}
           <h4 className="text-xs font-bold tracking-wider uppercase text-slate-800">
             {isRtl ? "المميزات" : "Key Features"}
           </h4>
-    <ul className="space-y-2 text-sm text-slate-600">
-  <li className="flex items-center justify-end gap-2">
-    {isRtl && <span>{t("home.feature1Title")}</span>}
-    <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
-    {!isRtl && <span>{t("home.feature1Title")}</span>}
-  </li>
-  <li className="flex items-center justify-end gap-2">
-    {isRtl && <span>{t("home.feature2Title")}</span>}
-    <span className="w-1.5 h-1.5 rounded-full bg-purple-600"></span>
-    {!isRtl && <span>{t("home.feature2Title")}</span>}
-  </li>
-  <li className="flex items-center justify-end gap-2">
-    {isRtl && <span>{t("home.feature3Title")}</span>}
-    <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
-    {!isRtl && <span>{t("home.feature3Title")}</span>}
-  </li>
-</ul>
+          {/* تم تعديل اللون هنا من text-slate-400 إلى text-slate-600 ليصبح واضحاً */}
+          <ul className="space-y-2.5 text-sm text-slate-600 p-0">
+            <li className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+              <span>{t("home.feature1Title")}</span>
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
+              <span>{t("home.feature2Title")}</span>
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+              <span>{t("home.feature3Title")}</span>
+            </li>
+          </ul>
         </div>
       </div>
 

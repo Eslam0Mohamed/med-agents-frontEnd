@@ -16,7 +16,7 @@ import ActivityTimeline from '../../components/patient-report/ActivityTimeline';
 import FollowUpsSection, {
   UnavailableSection,
 } from '../../components/patient-report/FollowUpsSection';
-import LoadingState from '../../components/patient-report/LoadingState';
+import Loading from '../../components/Loading';
 
 export default function PatientReport() {
   const { t } = useTranslation();
@@ -26,7 +26,7 @@ export default function PatientReport() {
   const { report, loading, error } = usePatientReport(id);
 
   if (loading) {
-    return <LoadingState />;
+    return <Loading />;
   }
 
   if (error) {
