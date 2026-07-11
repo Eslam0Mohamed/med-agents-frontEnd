@@ -405,6 +405,7 @@ export default function PrescriptionModal({
   patient,
   language = "en",
   existingPrescription = null,
+  prefillMedications = null,
   onSaved,
 }) {
   const { t } = useTranslation();
@@ -422,12 +423,22 @@ export default function PrescriptionModal({
       setMedications(
         existingPrescription.medications.map(medicationToFormState),
       );
+    } else if (prefillMedications?.length) {
+      // جاية من "اقترح أدوية" بتاع إيجنت التشخيص - الدكتور لسه يقدر
+      // يعدّل/يمسح/يضيف قبل الحفظ، مش هتتحفظ زي ما هي أوتوماتيك
+      setMedications(
+        prefillMedications.map((m) => ({
+          ...emptyMedication(),
+          ...m,
+          _key: Math.random().toString(36).slice(2),
+        })),
+      );
     } else {
       setMedications([emptyMedication()]);
     }
     setCheckedMedications(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, existingPrescription]);
+  }, [isOpen, existingPrescription, prefillMedications]);
 
   const runSafetyCheck = useCallback(
     async (meds) => {

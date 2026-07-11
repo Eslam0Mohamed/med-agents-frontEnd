@@ -1,12 +1,23 @@
-import apiInstance from '../config/apiInstance';
+import apiInstance from "../config/apiInstance";
 
 export const getConsultations = async () => {
-  const res = await apiInstance.get('/consultations/doctor');
+  const res = await apiInstance.get("/consultations/doctor");
   return res.data;
 };
 
 export const getAIRecommendation = async (AiData) => {
-  const { data } = await apiInstance.post("/consultations/ai-recommendation", AiData);
+  const { data } = await apiInstance.post(
+    "/consultations/ai-recommendation",
+    AiData,
+  );
+  return data;
+};
+
+export const getMedicationSuggestions = async (payload) => {
+  const { data } = await apiInstance.post(
+    "/consultations/medication-suggestions",
+    payload,
+  );
   return data;
 };
 
@@ -16,7 +27,7 @@ export const getConsultationById = async (id) => {
 };
 
 export const createConsultation = async (data) => {
-  const res = await apiInstance.post('/consultations', data);
+  const res = await apiInstance.post("/consultations", data);
   return res.data;
 };
 

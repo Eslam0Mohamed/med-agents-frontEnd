@@ -11,6 +11,7 @@ import { getAllPatients } from "../../api/patient";
 import {
   createConsultation,
   getAIRecommendation,
+  getMedicationSuggestions,
   getConsultationById,
   updateConsultation,
 } from "../../api/consultation";
@@ -35,12 +36,16 @@ const ConsultationForm = () => {
   const [selectedPatientId, setSelectedPatientId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [aiResult, setAiResult] = useState(null);
+  const [medicationSuggestions, setMedicationSuggestions] = useState(null);
+  const [loadingMedSuggestions, setLoadingMedSuggestions] = useState(false);
+  const [medSuggestionsError, setMedSuggestionsError] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
 
   const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
   const [savedConsultationId, setSavedConsultationId] = useState("");
   const [existingPrescription, setExistingPrescription] = useState(null);
+  const [prefillMedications, setPrefillMedications] = useState(null);
   // بنستخدم useState عادي هنا بدل الاعتماد على react-hook-form، بالظبط
   // زي صفحة الفولو أب (StartFollowUp.jsx) اللي شغالة صح — عشان القيمة متأخرش
   // في التسجيل مع RHF بسبب إن الحقل بيتركّب في الصفحة بعد رجوع نتيجة الـ AI
@@ -77,6 +82,7 @@ const ConsultationForm = () => {
     setShowPrescriptionModal(false);
     setSavedConsultationId("");
     setExistingPrescription(null);
+    setPrefillMedications(null);
     setCreatedId("");
     if (!patientId) {
       setSelectedPatientId("");
@@ -226,6 +232,67 @@ const ConsultationForm = () => {
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  // إيجنت منفصل تمامًا عن إيجنت التشخيص - بياخد التشخيص اللي الدكتور راجعه/
+  // عدّله (مش بالضرورة نفس رد الـ AI الأول لو الدكتور غيّره) + الأعراض +
+  // ملاحظات الدكتور، ويقترح خطة أدوية مبدئية
+  const handleSuggestMedications = async () => {
+    const currentDiagnosis = watch("diagnosis");
+    if (!currentDiagnosis || !currentDiagnosis.trim()) {
+      Swal.fire({
+        title: t("common.error"),
+        text: t("consultations.diagnosisRequiredForMeds"),
+        icon: "warning",
+        confirmButtonText: t("common.ok"),
+      });
+      return;
+    }
+
+    setLoadingMedSuggestions(true);
+    setMedSuggestionsError("");
+    setMedicationSuggestions(null);
+
+    try {
+      const payload = {
+        patientId: selectedPatientId,
+        diagnosis: currentDiagnosis,
+        rawInput: watch("rawInput") || "",
+        language: watch("language") || "en",
+        symptoms: (watch("symptoms") || "")
+          .split(",")
+          .map((s) => s.trim())
+          .filter((s) => s.length > 0),
+      };
+      const res = await getMedicationSuggestions(payload);
+      setMedicationSuggestions(res.data || []);
+    } catch (err) {
+      setMedSuggestionsError(
+        err.response?.data?.message || t("consultations.medSuggestionsFailed"),
+      );
+    } finally {
+      setLoadingMedSuggestions(false);
+    }
+  };
+
+  // بيحول اقتراحات الإيجنت لنفس شكل الأدوية اللي مودال الروشتة متوقعها،
+  // ويفتح المودال بيها معبأة مسبقًا (الدكتور لسه يقدر يعدّل/يمسح/يضيف قبل الحفظ)
+  const handleUseSuggestedMedications = () => {
+    if (!medicationSuggestions?.length) return;
+    setPrefillMedications(
+      medicationSuggestions.map((m) => ({
+        name: m.name || "",
+        activeIngredient: m.activeIngredient || "",
+        dosageAmount: m.dosageAmount ?? "",
+        dosageUnit: m.dosageUnit || "mg",
+        frequencyCount: m.frequencyCount ?? "",
+        frequencyPeriod: m.frequencyPeriod || "per day",
+        isChronic: !!m.isChronic,
+        durationValue: m.durationValue ?? "",
+        durationUnit: m.durationUnit || "days",
+      })),
+    );
+    setShowPrescriptionModal(true);
   };
 
   const onSubmit = async (formData) => {
@@ -667,6 +734,96 @@ const ConsultationForm = () => {
                   </div>
                 )}
               </div>
+
+              {/* ديف منفصل تمامًا تحت ديف إيجنت التشخيص - اقتراح أدوية بناءً
+                  على التشخيص اللي الدكتور راجعه/عدّله + الأعراض + ملاحظاته */}
+              {(aiResult || isEditMode) && !prescriptionOnlyEdit && (
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5 mt-4">
+                  <div className="flex items-center justify-between gap-3 mb-1">
+                    <h3 className="text-sm font-bold text-blue-800 flex items-center gap-2">
+                      💊 {t("consultations.suggestedMedications")}
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={handleSuggestMedications}
+                      disabled={loadingMedSuggestions}
+                      className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-600 hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition disabled:opacity-50"
+                    >
+                      {loadingMedSuggestions
+                        ? t("consultations.generatingMeds")
+                        : t("consultations.generateMeds")}
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-500 mb-3">
+                    {t("consultations.suggestedMedicationsNote")}
+                  </p>
+
+                  {medSuggestionsError && (
+                    <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg p-2.5">
+                      {medSuggestionsError}
+                    </p>
+                  )}
+
+                  {medicationSuggestions &&
+                    medicationSuggestions.length === 0 && (
+                      <p className="text-xs text-gray-400">
+                        {t("consultations.noMedSuggestions")}
+                      </p>
+                    )}
+
+                  {medicationSuggestions &&
+                    medicationSuggestions.length > 0 && (
+                      <div className="space-y-2">
+                        {medicationSuggestions.map((med, i) => (
+                          <div
+                            key={i}
+                            className="bg-purple-50/60 border border-purple-100 rounded-lg p-3"
+                          >
+                            <div className="flex items-center justify-between gap-2 flex-wrap">
+                              <span className="text-sm font-bold text-slate-800">
+                                {med.name}
+                                {med.activeIngredient &&
+                                  med.activeIngredient.toLowerCase() !==
+                                    med.name.toLowerCase() && (
+                                    <span className="text-slate-400 font-normal">
+                                      {" "}
+                                      ({med.activeIngredient})
+                                    </span>
+                                  )}
+                              </span>
+                              {med.isChronic && (
+                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 uppercase">
+                                  {t("patients.chronic")}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-slate-500 mt-0.5">
+                              {med.dosageAmount}
+                              {med.dosageUnit} · {med.frequencyCount}x{" "}
+                              {med.frequencyPeriod}
+                              {!med.isChronic &&
+                                med.durationValue &&
+                                ` · ${med.durationValue} ${med.durationUnit}`}
+                            </p>
+                            {med.reason && (
+                              <p className="text-xs text-slate-600 mt-1.5 italic">
+                                {med.reason}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+
+                        <button
+                          type="button"
+                          onClick={handleUseSuggestedMedications}
+                          className="w-full mt-2 inline-flex items-center justify-center gap-1.5 bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition"
+                        >
+                          {t("consultations.useSuggestedMedications")}
+                        </button>
+                      </div>
+                    )}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -683,6 +840,7 @@ const ConsultationForm = () => {
             patient={currentPatient}
             language={watch("language") || "en"}
             existingPrescription={existingPrescription}
+            prefillMedications={prefillMedications}
             onSaved={handlePrescriptionSaved}
           />
         </div>
