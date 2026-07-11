@@ -248,6 +248,8 @@
       "scheduledFollowUp": "موعد المتابعة المجدول",
       "previousInstructions": "التعليمات السابقة",
       "doctorsNotes": "ملاحظات الطبيب",
+      "previousPrescription": "الروشتة السابقة",
+      "noPrescriptionRecorded": "لا توجد روشتة مسجلة",
       "noInstructionsRecorded": "لا توجد تعليمات مسجلة",
       "previousDiagnosis": "التشخيص السابق",
       "previousSymptoms": "الأعراض السابقة",

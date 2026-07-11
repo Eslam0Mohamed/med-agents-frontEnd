@@ -1,15 +1,21 @@
-import apiInstance from '../config/apiInstance';
+import apiInstance from "../config/apiInstance";
 
 // Search drugs from FDA for the medication-name autocomplete dropdown
 export const searchDrugs = async (name) => {
-  const res = await apiInstance.get('/prescriptions/drugs/search', { params: { name } });
+  const res = await apiInstance.get("/prescriptions/drugs/search", {
+    params: { name },
+  });
   return res.data;
 };
 
 // Live safety check (allergies + FDA interactions + ongoing medication conflicts)
 // while the doctor is still building the prescription, before saving.
-export const checkPrescriptionSafety = async ({ patientId, medications, excludePrescriptionId }) => {
-  const res = await apiInstance.post('/prescriptions/safety-check', {
+export const checkPrescriptionSafety = async ({
+  patientId,
+  medications,
+  excludePrescriptionId,
+}) => {
+  const res = await apiInstance.post("/prescriptions/safety-check", {
     patientId,
     medications,
     excludePrescriptionId,
@@ -18,12 +24,14 @@ export const checkPrescriptionSafety = async ({ patientId, medications, excludeP
 };
 
 export const createPrescription = async (data) => {
-  const res = await apiInstance.post('/prescriptions', data);
+  const res = await apiInstance.post("/prescriptions", data);
   return res.data;
 };
 
 export const getPrescriptionByConsultation = async (consultationId) => {
-  const res = await apiInstance.get(`/prescriptions/consultation/${consultationId}`);
+  const res = await apiInstance.get(
+    `/prescriptions/consultation/${consultationId}`,
+  );
   return res.data;
 };
 
@@ -37,7 +45,12 @@ export const getPrescriptionById = async (id) => {
   return res.data;
 };
 
-export const getAllPrescriptions = async ({ search = '', date = '', page = 1, limit = 10 } = {}) => {
+export const getAllPrescriptions = async ({
+  search = "",
+  date = "",
+  page = 1,
+  limit = 10,
+} = {}) => {
   let params = `?page=${page}&limit=${limit}`;
   if (search) params += `&search=${encodeURIComponent(search)}`;
   if (date) params += `&date=${encodeURIComponent(date)}`;
@@ -48,7 +61,7 @@ export const getAllPrescriptions = async ({ search = '', date = '', page = 1, li
 // Distinct dates (YYYY-MM-DD) that have at least one prescription, for
 // highlighting days on the calendar search.
 export const getPrescriptionDates = async () => {
-  const res = await apiInstance.get('/prescriptions/dates');
+  const res = await apiInstance.get("/prescriptions/dates");
   return res.data;
 };
 

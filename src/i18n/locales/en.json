@@ -248,6 +248,8 @@
       "scheduledFollowUp": "Scheduled Follow-up",
       "previousInstructions": "Previous Instructions",
       "doctorsNotes": "Doctor's Notes",
+      "previousPrescription": "Previous Prescription",
+      "noPrescriptionRecorded": "No prescription recorded",
       "noInstructionsRecorded": "No instructions recorded",
       "previousDiagnosis": "Previous Diagnosis",
       "previousSymptoms": "Previous Symptoms",

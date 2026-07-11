@@ -7,6 +7,7 @@ import {
   createPrescription,
   updatePrescription,
 } from "../../api/prescription";
+import { getMedicationSuggestions } from "../../api/consultation";
 
 const DOSAGE_UNITS = ["mcg", "mg", "g"];
 const FREQUENCY_PERIODS = ["per day", "per week", "per month"];
@@ -406,6 +407,11 @@ export default function PrescriptionModal({
   language = "en",
   existingPrescription = null,
   prefillMedications = null,
+  diagnosis = "",
+  symptoms = [],
+  rawInput = "",
+  isFollowup = false,
+  previousPrescription = [],
   onSaved,
 }) {
   const { t } = useTranslation();
@@ -414,6 +420,9 @@ export default function PrescriptionModal({
   const [checkedMedications, setCheckedMedications] = useState(null);
   const [checkingSafety, setCheckingSafety] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [medicationSuggestions, setMedicationSuggestions] = useState(null);
+  const [loadingMedSuggestions, setLoadingMedSuggestions] = useState(false);
+  const [medSuggestionsError, setMedSuggestionsError] = useState("");
   const safetyDebounceRef = useRef(null);
   const requestIdRef = useRef(0);
 
@@ -437,8 +446,72 @@ export default function PrescriptionModal({
       setMedications([emptyMedication()]);
     }
     setCheckedMedications(null);
+    setMedicationSuggestions(null);
+    setMedSuggestionsError("");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, existingPrescription, prefillMedications]);
+
+  // إيجنت منفصل تمامًا عن إيجنت التشخيص - بياخد التشخيص + الأعراض + ملاحظات
+  // الدكتور، ويقترح خطة أدوية مبدئية. النتيجة بتتضاف هنا كصفوف عادية في
+  // الفورم - لسه بتعدي على فحص الأمان اللايف قبل الحفظ زي أي دواء تاني
+  const handleSuggestMedications = async () => {
+    if (!diagnosis || !diagnosis.trim()) {
+      Swal.fire({
+        title: t("common.error"),
+        text: t("consultations.diagnosisRequiredForMeds"),
+        icon: "warning",
+        confirmButtonText: t("common.ok"),
+      });
+      return;
+    }
+
+    setLoadingMedSuggestions(true);
+    setMedSuggestionsError("");
+    setMedicationSuggestions(null);
+
+    try {
+      const res = await getMedicationSuggestions({
+        patientId: patient?._id,
+        diagnosis,
+        symptoms,
+        rawInput,
+        language,
+        isFollowup,
+        previousPrescription,
+      });
+      setMedicationSuggestions(res.data || []);
+    } catch (err) {
+      setMedSuggestionsError(
+        err.response?.data?.message || t("consultations.medSuggestionsFailed"),
+      );
+    } finally {
+      setLoadingMedSuggestions(false);
+    }
+  };
+
+  // بيضيف الأدوية المقترحة كصفوف في الفورم (مش بيحفظ حاجة أوتوماتيك) - لو
+  // الفورم لسه فيه بس الصف الفاضي الافتراضي، بيستبدله؛ غير كده بيضيفهم فوق
+  const handleUseSuggestedMedications = () => {
+    if (!medicationSuggestions?.length) return;
+    const newRows = medicationSuggestions.map((m) => ({
+      ...emptyMedication(),
+      name: m.name || "",
+      activeIngredient: m.activeIngredient || "",
+      dosageAmount: m.dosageAmount ?? "",
+      dosageUnit: m.dosageUnit || "mg",
+      frequencyCount: m.frequencyCount ?? "",
+      frequencyPeriod: m.frequencyPeriod || "per day",
+      isChronic: !!m.isChronic,
+      durationValue: m.durationValue ?? "",
+      durationUnit: m.durationUnit || "days",
+    }));
+
+    setMedications((prev) => {
+      const isOnlyEmptyRow = prev.length === 1 && !prev[0].name?.trim();
+      return isOnlyEmptyRow ? newRows : [...prev, ...newRows];
+    });
+    setMedicationSuggestions(null);
+  };
 
   const runSafetyCheck = useCallback(
     async (meds) => {
@@ -661,6 +734,95 @@ export default function PrescriptionModal({
 
         {/* Safety column */}
         <div className="space-y-3">
+          {diagnosis && diagnosis.trim() && (
+            <div className="bg-white rounded-xl shadow overflow-hidden border border-gray-100">
+              <div className="bg-purple-50 px-4 py-3 flex items-center justify-between border-b border-purple-100 gap-2">
+                <span className="font-semibold text-purple-800 text-sm flex items-center gap-1.5">
+                  💊 {t("consultations.suggestedMedications")}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleSuggestMedications}
+                  disabled={loadingMedSuggestions}
+                  className="inline-flex items-center gap-1 bg-purple-100 text-purple-700 hover:bg-purple-700 hover:text-white px-2.5 py-1 rounded-lg text-[11px] font-bold shadow-sm transition disabled:opacity-50 shrink-0"
+                >
+                  {loadingMedSuggestions
+                    ? t("consultations.generatingMeds")
+                    : t("consultations.generateMeds")}
+                </button>
+              </div>
+              <div className="p-4">
+                <p className="text-xs text-gray-500 mb-3">
+                  {t("consultations.suggestedMedicationsNote")}
+                </p>
+
+                {medSuggestionsError && (
+                  <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg p-2.5">
+                    {medSuggestionsError}
+                  </p>
+                )}
+
+                {medicationSuggestions &&
+                  medicationSuggestions.length === 0 && (
+                    <p className="text-xs text-gray-400">
+                      {t("consultations.noMedSuggestions")}
+                    </p>
+                  )}
+
+                {medicationSuggestions && medicationSuggestions.length > 0 && (
+                  <div className="space-y-2">
+                    {medicationSuggestions.map((med, i) => (
+                      <div
+                        key={i}
+                        className="bg-purple-50/60 border border-purple-100 rounded-lg p-2.5"
+                      >
+                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                          <span className="text-sm font-bold text-slate-800">
+                            {med.name}
+                            {med.activeIngredient &&
+                              med.activeIngredient.toLowerCase() !==
+                                med.name.toLowerCase() && (
+                                <span className="text-slate-400 font-normal">
+                                  {" "}
+                                  ({med.activeIngredient})
+                                </span>
+                              )}
+                          </span>
+                          {med.isChronic && (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 uppercase">
+                              {t("patients.chronic")}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          {med.dosageAmount}
+                          {med.dosageUnit} · {med.frequencyCount}x{" "}
+                          {med.frequencyPeriod}
+                          {!med.isChronic &&
+                            med.durationValue &&
+                            ` · ${med.durationValue} ${med.durationUnit}`}
+                        </p>
+                        {med.reason && (
+                          <p className="text-xs text-slate-600 mt-1.5 italic">
+                            {med.reason}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+
+                    <button
+                      type="button"
+                      onClick={handleUseSuggestedMedications}
+                      className="w-full mt-1 inline-flex items-center justify-center gap-1.5 bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition"
+                    >
+                      {t("consultations.useSuggestedMedications")}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           <div className="bg-white rounded-xl shadow overflow-hidden border border-gray-100">
             <div className="bg-blue-50 px-4 py-3 flex items-center justify-between border-b border-blue-100">
               <span className="font-semibold text-blue-800 text-sm flex items-center gap-1.5">

@@ -49,6 +49,10 @@ const StartFollowUp = () => {
   // صفحة تانية) عشان الدكتور يقدر يعدّل/يضيف الروشتة في نفس مكان إكمال الفولو أب
   const [showPrescriptionSection, setShowPrescriptionSection] = useState(false);
   const [existingPrescription, setExistingPrescription] = useState(null);
+  // بدل ما نعرض ملاحظات الدكتور والأعراض بتاعة الكونسلتيشن/الفولو أب اللي
+  // فاتت، عايزين نعرض الروشتة اللي اتكتبت فيها (سواء كونسلتيشن عادية أو
+  // فولو أب سابقة) عشان الدكتور يشوف الأدوية الحالية للمريض بسرعة
+  const [previousPrescription, setPreviousPrescription] = useState(null);
   const [savedConsultationId, setSavedConsultationId] = useState("");
 
   const getId = (value) => {
@@ -115,6 +119,10 @@ const StartFollowUp = () => {
   const getPreviousDiagnosis = () => {
     const consultation = getPreviousConsultation();
     return consultation?.diagnosis || t("followups.start.noDiagnosisRecorded");
+  };
+
+  const getPreviousPrescriptionMeds = () => {
+    return (previousPrescription?.medications || []).filter(Boolean);
   };
 
   const normalizeAIResult = (response) => {
@@ -243,6 +251,24 @@ const StartFollowUp = () => {
 
       setFollowUp(data);
 
+      // نجيب روشتة الكونسلتيشن/الفولو أب اللي فاتت (اللي جدولت الفولو أب
+      // الحالية دي) عشان نعرضها بدل الملاحظات والأعراض القديمة
+      const prevConsultationId =
+        typeof data?.consultationId === "object"
+          ? data.consultationId?._id
+          : data?.consultationId;
+      if (prevConsultationId) {
+        try {
+          const prevPresRes =
+            await getPrescriptionByConsultation(prevConsultationId);
+          setPreviousPrescription(prevPresRes?.data || null);
+        } catch {
+          setPreviousPrescription(null);
+        }
+      } else {
+        setPreviousPrescription(null);
+      }
+
       if (isEditMode) {
         await fillEditForm(data);
       } else {
@@ -347,6 +373,19 @@ const StartFollowUp = () => {
         previousDiagnosis: getPreviousDiagnosis(),
         previousSymptoms: getPreviousSymptoms(),
         previousNotes: getPreviousNotes(),
+        previousPrescription: getPreviousPrescriptionMeds()
+          .map((m) => {
+            const dose =
+              m.dosageAmount && m.dosageUnit
+                ? `${m.dosageAmount}${m.dosageUnit}`
+                : "";
+            const freq =
+              m.frequencyCount && m.frequencyPeriod
+                ? `${m.frequencyCount}x ${m.frequencyPeriod}`
+                : "";
+            return [m.name, dose, freq].filter(Boolean).join(" ");
+          })
+          .join(", "),
       };
 
       const response = await getAIRecommendation(payload);
@@ -707,22 +746,40 @@ const StartFollowUp = () => {
 
                 <div className="bg-white/80 rounded-lg p-3 border border-blue-100">
                   <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                    {t("followups.start.doctorsNotes")}
+                    {t("followups.start.previousPrescription")}
                   </p>
 
-                  <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
-                    {getPreviousNotes()}
-                  </p>
-                </div>
-
-                <div className="bg-white/80 rounded-lg p-3 border border-blue-100">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                    {t("followups.start.previousSymptoms")}
-                  </p>
-
-                  <p className="text-sm text-gray-800">
-                    {getPreviousSymptoms()}
-                  </p>
+                  {getPreviousPrescriptionMeds().length === 0 ? (
+                    <p className="text-sm text-gray-800">
+                      {t("followups.start.noPrescriptionRecorded")}
+                    </p>
+                  ) : (
+                    <ul className="space-y-1.5">
+                      {getPreviousPrescriptionMeds().map((med, i) => (
+                        <li key={i} className="text-sm text-gray-800">
+                          <span className="font-semibold">{med.name}</span>
+                          {med.dosageAmount && (
+                            <>
+                              {" "}
+                              — {med.dosageAmount}
+                              {med.dosageUnit}
+                            </>
+                          )}
+                          {med.frequencyCount && med.frequencyPeriod && (
+                            <>
+                              {" "}
+                              · {med.frequencyCount}x {med.frequencyPeriod}
+                            </>
+                          )}
+                          {med.isChronic && (
+                            <span className="ms-1 text-xs text-blue-600 font-semibold">
+                              ({t("prescriptions.chronic")})
+                            </span>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
 
                 <div className="bg-white/80 rounded-lg p-3 border border-blue-100">
@@ -1037,6 +1094,11 @@ const StartFollowUp = () => {
             patient={followUp?.patientId}
             language={form.language || "en"}
             existingPrescription={existingPrescription}
+            diagnosis={form.diagnosis}
+            symptoms={buildSymptomsArray()}
+            rawInput={form.rawInput}
+            isFollowup
+            previousPrescription={getPreviousPrescriptionMeds()}
             onSaved={handlePrescriptionSaved}
           />
         </div>
