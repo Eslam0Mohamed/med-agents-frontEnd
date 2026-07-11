@@ -8,14 +8,23 @@ const Footer = () => {
 
   return (
     <footer className="py-8 border-t bg-blue-100 border-blue-200 text-slate-700 mt-auto">
-      <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-12 gap-6 text-left">
+      <div
+        dir={isRtl ? "rtl" : "ltr"}
+        className={`max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-12 gap-6 ${isRtl ? "text-right" : "text-left"}`}
+      >
         {/* Logo & Description */}
         <div className="md:col-span-5 space-y-3">
-          <Link to="/" className="text-xl font-bold tracking-tight text-slate-900">
+          <Link
+            to="/"
+            className="text-xl font-bold tracking-tight text-slate-900"
+          >
             Med<span className="text-blue-600">Agents</span>
           </Link>
           <p className="text-sm leading-relaxed max-w-sm text-slate-650">
-            {t("footer.description", "AI-powered platform for doctors to manage patients, consultations, and prescriptions with ease.")}
+            {t(
+              "footer.description",
+              "AI-powered platform for doctors to manage patients, consultations, and prescriptions with ease.",
+            )}
           </p>
         </div>
 
@@ -25,9 +34,22 @@ const Footer = () => {
             {isRtl ? "الموقع" : "Navigation"}
           </h4>
           <ul className="space-y-2 text-sm">
-            <li><Link to="/" className="text-slate-700 hover:text-blue-600 transition">{t("nav.home")}</Link></li>
-            <li><Link to="/contact" className="text-slate-700 hover:text-blue-650 transition">{t("nav.contactUs")}</Link></li>
-            <li><Link to="/login" className="text-slate-700 hover:text-blue-650 transition">{t("home.doctorLogin")}</Link></li>
+            <li>
+              <Link
+                to="/"
+                className="text-slate-700 hover:text-blue-600 transition"
+              >
+                {t("nav.home")}
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/contact"
+                className="text-slate-700 hover:text-blue-650 transition"
+              >
+                {t("nav.contactUs")}
+              </Link>
+            </li>
           </ul>
         </div>
 
@@ -55,7 +77,9 @@ const Footer = () => {
 
       {/* Bottom Line */}
       <div className="max-w-6xl mx-auto px-6 pt-4 mt-6 border-t border-blue-200 text-center text-xs tracking-wide text-slate-500">
-        <p>© {new Date().getFullYear()} MedAgents. {t("home.allRights")}</p>
+        <p>
+          © {new Date().getFullYear()} MedAgents. {t("home.allRights")}
+        </p>
       </div>
     </footer>
   );

@@ -697,13 +697,25 @@ const StartFollowUp = () => {
                   ? t("followups.start.editTitle")
                   : t("followups.start.title")}
               </h2>
-              <LanguageToggle
-                variant="light"
-                value={form.language}
-                onChange={(lang) =>
-                  setForm((prev) => ({ ...prev, language: lang }))
-                }
-              />
+              <div className="flex items-center gap-3">
+                {getPatientId() && (
+                  <a
+                    href={`/patients/history/${getPatientId()}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-3.5 py-1.5 rounded-lg cursor-pointer transition"
+                  >
+                    {t("consultations.seeHistory")}
+                  </a>
+                )}
+                <LanguageToggle
+                  variant="light"
+                  value={form.language}
+                  onChange={(lang) =>
+                    setForm((prev) => ({ ...prev, language: lang }))
+                  }
+                />
+              </div>
             </div>
 
             <p className="text-sm text-gray-500 mb-6 pb-4 border-b">

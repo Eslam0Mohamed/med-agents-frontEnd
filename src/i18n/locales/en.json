@@ -103,6 +103,7 @@
     "diagnosis": "Diagnosis",
     "newConsultation": "New Consultation",
     "editConsultation": "Edit Consultation",
+    "seeHistory": "See History",
     "consultation": "Consultation",
     "followUpVisit": "Follow-up Visit",
     "formSubtitle": "Document patient encounter and receive real-time clinical decision support.",
