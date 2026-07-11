@@ -137,6 +137,7 @@
     "generatingMeds": "جاري التوليد...",
     "noMedSuggestions": "مفيش اقتراحات رجعت. جرب تظبط التشخيص أو الملاحظات.",
     "useSuggestedMedications": "استخدمهم في الروشتة",
+    "addThisMedication": "أضف الدواء ده",
     "diagnosisRequiredForMeds": "من فضلك أكّد التشخيص الأول.",
     "medSuggestionsFailed": "فشل توليد اقتراحات الأدوية.",
     "savedSuccess": "تم الحفظ بنجاح",
@@ -326,6 +327,7 @@
   },
   "prescriptions": {
     "title": "الروشتات",
+    "print": "طباعة",
     "editLocked": "التعديل بيتقفل بعد 4 ساعات من إصدار الروشتة",
     "subtitle": "جميع الروشتات التي أصدرتها مع فحص سلامة الأدوية.",
     "searchPlaceholder": "ابحث عن روشتة بالاسم أو الرقم القومي",
@@ -471,7 +473,6 @@
     "successTitle": "تم إرسال الرسالة",
     "successText": "شكراً للتواصل معنا، سنرد عليك قريباً.",
     "orEmail": "أو راسلنا مباشرة على",
-    "whatsapp": "واتساب ",
     "errorFallback": "حدث خطأ، يرجى المحاولة مجدداً"
   },
   "patientReport": {
@@ -594,6 +595,8 @@
     "incompleteTitle": "بيانات دواء ناقصة",
     "updatedSuccess": "تم تحديث الروشتة",
     "savedSuccess": "تم حفظ الروشتة",
+    "printPrompt": "عايز تطبع الروشتة دي؟",
+    "doneNoPrint": "تمام، من غير طباعة",
     "saveFailed": "فشل حفظ الروشتة",
     "defaultMedicationName": "دواء",
     "defaultMedicationNameThe": "الدواء",

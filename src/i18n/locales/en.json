@@ -137,6 +137,7 @@
     "generatingMeds": "Generating...",
     "noMedSuggestions": "No suggestions returned. Try refining the diagnosis or notes.",
     "useSuggestedMedications": "Use these in prescription",
+    "addThisMedication": "Add this medication",
     "diagnosisRequiredForMeds": "Please confirm a diagnosis first.",
     "medSuggestionsFailed": "Failed to generate medication suggestions.",
     "savedSuccess": "Saved Successfully",
@@ -326,6 +327,7 @@
   },
   "prescriptions": {
     "title": "Prescriptions",
+    "print": "Print",
     "editLocked": "Editing is locked 4 hours after the prescription was issued",
     "subtitle": "All prescriptions you've issued, with live safety screening.",
     "searchPlaceholder": "Search prescription by name or national ID",
@@ -471,7 +473,6 @@
     "successTitle": "Message Sent",
     "successText": "Thanks for reaching out, we'll get back to you soon.",
     "orEmail": "Or email us directly at",
-    "whatsapp": "whatsapp",
     "errorFallback": "Something went wrong, please try again"
   },
   "patientReport": {
@@ -594,6 +595,8 @@
     "incompleteTitle": "Incomplete medication",
     "updatedSuccess": "Prescription updated",
     "savedSuccess": "Prescription saved",
+    "printPrompt": "Would you like to print this prescription?",
+    "doneNoPrint": "Done",
     "saveFailed": "Failed to save prescription",
     "defaultMedicationName": "a medication",
     "defaultMedicationNameThe": "the medication",

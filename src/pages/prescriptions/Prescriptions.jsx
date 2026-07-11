@@ -8,6 +8,7 @@ import {
 } from "../../api/prescription";
 import PrescriptionModal from "../../components/prescriptions/PrescriptionModal";
 import "../followups/followups.css";
+import { calculateAge, printPrescription } from "../../utils/prescriptionPrint";
 
 const PAGE_LIMIT = 10;
 
@@ -19,16 +20,6 @@ function toDateKey(date) {
   const m = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
-}
-
-function calculateAge(dob) {
-  if (!dob) return null;
-  const today = new Date();
-  const birth = new Date(dob);
-  let age = today.getFullYear() - birth.getFullYear();
-  const m = today.getMonth() - birth.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
-  return age;
 }
 
 function initials(name) {
@@ -289,18 +280,31 @@ function PatientPrescriptionCard({ prescription, onEdit }) {
               <td
                 className={`px-5 py-4 ${i18n.language === "ar" ? "text-left" : "text-right"}`}
               >
-                <button
-                  onClick={() => onEdit(prescription)}
-                  disabled={editLocked}
-                  title={editLocked ? t("prescriptions.editLocked") : undefined}
-                  className={
-                    editLocked
-                      ? "inline-flex items-center gap-1.5 bg-slate-50 text-slate-300 border border-slate-100 px-3.5 py-1.5 rounded-xl text-xs font-bold cursor-not-allowed"
-                      : "inline-flex items-center gap-1.5 bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-600 hover:text-white px-3.5 py-1.5 rounded-xl text-xs font-bold shadow-sm transition"
-                  }
-                >
-                  ✏️ {t("common.edit")}
-                </button>
+                <div className="flex items-center gap-2 justify-end">
+                  <button
+                    onClick={() =>
+                      printPrescription(prescription, t, i18n.language === "ar")
+                    }
+                    title={t("prescriptions.print")}
+                    className="inline-flex items-center gap-1.5 bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-600 hover:text-white px-3.5 py-1.5 rounded-xl text-xs font-bold shadow-sm transition"
+                  >
+                    🖨️ {t("prescriptions.print")}
+                  </button>
+                  <button
+                    onClick={() => onEdit(prescription)}
+                    disabled={editLocked}
+                    title={
+                      editLocked ? t("prescriptions.editLocked") : undefined
+                    }
+                    className={
+                      editLocked
+                        ? "inline-flex items-center gap-1.5 bg-slate-50 text-slate-300 border border-slate-100 px-3.5 py-1.5 rounded-xl text-xs font-bold cursor-not-allowed"
+                        : "inline-flex items-center gap-1.5 bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-600 hover:text-white px-3.5 py-1.5 rounded-xl text-xs font-bold shadow-sm transition"
+                    }
+                  >
+                    ✏️ {t("common.edit")}
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -347,18 +351,29 @@ function PatientPrescriptionCard({ prescription, onEdit }) {
             </div>
           </div>
         </div>
-        <button
-          onClick={() => onEdit(prescription)}
-          disabled={editLocked}
-          title={editLocked ? t("prescriptions.editLocked") : undefined}
-          className={
-            editLocked
-              ? "mt-3 w-full inline-flex items-center justify-center gap-1.5 bg-slate-50 text-slate-300 border border-slate-100 px-3.5 py-2 rounded-xl text-xs font-bold cursor-not-allowed"
-              : "mt-3 w-full inline-flex items-center justify-center gap-1.5 bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-600 hover:text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-sm transition"
-          }
-        >
-          ✏️ {t("common.edit")}
-        </button>
+        <div className="mt-3 flex gap-2">
+          <button
+            onClick={() =>
+              printPrescription(prescription, t, i18n.language === "ar")
+            }
+            title={t("prescriptions.print")}
+            className="flex-1 inline-flex items-center justify-center gap-1.5 bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-600 hover:text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-sm transition"
+          >
+            🖨️ {t("prescriptions.print")}
+          </button>
+          <button
+            onClick={() => onEdit(prescription)}
+            disabled={editLocked}
+            title={editLocked ? t("prescriptions.editLocked") : undefined}
+            className={
+              editLocked
+                ? "flex-1 inline-flex items-center justify-center gap-1.5 bg-slate-50 text-slate-300 border border-slate-100 px-3.5 py-2 rounded-xl text-xs font-bold cursor-not-allowed"
+                : "flex-1 inline-flex items-center justify-center gap-1.5 bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-600 hover:text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-sm transition"
+            }
+          >
+            ✏️ {t("common.edit")}
+          </button>
+        </div>
       </div>
 
       {/* Desktop table */}

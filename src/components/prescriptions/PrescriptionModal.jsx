@@ -8,6 +8,7 @@ import {
   updatePrescription,
 } from "../../api/prescription";
 import { getMedicationSuggestions } from "../../api/consultation";
+import { printPrescription } from "../../utils/prescriptionPrint";
 
 const DOSAGE_UNITS = ["mcg", "mg", "g"];
 const FREQUENCY_PERIODS = ["per day", "per week", "per month"];
@@ -414,7 +415,7 @@ export default function PrescriptionModal({
   previousPrescription = [],
   onSaved,
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const isEditMode = !!existingPrescription;
   const [medications, setMedications] = useState([emptyMedication()]);
   const [checkedMedications, setCheckedMedications] = useState(null);
@@ -489,28 +490,32 @@ export default function PrescriptionModal({
     }
   };
 
-  // بيضيف الأدوية المقترحة كصفوف في الفورم (مش بيحفظ حاجة أوتوماتيك) - لو
-  // الفورم لسه فيه بس الصف الفاضي الافتراضي، بيستبدله؛ غير كده بيضيفهم فوق
-  const handleUseSuggestedMedications = () => {
-    if (!medicationSuggestions?.length) return;
-    const newRows = medicationSuggestions.map((m) => ({
+  // بيضيف دواء واحد بس من الاقتراحات كصف في الفورم (مش الروشتة كلها) - لو
+  // الفورم لسه فيه بس الصف الفاضي الافتراضي، بيستبدله؛ غير كده بيضيفه فوق.
+  // وبيشيل الدواء ده من ليستة الاقتراحات بعد ما يتضاف عشان الدكتور يعرف
+  // إنه اتضاف بالفعل ومايضيفهوش تاني بالغلط
+  const handleAddSuggestedMedication = (med, index) => {
+    const newRow = {
       ...emptyMedication(),
-      name: m.name || "",
-      activeIngredient: m.activeIngredient || "",
-      dosageAmount: m.dosageAmount ?? "",
-      dosageUnit: m.dosageUnit || "mg",
-      frequencyCount: m.frequencyCount ?? "",
-      frequencyPeriod: m.frequencyPeriod || "per day",
-      isChronic: !!m.isChronic,
-      durationValue: m.durationValue ?? "",
-      durationUnit: m.durationUnit || "days",
-    }));
+      name: med.name || "",
+      activeIngredient: med.activeIngredient || "",
+      dosageAmount: med.dosageAmount ?? "",
+      dosageUnit: med.dosageUnit || "mg",
+      frequencyCount: med.frequencyCount ?? "",
+      frequencyPeriod: med.frequencyPeriod || "per day",
+      isChronic: !!med.isChronic,
+      durationValue: med.durationValue ?? "",
+      durationUnit: med.durationUnit || "days",
+    };
 
     setMedications((prev) => {
       const isOnlyEmptyRow = prev.length === 1 && !prev[0].name?.trim();
-      return isOnlyEmptyRow ? newRows : [...prev, ...newRows];
+      return isOnlyEmptyRow ? [newRow] : [...prev, newRow];
     });
-    setMedicationSuggestions(null);
+
+    setMedicationSuggestions((prev) =>
+      prev ? prev.filter((_, i) => i !== index) : prev,
+    );
   };
 
   const runSafetyCheck = useCallback(
@@ -654,17 +659,24 @@ export default function PrescriptionModal({
           language,
         });
       }
-      Swal.fire({
-        toast: true,
-        position: "top-end",
+      const savedPrescription = res.data;
+
+      const result = await Swal.fire({
         icon: "success",
         title: isEditMode
           ? t("prescriptionModal.updatedSuccess")
           : t("prescriptionModal.savedSuccess"),
-        timer: 1400,
-        showConfirmButton: false,
+        text: t("prescriptionModal.printPrompt"),
+        showDenyButton: true,
+        confirmButtonText: `🖨️ ${t("prescriptions.print")}`,
+        denyButtonText: t("prescriptionModal.doneNoPrint"),
       });
-      onSaved?.(res.data);
+
+      if (result.isConfirmed) {
+        printPrescription(savedPrescription, t, i18n.language === "ar");
+      }
+
+      onSaved?.(savedPrescription);
       onClose();
     } catch (err) {
       Swal.fire({
@@ -807,16 +819,15 @@ export default function PrescriptionModal({
                             {med.reason}
                           </p>
                         )}
+                        <button
+                          type="button"
+                          onClick={() => handleAddSuggestedMedication(med, i)}
+                          className="w-full mt-2 inline-flex items-center justify-center gap-1.5 bg-blue-700 hover:bg-blue-800 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition"
+                        >
+                          {t("consultations.addThisMedication")}
+                        </button>
                       </div>
                     ))}
-
-                    <button
-                      type="button"
-                      onClick={handleUseSuggestedMedications}
-                      className="w-full mt-1 inline-flex items-center justify-center gap-1.5 bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition"
-                    >
-                      {t("consultations.useSuggestedMedications")}
-                    </button>
                   </div>
                 )}
               </div>
