@@ -374,11 +374,23 @@ const ConsultationForm = () => {
                   ? t("consultations.editConsultation")
                   : t("consultations.newConsultation")}
               </h2>
-              <LanguageToggle
-                variant="light"
-                value={watch("language")}
-                onChange={(lang) => setValue("language", lang)}
-              />
+              <div className="flex items-center gap-3">
+                {(selectedPatientId || watch("patientId")) && (
+                  <a
+                    href={`/patients/history/${selectedPatientId || watch("patientId")}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-3.5 py-1.5 rounded-lg cursor-pointer transition"
+                  >
+                    {t("consultations.seeHistory")}
+                  </a>
+                )}
+                <LanguageToggle
+                  variant="light"
+                  value={watch("language")}
+                  onChange={(lang) => setValue("language", lang)}
+                />
+              </div>
             </div>
             <p className="text-sm text-gray-500 mb-6 pb-4 border-b">
               {t("consultations.formSubtitle")}
@@ -683,6 +695,12 @@ const ConsultationForm = () => {
             patient={currentPatient}
             language={watch("language") || "en"}
             existingPrescription={existingPrescription}
+            diagnosis={watch("diagnosis") || ""}
+            symptoms={(watch("symptoms") || "")
+              .split(",")
+              .map((s) => s.trim())
+              .filter((s) => s.length > 0)}
+            rawInput={watch("rawInput") || ""}
             onSaved={handlePrescriptionSaved}
           />
         </div>
