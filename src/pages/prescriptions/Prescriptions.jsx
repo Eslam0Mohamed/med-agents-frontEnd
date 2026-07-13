@@ -9,7 +9,7 @@ import {
 import PrescriptionModal from "../../components/prescriptions/PrescriptionModal";
 import "../followups/followups.css";
 import { calculateAge, printPrescription } from "../../utils/prescriptionPrint";
-
+import Loading from "../../components/Loading"
 const PAGE_LIMIT = 10;
 
 function toDateKey(date) {
@@ -658,9 +658,7 @@ export default function Prescriptions() {
             </div>
 
             {loading && (
-              <div className="text-center text-gray-400 py-16">
-                {t("prescriptions.loading")}
-              </div>
+            <Loading/>
             )}
 
             {!loading && prescriptions.length === 0 && (
