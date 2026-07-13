@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "../context/ThemeContext";
+import { BsWhatsapp } from "react-icons/bs";
+import { BiEnvelope } from "react-icons/bi";
 
 const Footer = () => {
   const { t, i18n } = useTranslation();
@@ -26,12 +28,19 @@ const Footer = () => {
           <p className={`text-sm leading-relaxed max-w-sm ${isDark ? "text-slate-400" : "text-slate-600"}`}>
             {t("footer.description", "AI-powered platform for doctors to manage patients, consultations, and prescriptions with ease.")}
           </p>
+<div className="flex gap-2 items-center">
+<BiEnvelope className=""/>
           <a href="mailto:eslama202002@gmail.com" className={`block transition ${isDark ? "text-slate-300 hover:text-blue-400" : "text-slate-700 hover:text-blue-600"}`}>
-            eslama202002@gmail.com
+             medagents-support@gmail.com
           </a>
+</div>
+
+          <div className="flex gap-2 items-center">
+           <BsWhatsapp className="text-green-500"/>
           <a href="https://wa.me/201275772311" target="_blank" rel="noopener noreferrer" className={`block transition ${isDark ? "text-slate-300 hover:text-blue-400" : "text-slate-700 hover:text-blue-600"}`}>
-            01275772311
+            {t("contact.whatsapp")}
           </a>
+          </div>
         </div>
 
         {/* Column 2: Navigation */}

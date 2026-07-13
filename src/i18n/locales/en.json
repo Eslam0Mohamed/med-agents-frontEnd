@@ -479,6 +479,7 @@
     "successTitle": "Message Sent",
     "successText": "Thanks for reaching out, we'll get back to you soon.",
     "orEmail": "Or email us directly at",
+    "whatsapp": "whatsapp",
     "errorFallback": "Something went wrong, please try again"
   },
   "patientReport": {

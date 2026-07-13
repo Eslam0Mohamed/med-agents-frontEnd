@@ -4,6 +4,8 @@ import { useTheme } from "../../../context/ThemeContext";
 import PublicNavbar from "../puplicNavbar/PuplicNavbar";
 import Footer from "../../../components/Footer";
 import { sendContactMessage } from "../../../api/contact";
+import { BsWhatsapp } from "react-icons/bs";
+import { BiEnvelope } from "react-icons/bi";
 
 const Contact = () => {
   const { t, i18n } = useTranslation();
@@ -95,19 +97,24 @@ const Contact = () => {
             </form>
           )}
         </div>
-
-        <div className={`text-center mt-8 text-sm transition-colors ${
+<div className="flex flex-col justify-center">
+  
+        <div className={`text-center flex items-center justify-center gap-1 mt-8 text-sm transition-colors ${
           isDark ? "text-slate-400" : "text-gray-500"
         }`}>
           {t("contact.orEmail")}{" "}
-          <a href="mailto:eslama202002@gmail.com" className="text-blue-600 font-medium">eslama202002@gmail.com</a>
+          <BiEnvelope />
+          <a href="mailto:eslama202002@gmail.com" className="text-blue-600 font-medium">medagents-support@gmail.com</a>
         </div>
-        <div className={`text-center mt-8 text-sm transition-colors ${
+
+        <div className={`text-center flex items-center justify-center gap-2 mt-8 text-sm transition-colors ${
           isDark ? "text-slate-400" : "text-gray-500"
         }`}>
-          {t("contact.whatsapp")}{" "}
-          <a href="https://wa.me/201275772311" target="_blank" className="text-blue-600 font-medium" >01275772311</a>
+          {/* {t("contact.whatsapp")}{" "} */}
+ <BsWhatsapp className="text-green-500"/>
+          <a href="https://wa.me/201275772311" target="_blank" className="text-blue-600 font-medium" >{t("contact.whatsapp")}</a>
         </div>
+</div>
       </section>
       <Footer />
     </div>
