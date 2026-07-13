@@ -6,7 +6,7 @@ import { fetchPatientHistory } from "../../api/patient";
 import { discontinueMedication, reactivateMedication } from "../../api/patient";
 import Swal from "sweetalert2";
 import { clearHistory } from "../../slices/patientsSlice";
-import LoadingState from "../../components/patient-report/LoadingState";
+import Loading from "../../components/Loading";
 const urgencyStyles = {
   low: "bg-green-100 text-green-700",
   moderate: "bg-amber-100 text-amber-700",
@@ -94,7 +94,7 @@ export default function PatientHistory() {
       .toUpperCase();
 
   if (isHistoryLoading) {
-    return <LoadingState></LoadingState>;
+    return <Loading></Loading>;
   }
 
   if (error) {
