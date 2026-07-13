@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
-
+import PuplicNavbar from "../pages/puplic/puplicNavbar/PuplicNavbar" 
 
 const NotFound = () => {
   const navigate = useNavigate();
@@ -13,6 +13,8 @@ const NotFound = () => {
   };
 
   return (
+  <>
+<PuplicNavbar/>
     <div className="min-h-screen flex items-center justify-center bg-white px-4">
       <div className="text-center max-w-md">
 
@@ -44,6 +46,7 @@ const NotFound = () => {
 
       </div>
     </div>
+      </>
   );
 };
 
