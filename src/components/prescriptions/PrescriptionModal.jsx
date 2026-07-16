@@ -495,6 +495,14 @@ export default function PrescriptionModal({
   // وبيشيل الدواء ده من ليستة الاقتراحات بعد ما يتضاف عشان الدكتور يعرف
   // إنه اتضاف بالفعل ومايضيفهوش تاني بالغلط
   const handleAddSuggestedMedication = (med, index) => {
+    // الـ AI أحيانًا بيرجّع تكرار مش من الـ 3 المسموحين (زي "per 4-6 hours
+    // as needed" لأدوية الـ PRN) - لازم نتأكد إنها من ضمن FREQUENCY_PERIODS
+    // قبل ما نحطها في الفورم، وإلا الحفظ هيفشل برسالة enum validation مش
+    // واضحة للدكتور. لو القيمة مش صالحة، نرجع لـ "per day" كـ default آمن.
+    const safeFrequencyPeriod = FREQUENCY_PERIODS.includes(med.frequencyPeriod)
+      ? med.frequencyPeriod
+      : "per day";
+
     const newRow = {
       ...emptyMedication(),
       name: med.name || "",
@@ -502,7 +510,7 @@ export default function PrescriptionModal({
       dosageAmount: med.dosageAmount ?? "",
       dosageUnit: med.dosageUnit || "mg",
       frequencyCount: med.frequencyCount ?? "",
-      frequencyPeriod: med.frequencyPeriod || "per day",
+      frequencyPeriod: safeFrequencyPeriod,
       isChronic: !!med.isChronic,
       durationValue: med.durationValue ?? "",
       durationUnit: med.durationUnit || "days",
