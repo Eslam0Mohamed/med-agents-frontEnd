@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import Swal from "sweetalert2";
 import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
@@ -162,10 +163,19 @@ export default function PatientForm() {
     try {
       if (isEditMode) {
         await dispatch(updatePatient({ id, patientData: data })).unwrap();
+        navigate("/patients");
       } else {
-        await dispatch(createPatient(data)).unwrap();
+        // بعد ما نضيف مريض جديد، بنسأل الدكتور يبدأله كونسلتيشن على طول
+        // بدل ما نرجّعه لقايمة المرضى وهو مش عارف الخطوة الجاية إيه
+        const newPatient = await dispatch(createPatient(data)).unwrap();
+        await Swal.fire({
+          icon: "success",
+          title: t("patients.patientAddedTitle"),
+          text: t("patients.patientAddedText"),
+          confirmButtonText: t("common.ok"),
+        });
+        navigate(`/consultations/add/${newPatient._id}`);
       }
-      navigate("/patients");
     } catch (err) {
       setServerError(err?.message || "Something went wrong. Please try again.");
     }

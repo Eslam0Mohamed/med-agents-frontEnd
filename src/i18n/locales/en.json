@@ -99,7 +99,9 @@
     "chronicMedications": "Chronic Medications",
     "addMedication": "Add medication...",
     "privacyTitle": "Privacy Compliance",
-    "privacyText": "All data entered here is encrypted and stored in compliance with local healthcare regulations."
+    "privacyText": "All data entered here is encrypted and stored in compliance with local healthcare regulations.",
+    "patientAddedTitle": "Patient added successfully",
+    "patientAddedText": "Let's start a consultation for them now."
   },
   "consultations": {
     "title": "Consultations",

@@ -7,14 +7,16 @@ export const getPatients = async (search = "") => {
   return res.data;
 };
 
-export const getAllPatients = async ({
-  search = "",
-  page = 1,
-  limit = 10,
-} = {}) => {
-  let params = `?page=${page}&limit=${limit}`;
+// بترجع مرضى الدكتور اللي عمل login بس (اللي هو أنشأهم أو عمّلهم كونسلتيشن
+// قبل كده)، مش كل مرضى النظام - عن طريق /patients/doctor بحد أقصى كبير
+// (زي نفس الباترن المستخدم في PatientsList.jsx) عشان نضمن إن كل المرضى
+// بتوع الدكتور يترجعوا مرة واحدة من غير ما نعتمد على limit=10 الافتراضي.
+// دي كانت بتنده على /patients (كل مرضى النظام، من غير فلترة) - اتغيّرت
+// لـ /patients/doctor لأن /patients بقت مخصّصة للأدمن داشبورد بس
+export const getAllPatients = async ({ search = "" } = {}) => {
+  let params = "?page=1&limit=1000";
   if (search) params += `&search=${search}`;
-  const res = await apiInstance.get(`/patients${params}`);
+  const res = await apiInstance.get(`/patients/doctor${params}`);
   return res.data;
 };
 
