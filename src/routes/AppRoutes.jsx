@@ -1,43 +1,44 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom';
-import Login from '../pages/Login/Login';
-import ProtectedRoute from '../components/ProtectedRoute';
-import Layout from '../components/Layout';
-import NotFound from '../components/NotFound';
-import AiChat from '../pages/ai-chat/AiChat';
-import DrugSafety from '../pages/drug-safety/DrugSafety';
+import { createBrowserRouter, Navigate } from "react-router-dom";
+import Login from "../pages/Login/Login";
+import ProtectedRoute from "../components/ProtectedRoute";
+import Layout from "../components/Layout";
+import NotFound from "../components/NotFound";
+import AiChat from "../pages/ai-chat/AiChat";
+import DrugSafety from "../pages/drug-safety/DrugSafety";
 
-import Profile from '../pages/profile/Profile';
-import Settings from '../pages/settings/Settings';
+import Profile from "../pages/profile/Profile";
+import Settings from "../pages/settings/Settings";
 
-import ConsultationList from '../pages/consultations/ConsultationList';
-import ConsultationForm from '../pages/consultations/ConsultationForm';
-import ConsultationDetails from '../pages/consultations/ConsultationDetails'; 
-import PatientSearch from '../pages/consultations/PatientSearch';
-import PatientHistory from '../pages/patients/PatientHistory';
-import PatientReport from '../pages/patients/PatientReport';
+import ConsultationList from "../pages/consultations/ConsultationList";
+import ConsultationForm from "../pages/consultations/ConsultationForm";
+import ConsultationDetails from "../pages/consultations/ConsultationDetails";
+import PatientSearch from "../pages/consultations/PatientSearch";
+import PatientHistory from "../pages/patients/PatientHistory";
+import PatientReport from "../pages/patients/PatientReport";
 
-import FollowUps from '../pages/followups/FollowUps';
-import PatientsList from '../pages/patients/PatientsList';
-import PatientForm from '../pages/patients/PatientForm';
-import StartFollowUp from '../pages/followups/StartFollowUp';
-import Prescriptions from '../pages/prescriptions/Prescriptions';
-import Subscriptions from '../pages/suscriptions/Subscriptions';
-import FollowUpDetails from '../pages/followups/FollowUpDetails';
-import PaymentCallback from '../pages/payment/PaymentCallback';
-import Home from '../pages/puplic/home/Home';
-import Contact from '../pages/puplic/contact/Contact';
+import FollowUps from "../pages/followups/FollowUps";
+import PatientsList from "../pages/patients/PatientsList";
+import PatientForm from "../pages/patients/PatientForm";
+import StartFollowUp from "../pages/followups/StartFollowUp";
+import Prescriptions from "../pages/prescriptions/Prescriptions";
+import Subscriptions from "../pages/suscriptions/Subscriptions";
+import FollowUpDetails from "../pages/followups/FollowUpDetails";
+import PaymentCallback from "../pages/payment/PaymentCallback";
+import Home from "../pages/puplic/home/Home";
+import Contact from "../pages/puplic/contact/Contact";
+import Reports from "../pages/reports/Reports";
 const router = createBrowserRouter([
   {
-    path: '/',
+    path: "/",
     element: <Home />,
   },
   {
-    path: '/contact',
+    path: "/contact",
     element: <Contact />,
   },
 
   {
-    path: '/login',
+    path: "/login",
     element: <Login />,
   },
 
@@ -52,49 +53,53 @@ const router = createBrowserRouter([
     children: [
       // { index: true, element: <Navigate to="/patients" replace /> },
 
-      { path: 'patients', element: <PatientsList /> },
-      { path: 'patients/add', element: <PatientForm /> },
-      { path: 'patients/edit/:id', element: <PatientForm /> },
-      { path: 'patients/history/:id', element: <PatientHistory /> },
-      { path: 'patients/report/:id', element: <PatientReport /> },
-      { path: 'payment/callback', element: <PaymentCallback /> },
+      { path: "patients", element: <PatientsList /> },
+      { path: "patients/add", element: <PatientForm /> },
+      { path: "patients/edit/:id", element: <PatientForm /> },
+      { path: "patients/history/:id", element: <PatientHistory /> },
+      { path: "patients/report/:id", element: <PatientReport /> },
+      { path: "payment/callback", element: <PaymentCallback /> },
 
       // Consultations
-      { path: 'consultations', element: <ConsultationList /> },
+      { path: "consultations", element: <ConsultationList /> },
 
       // 2. تم إضافة مسار تفاصيل الاستشارة هنا ليعمل زر العين بشكل صحيح
-      { path: 'consultations/:id', element: <ConsultationDetails /> },
+      { path: "consultations/:id", element: <ConsultationDetails /> },
 
       // Add Consultation Workflow
-      { path: 'consultations/search-patient', element: <PatientSearch /> },
-      { path: 'consultations/patient/:id/history', element: <PatientHistory /> },
-      { path: 'consultations/add/:patientId', element: <ConsultationForm /> },
-      { path: 'consultations/edit/:id', element: <ConsultationForm /> },
+      { path: "consultations/search-patient", element: <PatientSearch /> },
+      {
+        path: "consultations/patient/:id/history",
+        element: <PatientHistory />,
+      },
+      { path: "consultations/add/:patientId", element: <ConsultationForm /> },
+      { path: "consultations/edit/:id", element: <ConsultationForm /> },
 
       // Prescriptions
-      { path: 'prescriptions', element: <Prescriptions /> },
-      { path: 'subscriptions', element: <Subscriptions /> },
+      { path: "prescriptions", element: <Prescriptions /> },
+      { path: "subscriptions", element: <Subscriptions /> },
 
-      { path: 'ai-chat', element: <AiChat /> },
-      { path: 'profile', element: <Profile /> },
+      { path: "ai-chat", element: <AiChat /> },
+      { path: "profile", element: <Profile /> },
 
       // Follow Ups
-      { path: 'followups', element: <FollowUps /> },
-      { path: 'followups/:followupId', element: <FollowUpDetails /> },
-      { path: 'followups/start/:followupId', element: <StartFollowUp /> },
-      { path: 'followups/start/:followupId', element: <StartFollowUp /> },
+      { path: "followups", element: <FollowUps /> },
+      { path: "followups/:followupId", element: <FollowUpDetails /> },
+      { path: "followups/start/:followupId", element: <StartFollowUp /> },
+      { path: "followups/start/:followupId", element: <StartFollowUp /> },
 
       // AI Chat
-      { path: 'ai-chat', element: <AiChat /> },
+      { path: "ai-chat", element: <AiChat /> },
 
       // Drug Safety
-      { path: 'drug-safety', element: <DrugSafety /> },
-      { path: 'settings', element: <Settings /> },
+      { path: "drug-safety", element: <DrugSafety /> },
+      { path: "reports", element: <Reports /> },
+      { path: "settings", element: <Settings /> },
     ],
   },
 
   {
-    path: '*',
+    path: "*",
     element: <NotFound />,
   },
 ]);

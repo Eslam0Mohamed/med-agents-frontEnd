@@ -33,6 +33,7 @@ export default function Navbar() {
     { label: t("nav.followups"), path: "/followups" },
     { label: t("nav.aiChat"), path: "/ai-chat" },
     { label: t("nav.drugSafety"), path: "/drug-safety" },
+    { label: t("nav.reports"), path: "/reports" },
     { label: t("nav.subscriptions"), path: "/subscriptions" },
   ];
 
@@ -55,9 +56,11 @@ export default function Navbar() {
       .toUpperCase() || "DR";
 
   return (
-    <nav className={`border-b sticky top-0 z-50 transition-colors duration-200 ${
-      isDark ? "bg-slate-950 border-slate-900" : "bg-white border-gray-200"
-    }`}>
+    <nav
+      className={`border-b sticky top-0 z-50 transition-colors duration-200 ${
+        isDark ? "bg-slate-950 border-slate-900" : "bg-white border-gray-200"
+      }`}
+    >
       <div className="flex items-center justify-between px-4 py-3">
         <div className="flex items-center gap-3">
           <button
@@ -102,8 +105,8 @@ export default function Navbar() {
                   isActive
                     ? "text-blue-600 bg-blue-50/10"
                     : isDark
-                    ? "text-slate-300 hover:text-white hover:bg-slate-900"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                      ? "text-slate-300 hover:text-white hover:bg-slate-900"
+                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
                 }`
               }
             >
@@ -126,17 +129,43 @@ export default function Navbar() {
             aria-label="Toggle Theme"
           >
             {isDark ? (
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.364l-.707-.707M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.364l-.707-.707M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                ></path>
               </svg>
             ) : (
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+                ></path>
               </svg>
             )}
           </button>
 
-          <button className={`hover:opacity-80 transition ${isDark ? "text-slate-300" : "text-gray-500"}`}>🔔</button>
+          <button
+            className={`hover:opacity-80 transition ${isDark ? "text-slate-300" : "text-gray-500"}`}
+          >
+            🔔
+          </button>
 
           <div className="relative" ref={menuRef}>
             <button
@@ -147,16 +176,22 @@ export default function Navbar() {
             </button>
 
             {menuOpen && (
-              <div className={`absolute end-0 mt-2 w-48 border rounded-lg shadow-lg z-50 transition-colors ${
-                isDark ? "bg-slate-900 border-slate-800 shadow-slate-950/80" : "bg-white border-gray-200"
-              }`}>
+              <div
+                className={`absolute end-0 mt-2 w-48 border rounded-lg shadow-lg z-50 transition-colors ${
+                  isDark
+                    ? "bg-slate-900 border-slate-800 shadow-slate-950/80"
+                    : "bg-white border-gray-200"
+                }`}
+              >
                 <button
                   onClick={() => {
                     setMenuOpen(false);
                     navigate("/profile");
                   }}
                   className={`w-full text-left px-4 py-2 text-sm border-b cursor-pointer transition-colors ${
-                    isDark ? "text-slate-200 hover:bg-slate-800 border-slate-800" : "text-gray-700 hover:bg-gray-50 border-gray-200"
+                    isDark
+                      ? "text-slate-200 hover:bg-slate-800 border-slate-800"
+                      : "text-gray-700 hover:bg-gray-50 border-gray-200"
                   }`}
                 >
                   {user?.name || "Doctor"}
@@ -168,7 +203,9 @@ export default function Navbar() {
                     navigate("/");
                   }}
                   className={`w-full text-left px-4 py-2 text-sm border-b cursor-pointer transition-colors ${
-                    isDark ? "text-slate-200 hover:bg-slate-800 border-slate-800" : "text-gray-700 hover:bg-gray-50 border-gray-200"
+                    isDark
+                      ? "text-slate-200 hover:bg-slate-800 border-slate-800"
+                      : "text-gray-700 hover:bg-gray-50 border-gray-200"
                   }`}
                 >
                   {t("nav.home")}
@@ -180,7 +217,9 @@ export default function Navbar() {
                     navigate("/contact");
                   }}
                   className={`w-full text-left px-4 py-2 text-sm border-b cursor-pointer transition-colors ${
-                    isDark ? "text-slate-200 hover:bg-slate-800 border-slate-800" : "text-gray-700 hover:bg-gray-50 border-gray-200"
+                    isDark
+                      ? "text-slate-200 hover:bg-slate-800 border-slate-800"
+                      : "text-gray-700 hover:bg-gray-50 border-gray-200"
                   }`}
                 >
                   {t("nav.contactUs")}
@@ -192,7 +231,9 @@ export default function Navbar() {
                     logout();
                   }}
                   className={`w-full text-left px-4 py-2 text-sm cursor-pointer transition-colors ${
-                    isDark ? "text-red-400 hover:bg-slate-800" : "text-red-600 hover:bg-red-50"
+                    isDark
+                      ? "text-red-400 hover:bg-slate-800"
+                      : "text-red-600 hover:bg-red-50"
                   }`}
                 >
                   {t("nav.logout")}
@@ -204,9 +245,13 @@ export default function Navbar() {
       </div>
 
       {mobileOpen && (
-        <div className={`md:hidden border-t px-4 py-3 flex flex-col gap-1 transition-colors ${
-          isDark ? "bg-slate-950 border-slate-900" : "bg-white border-gray-100"
-        }`}>
+        <div
+          className={`md:hidden border-t px-4 py-3 flex flex-col gap-1 transition-colors ${
+            isDark
+              ? "bg-slate-950 border-slate-900"
+              : "bg-white border-gray-100"
+          }`}
+        >
           {navItems.map((item) => (
             <NavLink
               key={item.path}
@@ -217,8 +262,8 @@ export default function Navbar() {
                   isActive
                     ? "text-blue-600 bg-blue-50/10"
                     : isDark
-                    ? "text-slate-300 hover:text-white hover:bg-slate-900"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                      ? "text-slate-300 hover:text-white hover:bg-slate-900"
+                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
                 }`
               }
             >

@@ -1,10 +1,10 @@
 {
   "notFound": {
-  "title": "Page Not Found",
-  "message": "The page you're looking for doesn't exist or has been moved.",
-  "goBack": "Go Back",
-  "goHome": "Go Home"
-},
+    "title": "Page Not Found",
+    "message": "The page you're looking for doesn't exist or has been moved.",
+    "goBack": "Go Back",
+    "goHome": "Go Home"
+  },
   "nav": {
     "subscriptions": "Subscriptions",
     "patients": "Patients",
@@ -14,6 +14,7 @@
     "followups": "Follow-ups",
     "aiChat": "AI Chat",
     "drugSafety": "Drug Safety",
+    "reports": "Reports",
     "profile": "Profile",
     "settings": "Settings",
     "logout": "Logout",
@@ -44,6 +45,7 @@
     "loading": "Loading...",
     "noData": "No data available",
     "back": "Back",
+    "reset": "Reset",
     "actions": "Actions",
     "submit": "Submit",
     "saving": "Saving...",
@@ -58,6 +60,54 @@
     "of": "of",
     "type": "Type",
     "date": "Date"
+  },
+  "reports": {
+    "title": "AI Clinical Report Generator",
+    "subtitle": "Generate structured clinical summaries, monthly trends, or specific consultation reports.",
+    "selectPatient": "Select Patient",
+    "searchPlaceholder": "Type patient name to search...",
+    "mrn": "MRN",
+    "reportScope": "Report Scope",
+    "scopeYear": "Yearly Report",
+    "scopeMonth": "Monthly Report",
+    "scopeConsultation": "Specific Consultation",
+    "year": "Year",
+    "month": "Month",
+    "selectConsultation": "Select Consultation",
+    "selectPatientFirst": "Please select a patient first.",
+    "selectConsultationFirst": "Please select a consultation first.",
+    "loadingHistory": "Loading patient history...",
+    "historyLoadError": "Failed to load consultations. Check the server connection.",
+    "noConsultations": "No consultations found for this patient.",
+    "noDiagnosis": "No diagnosis recorded",
+    "selectedConsultation": "Selected consultation",
+    "generateReport": "Generate Report",
+    "generating": "Generating...",
+    "noEntries": "No clinical entries found for the selected timeline.",
+    "patient": "Patient",
+    "dob": "DOB",
+    "age": "Age",
+    "symptoms": "Symptoms",
+    "notes": "Notes",
+    "referral": "Referral",
+    "prescribedMedications": "Prescribed Medications",
+    "followupVisit": "Follow-up Visit",
+    "printReport": "Print Report",
+    "generatedAt": "Generated at",
+    "months": {
+      "January": "January",
+      "February": "February",
+      "March": "March",
+      "April": "April",
+      "May": "May",
+      "June": "June",
+      "July": "July",
+      "August": "August",
+      "September": "September",
+      "October": "October",
+      "November": "November",
+      "December": "December"
+    }
   },
   "patients": {
     "title": "Patients",
@@ -665,4 +715,3 @@
     }
   }
 }
-
