@@ -204,7 +204,7 @@ export default function Reports() {
         }
       `}</style>
 
-      <div className="bg-gradient-to-r from-blue-700 to-blue-600 text-white pt-6 pb-8 px-4 sm:px-6 shadow-lg rounded-3xl no-print">
+      <div className="bg-linear-to-r from-blue-700 to-blue-600 text-white pt-6 pb-8 px-4 sm:px-6 shadow-lg rounded-3xl no-print">
         <div className="max-w-5xl mx-auto">
           <button
             onClick={() => navigate(-1)}
