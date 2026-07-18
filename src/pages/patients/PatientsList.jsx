@@ -78,7 +78,7 @@ export default function PatientsList() {
     });
   };
   if (isLoading) {
-    return<Loading/>
+    return <Loading />;
   }
 
   return (
@@ -162,7 +162,6 @@ export default function PatientsList() {
           />
         </div>
 
-       
         {!isLoading && filteredPatients.length === 0 && (
           <div className="text-center text-gray-400 py-10">
             {t("common.noData")}
@@ -245,15 +244,6 @@ export default function PatientsList() {
                           </button>
                           <button
                             onClick={() =>
-                              navigate(`/patients/report/${patient._id}`)
-                            }
-                            className="inline-flex items-center justify-center bg-slate-100 hover:bg-blue-50 text-blue-600 border border-slate-200 p-2 rounded-xl transition shadow-sm"
-                            title={t("common.report")}
-                          >
-                            📊
-                          </button>
-                          <button
-                            onClick={() =>
                               navigate(`/patients/edit/${patient._id}`)
                             }
                             className="inline-flex items-center justify-center bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-600 hover:text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-sm transition"
@@ -303,12 +293,6 @@ export default function PatientsList() {
                     className="w-8 h-8 flex items-center justify-center rounded-md border border-gray-200 text-gray-500 hover:bg-gray-100"
                   >
                     🕓
-                  </button>
-                  <button
-                    onClick={() => navigate(`/patients/report/${patient._id}`)}
-                    className="w-8 h-8 flex items-center justify-center rounded-md border border-gray-200 text-gray-500 hover:bg-gray-100"
-                  >
-                    📊
                   </button>
                   <button
                     onClick={() => navigate(`/patients/edit/${patient._id}`)}

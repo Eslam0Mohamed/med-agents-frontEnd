@@ -14,7 +14,6 @@ import ConsultationForm from "../pages/consultations/ConsultationForm";
 import ConsultationDetails from "../pages/consultations/ConsultationDetails";
 import PatientSearch from "../pages/consultations/PatientSearch";
 import PatientHistory from "../pages/patients/PatientHistory";
-import PatientReport from "../pages/patients/PatientReport";
 
 import FollowUps from "../pages/followups/FollowUps";
 import PatientsList from "../pages/patients/PatientsList";
@@ -57,7 +56,6 @@ const router = createBrowserRouter([
       { path: "patients/add", element: <PatientForm /> },
       { path: "patients/edit/:id", element: <PatientForm /> },
       { path: "patients/history/:id", element: <PatientHistory /> },
-      { path: "patients/report/:id", element: <PatientReport /> },
       { path: "payment/callback", element: <PaymentCallback /> },
 
       // Consultations
