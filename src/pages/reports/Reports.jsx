@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { getAllPatients, getPatientHistory } from "../../api/patient";
+import { getAllPatients } from "../../api/patient";
+import apiInstance from "../../config/apiInstance";
 
 const MONTHS = [
   "January",
@@ -18,31 +19,17 @@ const MONTHS = [
   "December",
 ];
 
-const urgencyStyles = {
-  low: "bg-green-100 text-green-700",
-  routine: "bg-green-100 text-green-700",
-  moderate: "bg-amber-100 text-amber-700",
-  medium: "bg-amber-100 text-amber-700",
-  high: "bg-red-100 text-red-700",
-  critical: "bg-red-100 text-red-700",
-  emergency: "bg-red-100 text-red-700",
-  unknown: "bg-slate-100 text-slate-500",
+/** يكلم /reports/generate في الباك */
+const generateReportAPI = async (payload) => {
+  const { data } = await apiInstance.post("/reports/generate", payload);
+  return data;
 };
-
-function calculateAge(dob) {
-  if (!dob) return null;
-  const birth = new Date(dob);
-  const today = new Date();
-  let age = today.getFullYear() - birth.getFullYear();
-  const m = today.getMonth() - birth.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
-  return age;
-}
 
 export default function Reports() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const isRtl = i18n.language === "ar";
+  const lang = i18n.language === "ar" ? "ar" : "en";
 
   const [search, setSearch] = useState("");
   const [results, setResults] = useState([]);
@@ -54,61 +41,54 @@ export default function Reports() {
   const currentYear = new Date().getFullYear();
   const [year, setYear] = useState(currentYear);
   const [month, setMonth] = useState(new Date().getMonth() + 1);
-  const [consultationId, setConsultationId] = useState("");
 
-  const [history, setHistory] = useState([]);
-  const [loadingHistory, setLoadingHistory] = useState(false);
-  const [historyError, setHistoryError] = useState("");
+  // قايمة الكونسلتيشنز للـ picker (scope = consultation)
+  const [consultations, setConsultations] = useState([]);
+  const [loadingConsultations, setLoadingConsultations] = useState(false);
+  const [consultationId, setConsultationId] = useState("");
 
   const [generating, setGenerating] = useState(false);
   const [generateError, setGenerateError] = useState("");
-  const [report, setReport] = useState(null);
+  const [report, setReport] = useState(null); // { data, meta, patientName, mrn, dob, generatedAt }
 
   const blurTimeout = useRef(null);
   const yearOptions = Array.from({ length: 10 }, (_, i) => currentYear - i);
 
-  // بحث بالاسم بس، وبين مرضى الدكتور الحالي بس (getAllPatients بتنده على
-  // /patients/doctor أصلاً، مش /patients اللي بقت للأدمن بس) - بنعمل فلترة
-  // إضافية بالاسم فقط عشان الباك بيدور بالاسم أو الرقم القومي مع بعض
+  // بحث المرضى
   useEffect(() => {
     if (!search.trim()) {
       setResults([]);
       return;
     }
-    const timeout = setTimeout(async () => {
+    const t = setTimeout(async () => {
       try {
         setSearching(true);
         const res = await getAllPatients({ search: search.trim() });
         const query = search.trim().toLowerCase();
-        const nameOnly = (res.data || []).filter((p) =>
-          p.name?.toLowerCase().includes(query),
+        setResults(
+          (res.data || []).filter((p) => p.name?.toLowerCase().includes(query)),
         );
-        setResults(nameOnly);
       } catch {
         setResults([]);
       } finally {
         setSearching(false);
       }
     }, 300);
-    return () => clearTimeout(timeout);
+    return () => clearTimeout(t);
   }, [search]);
 
-  const loadHistory = useCallback(
-    async (patientId) => {
-      try {
-        setLoadingHistory(true);
-        setHistoryError("");
-        const res = await getPatientHistory(patientId);
-        setHistory(res?.data?.history || []);
-      } catch {
-        setHistoryError(t("reports.historyLoadError"));
-        setHistory([]);
-      } finally {
-        setLoadingHistory(false);
-      }
-    },
-    [t],
-  );
+  // لما يتغير المريض أو الـ scope لـ consultation، نجيب قايمة الكونسلتيشنز
+  useEffect(() => {
+    if (scope !== "consultation" || !selectedPatient) return;
+    setConsultations([]);
+    setConsultationId("");
+    setLoadingConsultations(true);
+    apiInstance
+      .get(`/patients/${selectedPatient._id}/history`)
+      .then((res) => setConsultations(res.data?.data?.history || []))
+      .catch(() => setConsultations([]))
+      .finally(() => setLoadingConsultations(false));
+  }, [scope, selectedPatient]);
 
   const selectPatient = (patient) => {
     setSelectedPatient(patient);
@@ -117,14 +97,13 @@ export default function Reports() {
     setShowDropdown(false);
     setConsultationId("");
     setReport(null);
-    loadHistory(patient._id);
   };
 
   const handleSearchChange = (value) => {
     setSearch(value);
     if (selectedPatient && value !== selectedPatient.name) {
       setSelectedPatient(null);
-      setHistory([]);
+      setConsultations([]);
       setReport(null);
       setConsultationId("");
     }
@@ -133,11 +112,10 @@ export default function Reports() {
   const formatDate = (value) => {
     if (!value) return "";
     const d = new Date(value);
-    if (Number.isNaN(d.getTime())) return value;
-    return d.toLocaleDateString();
+    return isNaN(d.getTime()) ? value : d.toLocaleDateString();
   };
 
-  const generateReport = () => {
+  const generateReport = async () => {
     if (!selectedPatient) {
       setGenerateError(t("reports.selectPatientFirst"));
       return;
@@ -149,49 +127,47 @@ export default function Reports() {
 
     setGenerating(true);
     setGenerateError("");
+    setReport(null);
 
-    let filtered = [];
-    let scopeLabel = "";
-    let rangeLabel = "";
+    try {
+      const payload = {
+        patientId: selectedPatient._id,
+        scope,
+        language: lang,
+        ...(scope === "year" || scope === "month" ? { year } : {}),
+        ...(scope === "month" ? { month } : {}),
+        ...(scope === "consultation" ? { consultationId } : {}),
+      };
 
-    if (scope === "year") {
-      filtered = history.filter(
-        (c) => new Date(c.date).getFullYear() === Number(year),
-      );
-      scopeLabel = t("reports.scopeYear");
-      rangeLabel = `${t("reports.year")} ${year}`;
-    } else if (scope === "month") {
-      filtered = history.filter((c) => {
-        const d = new Date(c.date);
-        return (
-          d.getFullYear() === Number(year) && d.getMonth() + 1 === Number(month)
-        );
+      const res = await generateReportAPI(payload);
+
+      if (!res.success) {
+        setGenerateError(res.message || "Failed to generate report.");
+        return;
+      }
+      if (res.empty || !res.data) {
+        setGenerateError(res.message || t("reports.noEntries"));
+        return;
+      }
+
+      setReport({
+        data: res.data,
+        meta: res.meta,
+        patientName: selectedPatient.name,
+        mrn: selectedPatient.phone,
+        dob: selectedPatient.dateOfBirth,
+        generatedAt: new Date(res.meta.generatedAt),
       });
-      scopeLabel = t("reports.scopeMonth");
-      rangeLabel = `${t(`reports.months.${MONTHS[month - 1]}`)} ${year}`;
-    } else {
-      filtered = history.filter((c) => c.consultationId === consultationId);
-      scopeLabel = t("reports.scopeConsultation");
-      rangeLabel = filtered.length
-        ? `${filtered[0].diagnosis || t("reports.noDiagnosis")} — ${formatDate(filtered[0].date)}`
-        : t("reports.selectedConsultation");
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to generate report.";
+      setGenerateError(msg);
+      console.error("[generateReport] error:", err?.response?.data || err);
+    } finally {
+      setGenerating(false);
     }
-
-    filtered = [...filtered].sort(
-      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-    );
-
-    setReport({
-      patientName: selectedPatient.name,
-      mrn: selectedPatient.phone,
-      dob: selectedPatient.dateOfBirth,
-      age: calculateAge(selectedPatient.dateOfBirth),
-      scopeLabel,
-      rangeLabel,
-      generatedAt: new Date(),
-      entries: filtered,
-    });
-    setGenerating(false);
   };
 
   const resetForm = () => {
@@ -202,21 +178,16 @@ export default function Reports() {
     setYear(currentYear);
     setMonth(new Date().getMonth() + 1);
     setConsultationId("");
-    setHistory([]);
-    setHistoryError("");
+    setConsultations([]);
     setReport(null);
     setGenerateError("");
   };
 
   return (
     <div className="min-h-screen bg-slate-50/70 antialiased text-slate-800 pb-12 w-full box-border">
-      <style>{`
-        @media print {
-          .no-print { display: none !important; }
-          .print-area { box-shadow: none !important; border: none !important; }
-        }
-      `}</style>
+      <style>{`@media print { .no-print { display: none !important; } .print-area { box-shadow: none !important; border: none !important; } }`}</style>
 
+      {/* Header */}
       <div className="bg-gradient-to-r from-blue-700 to-blue-600 text-white pt-6 pb-8 px-4 sm:px-6 shadow-lg rounded-3xl no-print">
         <div className="max-w-5xl mx-auto">
           <button
@@ -280,7 +251,6 @@ export default function Reports() {
                 </div>
               )}
             </div>
-
             {showDropdown && results.length > 0 && (
               <ul className="absolute z-20 w-full bg-white border border-slate-200 rounded-xl mt-1 max-h-56 overflow-y-auto shadow-lg">
                 {results.map((p) => (
@@ -324,11 +294,7 @@ export default function Reports() {
                     setScope(opt.value);
                     setReport(null);
                   }}
-                  className={`px-4 py-2 rounded-xl text-sm font-semibold border transition ${
-                    scope === opt.value
-                      ? "bg-blue-600 text-white border-blue-600"
-                      : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
-                  }`}
+                  className={`px-4 py-2 rounded-xl text-sm font-semibold border transition ${scope === opt.value ? "bg-blue-600 text-white border-blue-600" : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"}`}
                 >
                   {opt.label}
                 </button>
@@ -336,6 +302,7 @@ export default function Reports() {
             </div>
           </div>
 
+          {/* Year / Month pickers */}
           {(scope === "year" || scope === "month") && (
             <div className="flex gap-3 mb-5">
               <div className="flex-1">
@@ -375,6 +342,7 @@ export default function Reports() {
             </div>
           )}
 
+          {/* Consultation picker */}
           {scope === "consultation" && (
             <div className="mb-5">
               <label className="block text-sm font-semibold text-blue-700 mb-2">
@@ -385,29 +353,23 @@ export default function Reports() {
                 <p className="text-sm text-amber-600">
                   ⚠️ {t("reports.selectPatientFirst")}
                 </p>
-              ) : loadingHistory ? (
+              ) : loadingConsultations ? (
                 <div className="flex items-center gap-2 text-sm text-slate-500">
                   <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
                   {t("reports.loadingHistory")}
                 </div>
-              ) : historyError ? (
-                <p className="text-sm text-red-600">❌ {historyError}</p>
-              ) : history.length === 0 ? (
+              ) : consultations.length === 0 ? (
                 <p className="text-sm text-slate-400">
                   ℹ️ {t("reports.noConsultations")}
                 </p>
               ) : (
                 <ul className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
-                  {history.map((c) => (
+                  {consultations.map((c) => (
                     <li key={c.consultationId}>
                       <button
                         type="button"
                         onClick={() => setConsultationId(c.consultationId)}
-                        className={`w-full flex items-center justify-between gap-3 px-3.5 py-2 rounded-xl text-sm border transition ${
-                          consultationId === c.consultationId
-                            ? "bg-blue-600 text-white border-blue-600"
-                            : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
-                        }`}
+                        className={`w-full flex items-center justify-between gap-3 px-3.5 py-2 rounded-xl text-sm border transition ${consultationId === c.consultationId ? "bg-blue-600 text-white border-blue-600" : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"}`}
                       >
                         <span className="truncate">
                           {c.diagnosis || t("reports.noDiagnosis")}
@@ -457,7 +419,7 @@ export default function Reports() {
           </div>
         </div>
 
-        {/* Result card */}
+        {/* AI Report result */}
         {report && (
           <div
             dir={isRtl ? "rtl" : "ltr"}
@@ -466,9 +428,11 @@ export default function Reports() {
             <div className="flex items-start justify-between gap-3 flex-wrap mb-4">
               <div>
                 <h3 className="text-lg font-black text-blue-700">
-                  🩺 {report.scopeLabel}
+                  🩺 {report.meta.scopeLabel}
                 </h3>
-                <p className="text-sm text-slate-500">{report.rangeLabel}</p>
+                <p className="text-sm text-slate-500">
+                  {report.meta.rangeLabel}
+                </p>
               </div>
               <button
                 type="button"
@@ -479,7 +443,8 @@ export default function Reports() {
               </button>
             </div>
 
-            <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-slate-600 border-b border-slate-100 pb-4 mb-4">
+            {/* Patient info */}
+            <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-slate-600 border-b border-slate-100 pb-4 mb-6">
               <span>
                 <strong className="text-slate-800">
                   {t("reports.patient")}:
@@ -494,88 +459,74 @@ export default function Reports() {
                 <strong className="text-slate-800">{t("reports.dob")}:</strong>{" "}
                 {formatDate(report.dob) || "N/A"}
               </span>
-              {report.age !== null && (
-                <span>
-                  <strong className="text-slate-800">
-                    {t("reports.age")}:
-                  </strong>{" "}
-                  {report.age}
-                </span>
-              )}
+              <span>
+                <strong className="text-slate-800">
+                  {t("reports.consultationsReviewed") ||
+                    "Consultations reviewed"}
+                  :
+                </strong>{" "}
+                {report.meta.consultationCount}
+              </span>
             </div>
 
-            {report.entries.length === 0 ? (
-              <p className="text-sm text-slate-400 text-center py-10">
-                {t("reports.noEntries")}
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {report.entries.map((entry) => (
-                  <div
-                    key={entry.consultationId}
-                    className="border border-slate-100 rounded-xl p-4"
-                  >
-                    <div className="flex items-center justify-between gap-3 mb-2">
-                      <span className="text-xs font-semibold text-slate-400">
-                        📅 {formatDate(entry.date)}
-                      </span>
-                      <span
-                        className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase ${urgencyStyles[entry.urgencyLevel] || urgencyStyles.unknown}`}
-                      >
-                        {entry.urgencyLevel || "unknown"}
-                      </span>
-                    </div>
-
-                    <h4 className="font-bold text-slate-900 mb-1">
-                      {entry.diagnosis || t("reports.noDiagnosis")}
-                    </h4>
-
-                    {entry.symptoms?.length > 0 && (
-                      <p className="text-sm text-slate-600 mb-1">
-                        <strong>{t("reports.symptoms")}:</strong>{" "}
-                        {entry.symptoms.join(", ")}
-                      </p>
-                    )}
-
-                    {entry.structuredNote && (
-                      <p className="text-sm text-slate-600 mb-1">
-                        <strong>{t("reports.notes")}:</strong>{" "}
-                        {entry.structuredNote}
-                      </p>
-                    )}
-
-                    {entry.suggestedSpecialist && (
-                      <p className="text-sm text-slate-600 mb-1">
-                        <strong>{t("reports.referral")}:</strong>{" "}
-                        {entry.suggestedSpecialist}
-                      </p>
-                    )}
-
-                    {entry.prescription?.medications?.length > 0 && (
-                      <div className="mt-2 bg-slate-50 rounded-lg p-3">
-                        <p className="text-xs font-bold text-slate-500 uppercase mb-1.5">
-                          💊 {t("reports.prescribedMedications")}
-                        </p>
-                        <ul className="space-y-0.5">
-                          {entry.prescription.medications.map((med, i) => (
-                            <li key={i} className="text-sm text-slate-700">
-                              {med.name} — {med.dose || med.dosage} (
-                              {med.frequency})
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-
-                    {entry.isFollowup && (
-                      <span className="inline-block mt-2 text-[10px] font-bold text-purple-600 bg-purple-50 border border-purple-100 rounded-full px-2.5 py-0.5 uppercase">
-                        {t("reports.followupVisit")}
-                      </span>
-                    )}
-                  </div>
-                ))}
+            {/* AI sections */}
+            <div className="space-y-5">
+              {/* Executive Summary */}
+              <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
+                <h4 className="text-sm font-bold text-blue-800 mb-2">
+                  📋 {report.data.reportTitle}
+                </h4>
+                <p className="text-sm text-slate-700 leading-relaxed">
+                  {report.data.executiveSummary}
+                </p>
               </div>
-            )}
+
+              {/* 2-column grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="border border-slate-100 rounded-xl p-4">
+                  <h4 className="text-sm font-bold text-slate-700 mb-2">
+                    🏥 {t("reports.patientCondition") || "Patient Condition"}
+                  </h4>
+                  <p className="text-sm text-slate-600 leading-relaxed">
+                    {report.data.patientCondition}
+                  </p>
+                </div>
+                <div className="border border-slate-100 rounded-xl p-4">
+                  <h4 className="text-sm font-bold text-slate-700 mb-2">
+                    🔬 {t("reports.clinicalFindings") || "Clinical Findings"}
+                  </h4>
+                  <p className="text-sm text-slate-600 leading-relaxed">
+                    {report.data.clinicalFindings}
+                  </p>
+                </div>
+                <div className="border border-slate-100 rounded-xl p-4">
+                  <h4 className="text-sm font-bold text-slate-700 mb-2">
+                    💊 {t("reports.treatmentPlan") || "Treatment Plan"}
+                  </h4>
+                  <p className="text-sm text-slate-600 leading-relaxed">
+                    {report.data.treatmentPlan}
+                  </p>
+                </div>
+                <div className="border border-slate-100 rounded-xl p-4">
+                  <h4 className="text-sm font-bold text-slate-700 mb-2">
+                    ✅ {t("reports.recommendations") || "Recommendations"}
+                  </h4>
+                  <p className="text-sm text-slate-600 leading-relaxed">
+                    {report.data.recommendations}
+                  </p>
+                </div>
+              </div>
+
+              {/* Follow-up */}
+              <div className="border border-slate-100 rounded-xl p-4">
+                <h4 className="text-sm font-bold text-slate-700 mb-2">
+                  📅 {t("reports.followupNotes") || "Follow-up Notes"}
+                </h4>
+                <p className="text-sm text-slate-600 leading-relaxed">
+                  {report.data.followupNotes}
+                </p>
+              </div>
+            </div>
 
             <p className="text-xs text-slate-400 text-center mt-6">
               {t("reports.generatedAt")}: {report.generatedAt.toLocaleString()}
