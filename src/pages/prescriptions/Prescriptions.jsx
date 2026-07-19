@@ -9,7 +9,7 @@ import {
 import PrescriptionModal from "../../components/prescriptions/PrescriptionModal";
 import "../followups/followups.css";
 import { calculateAge, printPrescription } from "../../utils/prescriptionPrint";
-import Loading from "../../components/Loading"
+import Loading from "../../components/Loading";
 const PAGE_LIMIT = 10;
 
 function toDateKey(date) {
@@ -255,7 +255,7 @@ function PatientPrescriptionCard({ prescription, onEdit }) {
                 </div>
               </td>
               <td className="px-5 py-4 text-slate-600 font-semibold">
-                {patient?.nationalID || "—"}
+                {patient?.phone || "—"}
               </td>
               <td className="px-5 py-4 text-slate-600 font-semibold">
                 {age !== null ? age : "—"}
@@ -332,7 +332,7 @@ function PatientPrescriptionCard({ prescription, onEdit }) {
             </div>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1.5 text-xs text-slate-500 font-semibold">
               <span>
-                {t("prescriptions.id")}: {patient?.nationalID || "—"}
+                {t("prescriptions.id")}: {patient?.phone || "—"}
               </span>
               {age !== null && (
                 <span>
@@ -657,9 +657,7 @@ export default function Prescriptions() {
               />
             </div>
 
-            {loading && (
-            <Loading/>
-            )}
+            {loading && <Loading />}
 
             {!loading && prescriptions.length === 0 && (
               <div className="text-center text-gray-400 py-16 bg-white rounded-xl shadow-sm border border-gray-100">

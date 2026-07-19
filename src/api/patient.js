@@ -73,17 +73,31 @@ export const fetchPatientHistory = createAsyncThunk(
 
 export const createPatient = createAsyncThunk(
   "patients/createPatient",
-  async (patientData) => {
-    const res = await apiInstance.post("/patients", patientData);
-    return res.data.data;
+  async (patientData, { rejectWithValue }) => {
+    try {
+      const res = await apiInstance.post("/patients", patientData);
+      return res.data.data;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.message ||
+          "Something went wrong. Please try again.",
+      );
+    }
   },
 );
 
 export const updatePatient = createAsyncThunk(
   "patients/updatePatient",
-  async ({ id, patientData }) => {
-    const res = await apiInstance.patch(`/patients/${id}`, patientData);
-    return res.data.data;
+  async ({ id, patientData }, { rejectWithValue }) => {
+    try {
+      const res = await apiInstance.patch(`/patients/${id}`, patientData);
+      return res.data.data;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.message ||
+          "Something went wrong. Please try again.",
+      );
+    }
   },
 );
 

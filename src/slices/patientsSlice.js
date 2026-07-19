@@ -100,7 +100,7 @@ const patientsSlice = createSlice({
       })
       .addCase(createPatient.rejected, (state, action) => {
         state.isSubmitting = false;
-        state.error = action.error.message;
+        state.error = action.payload || action.error.message;
       })
 
       .addCase(updatePatient.pending, (state) => {
@@ -113,7 +113,7 @@ const patientsSlice = createSlice({
       })
       .addCase(updatePatient.rejected, (state, action) => {
         state.isSubmitting = false;
-        state.error = action.error.message;
+        state.error = action.payload || action.error.message;
       })
 
       .addCase(deletePatient.fulfilled, (state, action) => {

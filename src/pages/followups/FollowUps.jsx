@@ -176,9 +176,7 @@ const FollowUps = () => {
         : true;
 
       const matchesSearch =
-        !query ||
-        (item.patientId?.name || "").toLowerCase().includes(query) ||
-        (item.patientId?.nationalID || "").toLowerCase().includes(query);
+        !query || (item.patientId?.name || "").toLowerCase().includes(query);
 
       return matchesTab && matchesSelectedDate && matchesSearch;
     });
@@ -547,9 +545,9 @@ const FollowUps = () => {
                         </div>
                         <div>
                           <h3>{patientName}</h3>
-                          <p>
-                            {t("followups.patientId")}:{" "}
-                            {item.patientId?.nationalID ||
+                          <p dir="ltr">
+                            📞{" "}
+                            {item.patientId?.phone ||
                               t("followups.unknownPatient")}
                           </p>
                         </div>

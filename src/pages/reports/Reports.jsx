@@ -4,8 +4,18 @@ import { useTranslation } from "react-i18next";
 import { getAllPatients, getPatientHistory } from "../../api/patient";
 
 const MONTHS = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
 const urgencyStyles = {
@@ -83,19 +93,22 @@ export default function Reports() {
     return () => clearTimeout(timeout);
   }, [search]);
 
-  const loadHistory = useCallback(async (patientId) => {
-    try {
-      setLoadingHistory(true);
-      setHistoryError("");
-      const res = await getPatientHistory(patientId);
-      setHistory(res?.data?.history || []);
-    } catch {
-      setHistoryError(t("reports.historyLoadError"));
-      setHistory([]);
-    } finally {
-      setLoadingHistory(false);
-    }
-  }, [t]);
+  const loadHistory = useCallback(
+    async (patientId) => {
+      try {
+        setLoadingHistory(true);
+        setHistoryError("");
+        const res = await getPatientHistory(patientId);
+        setHistory(res?.data?.history || []);
+      } catch {
+        setHistoryError(t("reports.historyLoadError"));
+        setHistory([]);
+      } finally {
+        setLoadingHistory(false);
+      }
+    },
+    [t],
+  );
 
   const selectPatient = (patient) => {
     setSelectedPatient(patient);
@@ -170,7 +183,7 @@ export default function Reports() {
 
     setReport({
       patientName: selectedPatient.name,
-      mrn: selectedPatient.nationalID,
+      mrn: selectedPatient.phone,
       dob: selectedPatient.dateOfBirth,
       age: calculateAge(selectedPatient.dateOfBirth),
       scopeLabel,
@@ -204,14 +217,23 @@ export default function Reports() {
         }
       `}</style>
 
-      <div className="bg-linear-to-r from-blue-700 to-blue-600 text-white pt-6 pb-8 px-4 sm:px-6 shadow-lg rounded-3xl no-print">
+      <div className="bg-gradient-to-r from-blue-700 to-blue-600 text-white pt-6 pb-8 px-4 sm:px-6 shadow-lg rounded-3xl no-print">
         <div className="max-w-5xl mx-auto">
           <button
             onClick={() => navigate(-1)}
             className="inline-flex items-center gap-2 text-blue-100 hover:text-white text-xs font-bold bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg transition mb-4 border border-white/10 backdrop-blur-sm"
           >
-            <svg className="w-4 h-4 stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+            <svg
+              className="w-4 h-4 stroke-[2.5]"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M15.75 19.5L8.25 12l7.5-7.5"
+              />
             </svg>
             {t("common.back")}
           </button>
@@ -233,7 +255,8 @@ export default function Reports() {
           {/* Patient search */}
           <div className="mb-5 relative">
             <label className="block text-sm font-semibold text-blue-700 mb-1">
-              {t("reports.selectPatient")} <span className="text-red-500">*</span>
+              {t("reports.selectPatient")}{" "}
+              <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <input
@@ -242,7 +265,10 @@ export default function Reports() {
                 onChange={(e) => handleSearchChange(e.target.value)}
                 onFocus={() => setShowDropdown(true)}
                 onBlur={() => {
-                  blurTimeout.current = setTimeout(() => setShowDropdown(false), 150);
+                  blurTimeout.current = setTimeout(
+                    () => setShowDropdown(false),
+                    150,
+                  );
                 }}
                 placeholder={t("reports.searchPlaceholder")}
                 autoComplete="off"
@@ -264,9 +290,11 @@ export default function Reports() {
                       onMouseDown={() => selectPatient(p)}
                       className="w-full text-start px-4 py-2.5 hover:bg-blue-50 transition border-b border-slate-50 last:border-0"
                     >
-                      <p className="text-sm font-bold text-slate-900">{p.name}</p>
+                      <p className="text-sm font-bold text-slate-900">
+                        {p.name}
+                      </p>
                       <p className="text-xs text-slate-400">
-                        {t("reports.mrn")}: {p.nationalID || "N/A"}
+                        {t("reports.mrn")}: {p.phone || "N/A"}
                       </p>
                     </button>
                   </li>
@@ -284,7 +312,10 @@ export default function Reports() {
               {[
                 { value: "year", label: t("reports.scopeYear") },
                 { value: "month", label: t("reports.scopeMonth") },
-                { value: "consultation", label: t("reports.scopeConsultation") },
+                {
+                  value: "consultation",
+                  label: t("reports.scopeConsultation"),
+                },
               ].map((opt) => (
                 <button
                   key={opt.value}
@@ -317,7 +348,9 @@ export default function Reports() {
                   className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-200"
                 >
                   {yearOptions.map((y) => (
-                    <option key={y} value={y}>{y}</option>
+                    <option key={y} value={y}>
+                      {y}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -332,7 +365,9 @@ export default function Reports() {
                     className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-200"
                   >
                     {MONTHS.map((m, i) => (
-                      <option key={m} value={i + 1}>{t(`reports.months.${m}`)}</option>
+                      <option key={m} value={i + 1}>
+                        {t(`reports.months.${m}`)}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -343,10 +378,13 @@ export default function Reports() {
           {scope === "consultation" && (
             <div className="mb-5">
               <label className="block text-sm font-semibold text-blue-700 mb-2">
-                {t("reports.selectConsultation")} <span className="text-red-500">*</span>
+                {t("reports.selectConsultation")}{" "}
+                <span className="text-red-500">*</span>
               </label>
               {!selectedPatient ? (
-                <p className="text-sm text-amber-600">⚠️ {t("reports.selectPatientFirst")}</p>
+                <p className="text-sm text-amber-600">
+                  ⚠️ {t("reports.selectPatientFirst")}
+                </p>
               ) : loadingHistory ? (
                 <div className="flex items-center gap-2 text-sm text-slate-500">
                   <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
@@ -355,7 +393,9 @@ export default function Reports() {
               ) : historyError ? (
                 <p className="text-sm text-red-600">❌ {historyError}</p>
               ) : history.length === 0 ? (
-                <p className="text-sm text-slate-400">ℹ️ {t("reports.noConsultations")}</p>
+                <p className="text-sm text-slate-400">
+                  ℹ️ {t("reports.noConsultations")}
+                </p>
               ) : (
                 <ul className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
                   {history.map((c) => (
@@ -369,8 +409,16 @@ export default function Reports() {
                             : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
                         }`}
                       >
-                        <span className="truncate">{c.diagnosis || t("reports.noDiagnosis")}</span>
-                        <span className={consultationId === c.consultationId ? "text-blue-100" : "text-slate-400"}>
+                        <span className="truncate">
+                          {c.diagnosis || t("reports.noDiagnosis")}
+                        </span>
+                        <span
+                          className={
+                            consultationId === c.consultationId
+                              ? "text-blue-100"
+                              : "text-slate-400"
+                          }
+                        >
                           {formatDate(c.date)}
                         </span>
                       </button>
@@ -402,7 +450,9 @@ export default function Reports() {
               disabled={generating || !selectedPatient}
               className="px-5 py-2 rounded-xl text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition disabled:opacity-50"
             >
-              {generating ? t("reports.generating") : t("reports.generateReport")}
+              {generating
+                ? t("reports.generating")
+                : t("reports.generateReport")}
             </button>
           </div>
         </div>
@@ -415,7 +465,9 @@ export default function Reports() {
           >
             <div className="flex items-start justify-between gap-3 flex-wrap mb-4">
               <div>
-                <h3 className="text-lg font-black text-blue-700">🩺 {report.scopeLabel}</h3>
+                <h3 className="text-lg font-black text-blue-700">
+                  🩺 {report.scopeLabel}
+                </h3>
                 <p className="text-sm text-slate-500">{report.rangeLabel}</p>
               </div>
               <button
@@ -428,11 +480,27 @@ export default function Reports() {
             </div>
 
             <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-slate-600 border-b border-slate-100 pb-4 mb-4">
-              <span><strong className="text-slate-800">{t("reports.patient")}:</strong> {report.patientName}</span>
-              <span><strong className="text-slate-800">{t("reports.mrn")}:</strong> {report.mrn || "N/A"}</span>
-              <span><strong className="text-slate-800">{t("reports.dob")}:</strong> {formatDate(report.dob) || "N/A"}</span>
+              <span>
+                <strong className="text-slate-800">
+                  {t("reports.patient")}:
+                </strong>{" "}
+                {report.patientName}
+              </span>
+              <span>
+                <strong className="text-slate-800">{t("reports.mrn")}:</strong>{" "}
+                {report.mrn || "N/A"}
+              </span>
+              <span>
+                <strong className="text-slate-800">{t("reports.dob")}:</strong>{" "}
+                {formatDate(report.dob) || "N/A"}
+              </span>
               {report.age !== null && (
-                <span><strong className="text-slate-800">{t("reports.age")}:</strong> {report.age}</span>
+                <span>
+                  <strong className="text-slate-800">
+                    {t("reports.age")}:
+                  </strong>{" "}
+                  {report.age}
+                </span>
               )}
             </div>
 
@@ -443,7 +511,10 @@ export default function Reports() {
             ) : (
               <div className="space-y-3">
                 {report.entries.map((entry) => (
-                  <div key={entry.consultationId} className="border border-slate-100 rounded-xl p-4">
+                  <div
+                    key={entry.consultationId}
+                    className="border border-slate-100 rounded-xl p-4"
+                  >
                     <div className="flex items-center justify-between gap-3 mb-2">
                       <span className="text-xs font-semibold text-slate-400">
                         📅 {formatDate(entry.date)}
@@ -461,19 +532,22 @@ export default function Reports() {
 
                     {entry.symptoms?.length > 0 && (
                       <p className="text-sm text-slate-600 mb-1">
-                        <strong>{t("reports.symptoms")}:</strong> {entry.symptoms.join(", ")}
+                        <strong>{t("reports.symptoms")}:</strong>{" "}
+                        {entry.symptoms.join(", ")}
                       </p>
                     )}
 
                     {entry.structuredNote && (
                       <p className="text-sm text-slate-600 mb-1">
-                        <strong>{t("reports.notes")}:</strong> {entry.structuredNote}
+                        <strong>{t("reports.notes")}:</strong>{" "}
+                        {entry.structuredNote}
                       </p>
                     )}
 
                     {entry.suggestedSpecialist && (
                       <p className="text-sm text-slate-600 mb-1">
-                        <strong>{t("reports.referral")}:</strong> {entry.suggestedSpecialist}
+                        <strong>{t("reports.referral")}:</strong>{" "}
+                        {entry.suggestedSpecialist}
                       </p>
                     )}
 
@@ -485,7 +559,8 @@ export default function Reports() {
                         <ul className="space-y-0.5">
                           {entry.prescription.medications.map((med, i) => (
                             <li key={i} className="text-sm text-slate-700">
-                              {med.name} — {med.dose || med.dosage} ({med.frequency})
+                              {med.name} — {med.dose || med.dosage} (
+                              {med.frequency})
                             </li>
                           ))}
                         </ul>

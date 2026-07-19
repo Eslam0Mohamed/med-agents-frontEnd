@@ -30,11 +30,7 @@ const PatientSearch = () => {
   const patients = useMemo(() => {
     const query = search.trim().toLowerCase();
     if (!query) return [];
-    return allPatients.filter(
-      (p) =>
-        p.name?.toLowerCase().includes(query) ||
-        p.nationalID?.toLowerCase().includes(query),
-    );
+    return allPatients.filter((p) => p.name?.toLowerCase().includes(query));
   }, [allPatients, search]);
 
   const handleSelectPatient = (patient) => {
@@ -190,8 +186,11 @@ const PatientSearch = () => {
                         {p.name}
                       </p>
                       <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-xs mt-2 font-medium">
-                        <span className="bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg border border-slate-200/40">
-                          ID: {p.nationalID}
+                        <span
+                          className="bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg border border-slate-200/40"
+                          dir="ltr"
+                        >
+                          📞 {p.phone}
                         </span>
                         <span className="bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg border border-slate-200/40">
                           {t("consultations.yrs") !== "Yrs"

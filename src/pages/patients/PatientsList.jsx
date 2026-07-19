@@ -25,11 +25,7 @@ export default function PatientsList() {
   const filteredPatients = useMemo(() => {
     const query = search.trim().toLowerCase();
     if (!query) return list || [];
-    return (list || []).filter(
-      (p) =>
-        p.name?.toLowerCase().includes(query) ||
-        p.nationalID?.toLowerCase().includes(query),
-    );
+    return (list || []).filter((p) => p.name?.toLowerCase().includes(query));
   }, [list, search]);
 
   const totalPages = Math.max(1, Math.ceil(filteredPatients.length / limit));
@@ -181,7 +177,7 @@ export default function PatientsList() {
                       {t("common.name")}
                     </th>
                     <th className="px-6 py-4 font-bold tracking-wide text-xs uppercase opacity-90">
-                      {t("patients.nationalId")}
+                      {t("patients.phone")}
                     </th>
                     <th className="px-6 py-4 font-bold tracking-wide text-xs uppercase opacity-90">
                       {t("patients.age")}
@@ -212,8 +208,11 @@ export default function PatientsList() {
                           </span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-slate-600 font-semibold">
-                        {patient.nationalID}
+                      <td
+                        className="px-6 py-4 text-slate-600 font-semibold"
+                        dir="ltr"
+                      >
+                        {patient.phone}
                       </td>
                       <td className="px-6 py-4 text-slate-600 font-semibold">
                         {calculateAge(patient.dateOfBirth)}

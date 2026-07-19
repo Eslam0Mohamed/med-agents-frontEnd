@@ -64,7 +64,7 @@ export function printPrescription(prescription, t, isArabic) {
   </div>
   <div class="patient-info">
     <div><span class="label">${t("common.name")}</span>${patient?.name || t("prescriptions.unknownPatient")}</div>
-    <div><span class="label">${t("prescriptions.id")}</span>${patient?.nationalID || "—"}</div>
+    <div><span class="label">${t("prescriptions.id")}</span>${patient?.phone || "—"}</div>
     <div><span class="label">${t("prescriptions.age")}</span>${age !== null ? age : "—"}</div>
     <div><span class="label">${t("patients.allergies")}</span>${patient?.allergies?.length ? patient.allergies.join(", ") : t("prescriptions.noneReported")}</div>
   </div>

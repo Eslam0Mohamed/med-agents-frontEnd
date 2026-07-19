@@ -47,7 +47,7 @@ export default function PatientForm() {
     resolver: zodResolver(patientSchema),
     defaultValues: {
       name: "",
-      nationalID: "",
+      phone: "",
       dateOfBirth: "",
       gender: "",
       bloodType: "",
@@ -177,7 +177,11 @@ export default function PatientForm() {
         navigate(`/consultations/add/${newPatient._id}`);
       }
     } catch (err) {
-      setServerError(err?.message || "Something went wrong. Please try again.");
+      setServerError(
+        typeof err === "string"
+          ? err
+          : err?.message || "Something went wrong. Please try again.",
+      );
     }
   };
 
@@ -219,19 +223,20 @@ export default function PatientForm() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t("patients.nationalId")}
+                {t("patients.phone")}
               </label>
               <input
-                {...register("nationalID")}
-                placeholder="14 digit number"
-                maxLength={14}
+                {...register("phone")}
+                type="tel"
+                placeholder="01XXXXXXXXX"
+                maxLength={11}
                 className={`w-full border rounded-lg px-3 py-2.5 text-sm outline-none focus:border-blue-500 ${
-                  errors.nationalID ? "border-red-400" : "border-gray-300"
+                  errors.phone ? "border-red-400" : "border-gray-300"
                 }`}
               />
-              {errors.nationalID && (
+              {errors.phone && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.nationalID.message}
+                  {errors.phone.message}
                 </p>
               )}
             </div>
