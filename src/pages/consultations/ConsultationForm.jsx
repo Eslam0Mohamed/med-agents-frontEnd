@@ -666,15 +666,56 @@ const ConsultationForm = () => {
                       </div>
                     )}
 
-                    {aiResult.structuredNote && (
-                      <div className="bg-gray-50 rounded-lg p-3">
-                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                          {t("consultations.structuredNote")}
-                        </p>
-                        <p className="text-sm text-gray-700 leading-relaxed">
-                          {aiResult.structuredNote}
-                        </p>
-                      </div>
+                    {aiResult.clinicalReading ||
+                    aiResult.possibleDiagnoses ||
+                    aiResult.recommendedProtocol ? (
+                      <>
+                        {aiResult.clinicalReading && (
+                          <div className="bg-gray-50 rounded-lg p-3">
+                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                              {t("consultations.clinicalReading")}
+                            </p>
+                            <p className="text-sm text-gray-700 leading-relaxed">
+                              {aiResult.clinicalReading}
+                            </p>
+                          </div>
+                        )}
+
+                        {aiResult.possibleDiagnoses?.length > 0 && (
+                          <div className="bg-gray-50 rounded-lg p-3">
+                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                              {t("consultations.possibleDiagnoses")}
+                            </p>
+                            <ol className="text-sm text-gray-700 leading-relaxed list-decimal ms-4 space-y-0.5">
+                              {aiResult.possibleDiagnoses.map((d, i) => (
+                                <li key={i}>{d}</li>
+                              ))}
+                            </ol>
+                          </div>
+                        )}
+
+                        {aiResult.recommendedProtocol && (
+                          <div className="bg-gray-50 rounded-lg p-3">
+                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                              {t("consultations.recommendedProtocol")}
+                            </p>
+                            <p className="text-sm text-gray-700 leading-relaxed">
+                              {aiResult.recommendedProtocol}
+                            </p>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      aiResult.structuredNote && (
+                        <div className="bg-gray-50 rounded-lg p-3">
+                          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                            {t("consultations.structuredNote")}
+                          </p>
+                          <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
+                            {aiResult.structuredNote}
+                          </p>
+                        </div>
+                      )
                     )}
                   </div>
                 )}
