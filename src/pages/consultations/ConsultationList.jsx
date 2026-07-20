@@ -7,6 +7,11 @@ import "../followups/followups.css";
 
 const ITEMS_PER_PAGE = 10;
 
+function getSpecialistShortName(specialist) {
+  if (!specialist) return "—";
+  return specialist.split(/[\(,]| for | should | may /i)[0].trim() || "—";
+}
+
 function toDateKey(date) {
   if (!date) return "";
   const d = new Date(date);
@@ -394,9 +399,6 @@ const Consultations = () => {
                         {t("common.name")}
                       </th>
                       <th className="px-6 py-4 font-bold tracking-wide text-xs uppercase opacity-90">
-                        {t("consultations.symptomsColumn")}
-                      </th>
-                      <th className="px-6 py-4 font-bold tracking-wide text-xs uppercase opacity-90">
                         {t("consultations.urgencyColumn")}
                       </th>
                       <th className="px-6 py-4 font-bold tracking-wide text-xs uppercase opacity-90">
@@ -422,9 +424,6 @@ const Consultations = () => {
                         <td className="px-6 py-4 font-black text-blue-600 text-base">
                           {getPatientName(c.patientId)}
                         </td>
-                        <td className="px-6 py-4 text-slate-500 max-w-[200px] truncate font-medium">
-                          {c.symptoms.join(", ")}
-                        </td>
                         <td className="px-6 py-4">
                           <span
                             className={`px-2.5 py-1 rounded-xl text-xs font-bold border capitalize tracking-wide shadow-sm ${getUrgencyBadge(c.urgencyLevel)}`}
@@ -435,7 +434,7 @@ const Consultations = () => {
                         <td className="px-6 py-4 text-slate-700 font-semibold">
                           {c.suggestedSpecialist ? (
                             <span className="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg text-xs font-medium border border-slate-200/40">
-                              {c.suggestedSpecialist}
+                              {getSpecialistShortName(c.suggestedSpecialist)}
                             </span>
                           ) : (
                             <span className="text-slate-300">—</span>
@@ -529,20 +528,12 @@ const Consultations = () => {
                   </div>
 
                   <div className="grid grid-cols-2 gap-3 text-xs">
-                    <div className="col-span-2">
-                      <span className="text-slate-400 block font-medium mb-0.5">
-                        Symptoms:
-                      </span>
-                      <p className="text-slate-600 font-semibold bg-slate-50/60 p-2 rounded-lg border border-slate-100">
-                        {c.symptoms.join(", ")}
-                      </p>
-                    </div>
                     <div>
                       <span className="text-slate-400 block font-medium mb-0.5">
                         {t("consultations.specialist")}:
                       </span>
                       <p className="text-slate-700 font-bold truncate">
-                        {c.suggestedSpecialist || "—"}
+                        {getSpecialistShortName(c.suggestedSpecialist)}
                       </p>
                     </div>
                     <div>
