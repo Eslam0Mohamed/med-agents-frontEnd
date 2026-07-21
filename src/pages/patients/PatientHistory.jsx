@@ -296,47 +296,36 @@ export default function PatientHistory() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 mb-3">
-              <div>
+            {item.suggestedSpecialist && (
+              <div className="mb-3">
                 <p className="text-xs font-semibold text-gray-400 uppercase">
-                  {t("consultations.diagnosis")}
-                </p>
-                <p className="text-sm text-gray-900">{item.diagnosis || "—"}</p>
-              </div>
-              <div>
-                <p className="text-xs font-semibold text-gray-400 uppercase">
-                  {t("consultations.followUpDate")}
+                  {t("consultations.specialist")}
                 </p>
                 <p className="text-sm text-gray-900">
-                  {item.followUpDate
-                    ? new Date(item.followUpDate).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })
-                    : "—"}
+                  {item.suggestedSpecialist}
                 </p>
               </div>
-              {item.suggestedSpecialist && (
-                <div className="col-span-2">
-                  <p className="text-xs font-semibold text-gray-400 uppercase">
-                    {t("consultations.specialist")}
-                  </p>
-                  <p className="text-sm text-gray-900">
-                    {item.suggestedSpecialist}
-                  </p>
-                </div>
-              )}
-            </div>
+            )}
 
             {item.structuredNote && (
               <div className="bg-blue-50 border-s-4 border-blue-400 rounded-e-lg p-3 mb-3">
                 <p className="text-xs font-semibold text-blue-700 mb-1">
                   🤖 {t("consultations.aiClinicalNote")}
                 </p>
-                <p className="text-sm text-gray-700">{item.structuredNote}</p>
+                <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+                  {item.structuredNote}
+                </p>
               </div>
             )}
+
+            <div className="mb-3">
+              <p className="text-xs font-semibold text-gray-400 uppercase mb-1">
+                {t("consultations.diagnosis")}
+              </p>
+              <p className="text-sm font-semibold text-gray-900">
+                {item.diagnosis || "—"}
+              </p>
+            </div>
 
             {item.prescription && (
               <div>
