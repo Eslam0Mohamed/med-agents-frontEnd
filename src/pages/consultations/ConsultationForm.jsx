@@ -17,6 +17,7 @@ import {
 import { getPrescriptionByConsultation } from "../../api/prescription";
 import PrescriptionModal from "../../components/prescriptions/PrescriptionModal";
 import LanguageToggle from "../../components/LanguageToggle";
+import DifferentialDiagnosisPanel from "../../components/consultations/DifferentialDiagnosisPanel";
 
 const ConsultationForm = () => {
   const { t, i18n } = useTranslation();
@@ -212,9 +213,6 @@ const ConsultationForm = () => {
       setAiResult(res.data);
       setCreatedId(res.data._id);
       setIsSaved(true);
-      if (res.data.diagnosis) {
-        setValue("diagnosis", res.data.diagnosis);
-      }
     } catch (err) {
       console.log(err.response?.data);
       Swal.fire({
@@ -258,6 +256,10 @@ const ConsultationForm = () => {
             structuredNote: aiResult.structuredNote,
             suggestedSpecialist: aiResult.suggestedSpecialist,
             urgencyLevel: aiResult.urgencyLevel,
+            // القطع المنظمة لإيجنت التشخيص التفريقي - بتتحفظ منفصلة عشان
+            // الـ Patient History يقدر يعرضهم في أقسام منظمة
+            clinicalReading: aiResult.clinicalReading,
+            possibleDiagnoses: aiResult.possibleDiagnoses,
           }
         : {}),
     };
@@ -666,57 +668,11 @@ const ConsultationForm = () => {
                       </div>
                     )}
 
-                    {aiResult.clinicalReading ||
-                    aiResult.possibleDiagnoses ||
-                    aiResult.recommendedProtocol ? (
-                      <>
-                        {aiResult.clinicalReading && (
-                          <div className="bg-gray-50 rounded-lg p-3">
-                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                              {t("consultations.clinicalReading")}
-                            </p>
-                            <p className="text-sm text-gray-700 leading-relaxed">
-                              {aiResult.clinicalReading}
-                            </p>
-                          </div>
-                        )}
-
-                        {aiResult.possibleDiagnoses?.length > 0 && (
-                          <div className="bg-gray-50 rounded-lg p-3">
-                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                              {t("consultations.possibleDiagnoses")}
-                            </p>
-                            <ol className="text-sm text-gray-700 leading-relaxed list-decimal ms-4 space-y-0.5">
-                              {aiResult.possibleDiagnoses.map((d, i) => (
-                                <li key={i}>{d}</li>
-                              ))}
-                            </ol>
-                          </div>
-                        )}
-
-                        {aiResult.recommendedProtocol && (
-                          <div className="bg-gray-50 rounded-lg p-3">
-                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                              {t("consultations.recommendedProtocol")}
-                            </p>
-                            <p className="text-sm text-gray-700 leading-relaxed">
-                              {aiResult.recommendedProtocol}
-                            </p>
-                          </div>
-                        )}
-                      </>
-                    ) : (
-                      aiResult.structuredNote && (
-                        <div className="bg-gray-50 rounded-lg p-3">
-                          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                            {t("consultations.structuredNote")}
-                          </p>
-                          <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
-                            {aiResult.structuredNote}
-                          </p>
-                        </div>
-                      )
-                    )}
+                    <DifferentialDiagnosisPanel
+                      clinicalReading={aiResult.clinicalReading}
+                      diagnoses={aiResult.possibleDiagnoses}
+                      structuredNoteFallback={aiResult.structuredNote}
+                    />
                   </div>
                 )}
               </div>

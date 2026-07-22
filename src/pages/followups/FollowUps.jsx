@@ -579,13 +579,19 @@ const FollowUps = () => {
 
                       <div className="card-actions">
                         {!isCompleted(item) ? (
-                          <button
-                            className="start-btn"
-                            onClick={() => handleStartFollowUp(item)}
-                          >
-                            <FiPlayCircle />
-                            {t("followups.startFollowUp")}
-                          </button>
+                          isPastDue(item) ? (
+                            <p className="text-xs font-semibold text-red-500">
+                              {t("followups.pastDueCannotStart")}
+                            </p>
+                          ) : (
+                            <button
+                              className="start-btn"
+                              onClick={() => handleStartFollowUp(item)}
+                            >
+                              <FiPlayCircle />
+                              {t("followups.startFollowUp")}
+                            </button>
+                          )
                         ) : (
                           <>
                             <button

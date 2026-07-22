@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import Swal from 'sweetalert2';
 import { getFollowUpById } from '../../api/followup';
 import { getPrescriptionByConsultation } from '../../api/prescription';
+import DifferentialDiagnosisPanel from '../../components/consultations/DifferentialDiagnosisPanel';
 
 const FollowUpDetails = () => {
   const { t } = useTranslation();
@@ -215,6 +216,7 @@ const FollowUpDetails = () => {
         .stagger-6 { animation-delay: 0.38s; }
         .stagger-7 { animation-delay: 0.44s; }
         .stagger-8 { animation-delay: 0.50s; }
+        .stagger-9 { animation-delay: 0.56s; }
       `}</style>
 
       <div className="w-full max-w-2xl mx-auto px-4 sm:px-6">
@@ -320,19 +322,6 @@ const FollowUpDetails = () => {
 
           <div className="stagger-row stagger-5 grid grid-cols-1 sm:grid-cols-3 items-start gap-1 sm:gap-4 border-b border-blue-50/60 pb-3.5 px-1 rounded-xl hover:bg-slate-50/40 transition">
             <span className="text-[11px] font-bold text-blue-500 tracking-widest uppercase pt-0.5 shrink-0 capitalize">
-              {t('followups.details.doctorNotes')}
-            </span>
-
-            <div className="sm:col-span-2 text-sm text-slate-700 font-medium whitespace-pre-line leading-relaxed break-words">
-              <span className="inline sm:hidden text-slate-400 font-normal mr-1">
-                :
-              </span>
-              {consultation?.rawInput || t('followups.details.noNotes')}
-            </div>
-          </div>
-
-          <div className="stagger-row stagger-6 grid grid-cols-1 sm:grid-cols-3 items-start gap-1 sm:gap-4 border-b border-blue-50/60 pb-3.5 px-1 rounded-xl hover:bg-slate-50/40 transition">
-            <span className="text-[11px] font-bold text-blue-500 tracking-widest uppercase pt-0.5 shrink-0 capitalize">
               {t('followups.details.symptoms')}
             </span>
 
@@ -344,7 +333,55 @@ const FollowUpDetails = () => {
             </div>
           </div>
 
-          <div className="stagger-row stagger-7 grid grid-cols-1 sm:grid-cols-3 items-start gap-1 sm:gap-4 border-b border-blue-50/60 pb-3.5 px-1 rounded-xl hover:bg-slate-50/40 transition">
+          <div className="stagger-row stagger-6 grid grid-cols-1 sm:grid-cols-3 items-start gap-1 sm:gap-4 border-b border-blue-50/60 pb-3.5 px-1 rounded-xl hover:bg-slate-50/40 transition">
+            <span className="text-[11px] font-bold text-blue-500 tracking-widest uppercase pt-0.5 shrink-0 capitalize">
+              {t('followups.details.doctorNotes')}
+            </span>
+
+            <div className="sm:col-span-2 text-sm text-slate-700 font-medium whitespace-pre-line leading-relaxed break-words">
+              <span className="inline sm:hidden text-slate-400 font-normal mr-1">
+                :
+              </span>
+              {consultation?.rawInput || t('followups.details.noNotes')}
+            </div>
+          </div>
+
+          {/* رؤية إيجنت التشخيص التفريقي (Differential Diagnosis Agent) -
+              بتتعرض منظمة لو القطع الخام موجودة، وإلا بترجع لـ structuredNote
+              كنص واحد للكونسلتيشنز القديمة */}
+          {(consultation?.clinicalReading ||
+            consultation?.possibleDiagnoses?.length > 0 ||
+            consultation?.suggestedSpecialist ||
+            consultation?.structuredNote) && (
+            <div className="stagger-row stagger-7 grid grid-cols-1 sm:grid-cols-3 items-start gap-1 sm:gap-4 border-b border-blue-50/60 pb-3.5 px-1 rounded-xl hover:bg-slate-50/40 transition">
+              <span className="text-[11px] font-bold text-blue-500 tracking-widest uppercase pt-0.5 shrink-0 capitalize">
+                🤖 {t('consultations.aiClinicalNote')}
+              </span>
+
+              <div className="sm:col-span-2 text-sm text-slate-700 font-medium leading-relaxed break-words space-y-2">
+                <span className="inline sm:hidden text-slate-400 font-normal mr-1">
+                  :
+                </span>
+
+                <DifferentialDiagnosisPanel
+                  clinicalReading={consultation?.clinicalReading}
+                  diagnoses={consultation?.possibleDiagnoses}
+                  structuredNoteFallback={consultation?.structuredNote}
+                />
+
+                {consultation?.suggestedSpecialist && (
+                  <p>
+                    <span className="font-bold text-slate-500 text-xs uppercase me-1">
+                      {t('consultations.specialist')}:
+                    </span>
+                    {consultation.suggestedSpecialist}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          <div className="stagger-row stagger-8 grid grid-cols-1 sm:grid-cols-3 items-start gap-1 sm:gap-4 border-b border-blue-50/60 pb-3.5 px-1 rounded-xl hover:bg-slate-50/40 transition">
             <span className="text-[11px] font-bold text-blue-500 tracking-widest uppercase pt-0.5 shrink-0 capitalize">
               {t('followups.details.diagnosis')}
             </span>
@@ -357,7 +394,7 @@ const FollowUpDetails = () => {
             </div>
           </div>
 
-          <div className="stagger-row stagger-8 grid grid-cols-1 sm:grid-cols-3 items-start gap-1 sm:gap-4 pt-1 px-1 rounded-xl hover:bg-slate-50/40 transition">
+          <div className="stagger-row stagger-9 grid grid-cols-1 sm:grid-cols-3 items-start gap-1 sm:gap-4 pt-1 px-1 rounded-xl hover:bg-slate-50/40 transition">
             <span className="text-[11px] font-bold text-blue-500 tracking-widest uppercase pt-0.5 shrink-0 capitalize">
               {t('followups.details.prescription')}
             </span>

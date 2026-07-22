@@ -7,6 +7,7 @@ import { discontinueMedication, reactivateMedication } from "../../api/patient";
 import Swal from "sweetalert2";
 import { clearHistory } from "../../slices/patientsSlice";
 import Loading from "../../components/Loading";
+import DifferentialDiagnosisPanel from "../../components/consultations/DifferentialDiagnosisPanel";
 const urgencyStyles = {
   low: "bg-green-100 text-green-700",
   moderate: "bg-amber-100 text-amber-700",
@@ -269,17 +270,6 @@ export default function PatientHistory() {
               </span>
             </div>
 
-            {item.doctorNotes && (
-              <div className="mb-3">
-                <p className="text-xs font-semibold text-gray-400 uppercase mb-1">
-                  {t("consultations.doctorNotes")}
-                </p>
-                <p className="text-sm text-gray-700 whitespace-pre-wrap">
-                  {item.doctorNotes}
-                </p>
-              </div>
-            )}
-
             <div>
               <p className="text-xs font-semibold text-gray-400 uppercase mb-2">
                 {t("consultations.symptomsColumn")}
@@ -296,25 +286,47 @@ export default function PatientHistory() {
               </div>
             </div>
 
-            {item.suggestedSpecialist && (
+            {item.doctorNotes && (
               <div className="mb-3">
-                <p className="text-xs font-semibold text-gray-400 uppercase">
-                  {t("consultations.specialist")}
+                <p className="text-xs font-semibold text-gray-400 uppercase mb-1">
+                  {t("consultations.doctorNotes")}
                 </p>
-                <p className="text-sm text-gray-900">
-                  {item.suggestedSpecialist}
+                <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                  {item.doctorNotes}
                 </p>
               </div>
             )}
 
-            {item.structuredNote && (
-              <div className="bg-blue-50 border-s-4 border-blue-400 rounded-e-lg p-3 mb-3">
-                <p className="text-xs font-semibold text-blue-700 mb-1">
+            {/* رؤية إيجنت التشخيص التفريقي (Differential Diagnosis Agent) -
+                بنعرضها منظمة في أقسام (قراءة سريرية / تشخيص تفريقي - كل
+                تشخيص فيه بروتوكوله الخاص / تخصص مقترح) لو الكونسلتيشن فيها
+                القطع الخام دي، وإلا بنرجع لعرض structuredNote كنص واحد
+                (كونسلتيشنز قديمة قبل إضافة الحقول المنظمة) */}
+            {(item.clinicalReading ||
+              item.possibleDiagnoses?.length > 0 ||
+              item.suggestedSpecialist ||
+              item.structuredNote) && (
+              <div className="bg-blue-50 border-s-4 border-blue-400 rounded-e-lg p-3 mb-3 space-y-2">
+                <p className="text-xs font-semibold text-blue-700">
                   🤖 {t("consultations.aiClinicalNote")}
                 </p>
-                <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
-                  {item.structuredNote}
-                </p>
+
+                <DifferentialDiagnosisPanel
+                  clinicalReading={item.clinicalReading}
+                  diagnoses={item.possibleDiagnoses}
+                  structuredNoteFallback={item.structuredNote}
+                />
+
+                {item.suggestedSpecialist && (
+                  <div>
+                    <p className="text-[11px] font-semibold text-blue-600 uppercase tracking-wide mb-0.5">
+                      {t("consultations.specialist")}
+                    </p>
+                    <p className="text-sm text-gray-900">
+                      {item.suggestedSpecialist}
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 

@@ -14,6 +14,7 @@ import { getPrescriptionByConsultation } from "../../api/prescription";
 import PrescriptionModal from "../../components/prescriptions/PrescriptionModal";
 import apiInstance from "../../config/apiInstance";
 import LanguageToggle from "../../components/LanguageToggle";
+import DifferentialDiagnosisPanel from "../../components/consultations/DifferentialDiagnosisPanel";
 
 const initialForm = {
   rawInput: "",
@@ -250,6 +251,28 @@ const StartFollowUp = () => {
       const data = res?.data;
 
       setFollowUp(data);
+
+      // حماية إضافية: حتى لو حد وصل للصفحة دي بشكل مباشر (مش من زرار
+      // "Start Follow Up" اللي بقى مخفي أصلاً للفولو أبس المتأخرة)، منمنعش
+      // بدء فولو أب فاتها ميعادها ولسه معلقة (pending) - لازم تتلغي أو
+      // تتعمل لها إعادة جدولة، مش تتبدأ وكأن معاها كانت في وقتها
+      const isPendingStatus = !data?.status || data.status === "pending";
+      const isPastDueFollowUp =
+        !isEditMode &&
+        isPendingStatus &&
+        data?.scheduledDate &&
+        new Date(data.scheduledDate).setHours(0, 0, 0, 0) <
+          new Date().setHours(0, 0, 0, 0);
+
+      if (isPastDueFollowUp) {
+        Swal.fire(
+          t("common.error"),
+          t("followups.pastDueCannotStart"),
+          "error",
+        );
+        navigate("/followups");
+        return;
+      }
 
       // نجيب روشتة الكونسلتيشن/الفولو أب اللي فاتت (اللي جدولت الفولو أب
       // الحالية دي) عشان نعرضها بدل الملاحظات والأعراض القديمة
@@ -528,6 +551,10 @@ const StartFollowUp = () => {
               structuredNote: aiResult.structuredNote,
               suggestedSpecialist: aiResult.suggestedSpecialist,
               urgencyLevel: aiResult.urgencyLevel,
+              // القطع المنظمة لإيجنت التشخيص التفريقي - بتتحفظ منفصلة عشان
+              // الـ Patient History يقدر يعرضهم في أقسام منظمة
+              clinicalReading: aiResult.clinicalReading,
+              possibleDiagnoses: aiResult.possibleDiagnoses,
             }
           : {}),
       };
@@ -1064,58 +1091,11 @@ const StartFollowUp = () => {
                       </div>
                     )}
 
-                    {aiResult.clinicalReading ||
-                    aiResult.possibleDiagnoses ||
-                    aiResult.recommendedProtocol ? (
-                      <>
-                        {aiResult.clinicalReading && (
-                          <div className="bg-gray-50 rounded-lg p-3">
-                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                              {t("consultations.clinicalReading")}
-                            </p>
-                            <p className="text-sm text-gray-700 leading-relaxed">
-                              {aiResult.clinicalReading}
-                            </p>
-                          </div>
-                        )}
-
-                        {aiResult.possibleDiagnoses?.length > 0 && (
-                          <div className="bg-gray-50 rounded-lg p-3">
-                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                              {t("consultations.possibleDiagnoses")}
-                            </p>
-                            <ol className="text-sm text-gray-700 leading-relaxed list-decimal ms-4 space-y-0.5">
-                              {aiResult.possibleDiagnoses.map((d, i) => (
-                                <li key={i}>{d}</li>
-                              ))}
-                            </ol>
-                          </div>
-                        )}
-
-                        {aiResult.recommendedProtocol && (
-                          <div className="bg-gray-50 rounded-lg p-3">
-                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                              {t("consultations.recommendedProtocol")}
-                            </p>
-                            <p className="text-sm text-gray-700 leading-relaxed">
-                              {aiResult.recommendedProtocol}
-                            </p>
-                          </div>
-                        )}
-                      </>
-                    ) : (
-                      aiResult.structuredNote && (
-                        <div className="bg-gray-50 rounded-lg p-3">
-                          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                            {t("consultations.structuredNote")}
-                          </p>
-
-                          <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
-                            {aiResult.structuredNote}
-                          </p>
-                        </div>
-                      )
-                    )}
+                    <DifferentialDiagnosisPanel
+                      clinicalReading={aiResult.clinicalReading}
+                      diagnoses={aiResult.possibleDiagnoses}
+                      structuredNoteFallback={aiResult.structuredNote}
+                    />
 
                     {!aiResult.structuredNote &&
                       !aiResult.suggestedSpecialist &&
