@@ -32,6 +32,7 @@
   },
   "common": {
     "save": "حفظ",
+    "add": "إضافة",
     "cancel": "إلغاء",
     "optional": "اختياري",
     "somethingWentWrong": "حصل خطأ ما",
@@ -120,9 +121,11 @@
       "nameArabicOnly": "الاسم لازم يتكتب بحروف عربية بس",
       "phoneRequired": "رقم الموبايل مطلوب",
       "phoneInvalid": "اكتب رقم موبايل مصري صحيح (زي 010/011/012/015XXXXXXXX)",
+      "phoneAlreadyExists": "عندك مريض مسجل بالفعل بنفس رقم التليفون ده.",
       "dobRequired": "تاريخ الميلاد مطلوب",
       "dobFuture": "تاريخ الميلاد مينفعش يكون في المستقبل",
-      "genderRequired": "من فضلك اختر النوع"
+      "genderRequired": "من فضلك اختر النوع",
+      "serverError": "مقدرناش نحفظ بيانات المريض. راجع البيانات وحاول تاني."
     },
     "dateOfBirth": "تاريخ الميلاد",
     "gender": "النوع",

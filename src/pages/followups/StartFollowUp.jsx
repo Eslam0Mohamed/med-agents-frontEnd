@@ -254,15 +254,19 @@ const StartFollowUp = () => {
 
       // حماية إضافية: حتى لو حد وصل للصفحة دي بشكل مباشر (مش من زرار
       // "Start Follow Up" اللي بقى مخفي أصلاً للفولو أبس المتأخرة)، منمنعش
-      // بدء فولو أب فاتها ميعادها ولسه معلقة (pending) - لازم تتلغي أو
-      // تتعمل لها إعادة جدولة، مش تتبدأ وكأن معاها كانت في وقتها
+      // بدء فولو أب اتلغت (الباك اند بيحوّلها cancelled تلقائيًا لو فات
+      // ميعادها ولسه pending) - أو حتى لو لسبب ما لسه راجعة pending بس
+      // ميعادها فعلًا فات (fallback احتياطي لو الباك اند القديم شغال)
+      const isCancelledStatus =
+        data?.status === "cancelled" || data?.status === "canceled";
       const isPendingStatus = !data?.status || data.status === "pending";
       const isPastDueFollowUp =
         !isEditMode &&
-        isPendingStatus &&
-        data?.scheduledDate &&
-        new Date(data.scheduledDate).setHours(0, 0, 0, 0) <
-          new Date().setHours(0, 0, 0, 0);
+        (isCancelledStatus ||
+          (isPendingStatus &&
+            data?.scheduledDate &&
+            new Date(data.scheduledDate).setHours(0, 0, 0, 0) <
+              new Date().setHours(0, 0, 0, 0)));
 
       if (isPastDueFollowUp) {
         Swal.fire(

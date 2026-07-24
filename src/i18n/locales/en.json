@@ -32,6 +32,7 @@
   },
   "common": {
     "save": "Save",
+    "add": "Add",
     "cancel": "Cancel",
     "optional": "optional",
     "somethingWentWrong": "Something went wrong",
@@ -120,9 +121,11 @@
       "nameArabicOnly": "Name must be written in Arabic letters only",
       "phoneRequired": "Phone number is required",
       "phoneInvalid": "Enter a valid Egyptian mobile number (e.g. 010/011/012/015XXXXXXXX)",
+      "phoneAlreadyExists": "You already have a patient registered with this phone number.",
       "dobRequired": "Date of birth is required",
       "dobFuture": "Date of birth cannot be in the future",
-      "genderRequired": "Please select a gender"
+      "genderRequired": "Please select a gender",
+      "serverError": "Couldn't save the patient. Please check the form and try again."
     },
     "dateOfBirth": "Date of Birth",
     "gender": "Gender",

@@ -177,10 +177,15 @@ export default function PatientForm() {
         navigate(`/consultations/add/${newPatient._id}`);
       }
     } catch (err) {
+      // مبنعرضش نص الإيرور الخام من الباك اند زي ما هو (بيبقى إنجليزي دايمًا
+      // ومش متطابق مع لغة الواجهة) - بنعرض رسالة مترجمة. لو الباك اند رجّع
+      // كود معروف (زي تكرار رقم التليفون) بنعرض رسالة مخصوصة أوضح، وإلا
+      // بنعرض رسالة عامة مترجمة بدل النص الخام
+      const rawMessage = typeof err === "string" ? err : err?.message;
       setServerError(
-        typeof err === "string"
-          ? err
-          : err?.message || "Something went wrong. Please try again.",
+        rawMessage === "PHONE_ALREADY_EXISTS"
+          ? t("patients.validation.phoneAlreadyExists")
+          : t("patients.validation.serverError"),
       );
     }
   };
@@ -315,7 +320,10 @@ export default function PatientForm() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t("patients.allergies")}
+              {t("patients.allergies")}{" "}
+              <span className="text-gray-400 font-normal">
+                ({t("common.optional")})
+              </span>
             </label>
             <div className="flex flex-wrap items-center gap-2 border border-gray-300 rounded-lg px-3 py-2.5">
               {allergies.map((a, i) => (
@@ -343,12 +351,22 @@ export default function PatientForm() {
                 placeholder={t("patients.addAllergy")}
                 className="flex-1 min-w-30 outline-none text-sm"
               />
+              <button
+                type="button"
+                onClick={addAllergy}
+                className="shrink-0 bg-blue-100 text-blue-700 hover:bg-blue-700 hover:text-white text-xs font-semibold px-3 py-1.5 rounded-md transition"
+              >
+                {t("common.add")}
+              </button>
             </div>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t("patients.chronicConditions")}
+              {t("patients.chronicConditions")}{" "}
+              <span className="text-gray-400 font-normal">
+                ({t("common.optional")})
+              </span>
             </label>
             <div className="flex flex-wrap items-center gap-2 border border-gray-300 rounded-lg px-3 py-2.5">
               {chronicConditions.map((c, i) => (
@@ -376,6 +394,13 @@ export default function PatientForm() {
                 placeholder={t("patients.addCondition")}
                 className="flex-1 min-w-30 outline-none text-sm"
               />
+              <button
+                type="button"
+                onClick={addCondition}
+                className="shrink-0 bg-blue-100 text-blue-700 hover:bg-blue-700 hover:text-white text-xs font-semibold px-3 py-1.5 rounded-md transition"
+              >
+                {t("common.add")}
+              </button>
             </div>
           </div>
 
@@ -420,6 +445,13 @@ export default function PatientForm() {
                   placeholder={t("patients.addMedication")}
                   className="flex-1 min-w-30 outline-none text-sm"
                 />
+                <button
+                  type="button"
+                  onClick={() => addMedication()}
+                  className="shrink-0 bg-blue-100 text-blue-700 hover:bg-blue-700 hover:text-white text-xs font-semibold px-3 py-1.5 rounded-md transition"
+                >
+                  {t("common.add")}
+                </button>
               </div>
               {showMedicationSuggestions &&
                 (searchingMedications || medicationSuggestions.length > 0) && (
