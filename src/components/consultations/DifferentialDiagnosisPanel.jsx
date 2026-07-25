@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { FiChevronDown } from "react-icons/fi";
+import { FiChevronDown, FiBookOpen } from "react-icons/fi";
 
 const likelihoodBadgeStyles = {
   high: "bg-emerald-100 text-emerald-700",
@@ -13,6 +13,14 @@ const likelihoodDotStyles = {
   moderate: "bg-amber-500",
   low: "bg-gray-400",
 };
+
+// evidenceBasis بيرجعها differentialDiagnosisAgent صراحة لكل تشخيص - "referenced"
+// لو مبني فعليًا على مرجع موثّق (Pinecone/PubMed/MedlinePlus)، أو
+// "general_knowledge" لو معرفة عامة للموديل مش مستندة لمرجع مباشر. بنعرضها
+// كـ badge صغير بس لما تكون "referenced" (إشارة إيجابية واضحة) - مفيش داعي
+// نعرض badge لكل حالة "general_knowledge" لأنها هي الغالبية والافتراضي، وده
+// كان هيغرق الشاشة ببادجز مالهاش قيمة إضافية
+const evidenceBadgeStyles = "bg-sky-100 text-sky-700";
 
 /**
  * عرض مضغوط لنتيجة إيجنت التشخيص التفريقي (Differential Diagnosis Agent):
@@ -79,6 +87,7 @@ const DifferentialDiagnosisPanel = ({
               const likelihoodKey = d.likelihood
                 ? `consultations.likelihood${d.likelihood.charAt(0).toUpperCase()}${d.likelihood.slice(1)}`
                 : null;
+              const isReferenced = d.evidenceBasis === "referenced";
 
               return (
                 <div key={i}>
@@ -99,6 +108,18 @@ const DifferentialDiagnosisPanel = ({
                       </span>
                     </span>
                     <span className="flex items-center gap-2 shrink-0">
+                      {isReferenced && (
+                        <span
+                          title={t(
+                            "consultations.evidenceReferencedTooltip",
+                            "Backed by a cited clinical reference",
+                          )}
+                          className={`hidden sm:flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-semibold ${evidenceBadgeStyles}`}
+                        >
+                          <FiBookOpen className="shrink-0" size={10} />
+                          {t("consultations.evidenceReferenced", "Referenced")}
+                        </span>
+                      )}
                       {likelihoodKey && (
                         <span
                           className={`text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase ${
@@ -119,6 +140,15 @@ const DifferentialDiagnosisPanel = ({
 
                   {isOpen && (
                     <div className="px-3 pb-3 space-y-1.5 text-xs text-gray-600 leading-relaxed bg-gray-50/60">
+                      {/* بادج referenced بتتخفي في الهيدر على الموبايل (sm:hidden أعلاه)
+                          عشان تفضل مساحة العنوان مضغوطة - هنا بنعرضها تاني كاملة
+                          جوه التفاصيل المفتوحة، فمتبقاش مخفية خالص على الموبايل */}
+                      {isReferenced && (
+                        <p className="sm:hidden flex items-center gap-1 text-sky-700 font-semibold">
+                          <FiBookOpen className="shrink-0" size={11} />
+                          {t("consultations.evidenceReferenced", "Referenced")}
+                        </p>
+                      )}
                       <p>
                         <span className="font-semibold text-gray-500">
                           {t("consultations.supportingReasoning")}:{" "}
