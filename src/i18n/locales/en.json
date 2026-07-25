@@ -257,7 +257,19 @@
     "noNotes": "No supplementary clinical inputs.",
     "pendingDiagnosis": "Pending definitive analysis.",
     "noPrescription": "No active medications issued.",
-    "noScheduledReturn": "No scheduled returns."
+    "noScheduledReturn": "No scheduled returns.",
+    "labFiles": "Lab Results / Radiology Reports",
+    "labFilesOptional": "Optional",
+    "labFilesHint": "Attach lab results or radiology reports (images or PDF) — optional. The Differential Diagnosis agent will review them when generating its recommendation.",
+    "labFilesUploading": "Uploading...",
+    "labFilesUploadFailed": "Failed to upload file(s). Please try again.",
+    "labFilesTooMany": "You can attach up to 6 files.",
+    "labFilesTooLarge": "Each file must be 10MB or smaller.",
+    "labFilesInvalidType": "Only images (JPG, PNG, WEBP) and PDF files are allowed.",
+    "labFilesRemove": "Remove file",
+    "labFilesAttached": "Attached files reviewed by the agent",
+    "labFilesAddMore": "Add files",
+    "labFilesEmpty": "No files attached"
   },
   "followups": {
     "title": "Follow-ups",

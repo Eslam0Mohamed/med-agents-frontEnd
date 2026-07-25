@@ -29,6 +29,10 @@ const DifferentialDiagnosisPanel = ({
   clinicalReading,
   diagnoses = [],
   structuredNoteFallback,
+  // ملفات التحاليل/الأشعة اللي الدكتور رفعها وكانت متاحة للإيجنت وقت
+  // التوليد (اختياري) - بنعرض ليستة أسمائهم كـ badge صغير أسفل النتيجة
+  // بس عشان الشفافية (الدكتور يعرف إن الإيجنت فعلاً شافهم)
+  labFiles = [],
   className = "",
 }) => {
   const { t } = useTranslation();
@@ -146,6 +150,15 @@ const DifferentialDiagnosisPanel = ({
             })}
           </div>
         </div>
+      )}
+
+      {labFiles.length > 0 && (
+        <p className="text-[11px] text-gray-400 flex items-center gap-1 flex-wrap">
+          <span>📎 {t("consultations.labFilesAttached")}:</span>
+          <span className="text-gray-500">
+            {labFiles.map((f) => f.originalName).join(", ")}
+          </span>
+        </p>
       )}
     </div>
   );

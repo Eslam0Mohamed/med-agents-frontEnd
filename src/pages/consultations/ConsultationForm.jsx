@@ -18,6 +18,7 @@ import { getPrescriptionByConsultation } from "../../api/prescription";
 import PrescriptionModal from "../../components/prescriptions/PrescriptionModal";
 import LanguageToggle from "../../components/LanguageToggle";
 import DifferentialDiagnosisPanel from "../../components/consultations/DifferentialDiagnosisPanel";
+import LabFilesUploader from "../../components/consultations/LabFilesUploader";
 
 const ConsultationForm = () => {
   const { t, i18n } = useTranslation();
@@ -46,6 +47,9 @@ const ConsultationForm = () => {
   // زي صفحة الفولو أب (StartFollowUp.jsx) اللي شغالة صح — عشان القيمة متأخرش
   // في التسجيل مع RHF بسبب إن الحقل بيتركّب في الصفحة بعد رجوع نتيجة الـ AI
   const [isChronicManual, setIsChronicManual] = useState(false);
+  // ميتاداتا ملفات التحاليل/الأشعة المرفوعة (اختياري) - [{url, originalName,
+  // mimeType, size}] - الرفع الفعلي بيحصل جوه LabFilesUploader نفسه
+  const [labFiles, setLabFiles] = useState([]);
 
   const {
     register,
@@ -75,6 +79,7 @@ const ConsultationForm = () => {
     setIsGenerating(false);
     setIsSaved(false);
     setIsChronicManual(false);
+    setLabFiles([]);
     setShowPrescriptionModal(false);
     setSavedConsultationId("");
     setExistingPrescription(null);
@@ -117,6 +122,7 @@ const ConsultationForm = () => {
         setValue("diagnosis", data.diagnosis || "");
         setValue("language", data.language || "en");
         setIsChronicManual(data.isChronic || false);
+        setLabFiles(Array.isArray(data.labFiles) ? data.labFiles : []);
         setValue(
           "followUpDate",
           data.followUpDate
@@ -206,6 +212,13 @@ const ConsultationForm = () => {
         .map((s) => s.trim())
         .filter((s) => s.length > 0),
       followUpDate: formValues.followUpDate || undefined,
+      // ميتاداتا الملفات بس (url/mimeType/originalName) - الباك هو اللي
+      // بيقرا الملف الفعلي من الديسك ويبعته للإيجنت
+      labFiles: labFiles.map(({ url, mimeType, originalName }) => ({
+        url,
+        mimeType,
+        originalName,
+      })),
     };
 
     try {
@@ -245,6 +258,15 @@ const ConsultationForm = () => {
       followUpDate: isEditMode
         ? formData.followUpDate || ""
         : formData.followUpDate || undefined,
+      // بتتحفظ على الكونسلتيشن نفسها عشان تفضل موجودة في الـ Patient
+      // History وأي مراجعة لاحقة، حتى لو الدكتور مادّاش على "Get AI
+      // Recommendation" تاني بعد ما ضاف الملفات
+      labFiles: labFiles.map(({ url, mimeType, originalName, size }) => ({
+        url,
+        mimeType,
+        originalName,
+        size,
+      })),
       // لو الدكتور دوس "Get AI Recommendation" تاني بعد ما عدّل (في وضع
       // الإدت)، aiResult بيبقى فيه أحدث قراءة من الإيجنت (structuredNote/
       // suggestedSpecialist/urgencyLevel) — لازم نبعتها مع التحديث عشان
@@ -487,6 +509,13 @@ const ConsultationForm = () => {
                   )}
                 </div>
 
+                {/* التحاليل المعملية / تقارير الأشعة - اختياري */}
+                <LabFilesUploader
+                  files={labFiles}
+                  onChange={setLabFiles}
+                  disabled={prescriptionOnlyEdit}
+                />
+
                 {/* اللغة بقت بتتحدد من زرار EN/AR اللي فوق الصفحة، مش من
                     جوه الفورم نفسه */}
                 <input type="hidden" {...register("language")} />
@@ -672,6 +701,7 @@ const ConsultationForm = () => {
                       clinicalReading={aiResult.clinicalReading}
                       diagnoses={aiResult.possibleDiagnoses}
                       structuredNoteFallback={aiResult.structuredNote}
+                      labFiles={labFiles}
                     />
                   </div>
                 )}

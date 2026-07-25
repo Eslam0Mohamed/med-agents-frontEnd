@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import { fetchPatientHistory } from "../../api/patient";
 import { discontinueMedication, reactivateMedication } from "../../api/patient";
+import { resolveLabFileUrl } from "../../api/consultation";
 import Swal from "sweetalert2";
 import { clearHistory } from "../../slices/patientsSlice";
 import Loading from "../../components/Loading";
@@ -294,6 +295,45 @@ export default function PatientHistory() {
                 <p className="text-sm text-gray-700 whitespace-pre-wrap">
                   {item.doctorNotes}
                 </p>
+              </div>
+            )}
+
+            {item.labFiles && item.labFiles.length > 0 && (
+              <div className="mb-3">
+                <p className="text-xs font-semibold text-gray-400 uppercase mb-1.5">
+                  {t("consultations.labFiles")}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {item.labFiles.map((file, i) => {
+                    const isImage = file.mimeType?.startsWith("image/");
+                    const fileUrl = resolveLabFileUrl(file.url);
+                    return (
+                      <a
+                        key={`${file.url}-${i}`}
+                        href={fileUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        title={file.originalName}
+                        className="flex items-center gap-2 border border-gray-200 rounded-md px-2 py-1.5 bg-gray-50 hover:bg-gray-100 transition max-w-[220px]"
+                      >
+                        {isImage ? (
+                          <img
+                            src={fileUrl}
+                            alt={file.originalName}
+                            className="w-8 h-8 rounded object-cover shrink-0 border border-gray-200"
+                          />
+                        ) : (
+                          <span className="w-8 h-8 rounded bg-red-50 text-red-500 flex items-center justify-center shrink-0 text-base">
+                            📄
+                          </span>
+                        )}
+                        <span className="text-xs text-gray-700 truncate">
+                          {file.originalName}
+                        </span>
+                      </a>
+                    );
+                  })}
+                </div>
               </div>
             )}
 

@@ -257,7 +257,19 @@
     "noNotes": "لا توجد مدخلات سريرية إضافية.",
     "pendingDiagnosis": "بانتظار التشخيص النهائي.",
     "noPrescription": "لا توجد أدوية موصوفة حاليًا.",
-    "noScheduledReturn": "لا يوجد موعد متابعة مجدول."
+    "noScheduledReturn": "لا يوجد موعد متابعة مجدول.",
+    "labFiles": "نتائج التحاليل / تقارير الأشعة",
+    "labFilesOptional": "اختياري",
+    "labFilesHint": "ارفع نتائج التحاليل المعملية أو تقارير الأشعة (صور أو PDF) — اختياري. إيجنت التشخيص التفريقي هيراجعها وقت توليد التوصية.",
+    "labFilesUploading": "جاري الرفع...",
+    "labFilesUploadFailed": "فشل رفع الملف/الملفات. حاول تاني.",
+    "labFilesTooMany": "أقصى عدد ملفات مسموح بيه 6.",
+    "labFilesTooLarge": "لازم كل ملف يكون 10 ميجا أو أقل.",
+    "labFilesInvalidType": "مسموح بس بالصور (JPG, PNG, WEBP) وملفات PDF.",
+    "labFilesRemove": "شيل الملف",
+    "labFilesAttached": "ملفات راجعها الإيجنت",
+    "labFilesAddMore": "إضافة ملفات",
+    "labFilesEmpty": "مفيش ملفات مرفقة"
   },
   "followups": {
     "title": "المتابعات",

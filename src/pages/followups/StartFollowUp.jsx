@@ -15,6 +15,7 @@ import PrescriptionModal from "../../components/prescriptions/PrescriptionModal"
 import apiInstance from "../../config/apiInstance";
 import LanguageToggle from "../../components/LanguageToggle";
 import DifferentialDiagnosisPanel from "../../components/consultations/DifferentialDiagnosisPanel";
+import LabFilesUploader from "../../components/consultations/LabFilesUploader";
 
 const initialForm = {
   rawInput: "",
@@ -41,6 +42,8 @@ const StartFollowUp = () => {
   const [followUp, setFollowUp] = useState(null);
   const [form, setForm] = useState(initialForm);
   const [aiResult, setAiResult] = useState(null);
+  // ميتاداتا ملفات التحاليل/الأشعة المرفوعة (اختياري)
+  const [labFiles, setLabFiles] = useState([]);
 
   const [loading, setLoading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -224,6 +227,11 @@ const StartFollowUp = () => {
     );
 
     setAiResult(normalized);
+    setLabFiles(
+      Array.isArray(consultationToEdit.labFiles)
+        ? consultationToEdit.labFiles
+        : [],
+    );
 
     if (prescriptionOnlyEdit) {
       setSavedConsultationId(consultationToEdit._id);
@@ -413,6 +421,13 @@ const StartFollowUp = () => {
             return [m.name, dose, freq].filter(Boolean).join(" ");
           })
           .join(", "),
+
+        // ميتاداتا الملفات بس - الباك بيقرا الملف الفعلي من الديسك
+        labFiles: labFiles.map(({ url, mimeType, originalName }) => ({
+          url,
+          mimeType,
+          originalName,
+        })),
       };
 
       const response = await getAIRecommendation(payload);
@@ -544,6 +559,16 @@ const StartFollowUp = () => {
         visitType: "followup",
         sourceFollowupId: followupId,
         parentConsultationId: getId(followUp?.consultationId),
+
+        // بتتحفظ على الكونسلتيشن نفسها عشان تفضل موجودة في الـ Patient
+        // History، حتى لو الدكتور مادّاش على "Get AI Recommendation" تاني
+        // بعد ما ضاف الملفات
+        labFiles: labFiles.map(({ url, mimeType, originalName, size }) => ({
+          url,
+          mimeType,
+          originalName,
+          size,
+        })),
 
         // من غيرهم، الباك بيرجع للـ default بتاعه (structuredNote = rawInput
         // و urgencyLevel = "unknown") — بالظبط زي اللي بيحصل في صفحة
@@ -830,11 +855,24 @@ const StartFollowUp = () => {
                     {t("followups.start.previousInstructions")}
                   </p>
 
-                  <p className="text-sm text-gray-800 whitespace-pre-wrap">
-                    {getPreviousConsultation()?.structuredNote ||
-                      getPreviousConsultation()?.rawInput ||
-                      t("followups.start.noInstructionsRecorded")}
-                  </p>
+                  {getPreviousConsultation()?.clinicalReading ||
+                  getPreviousConsultation()?.possibleDiagnoses?.length > 0 ||
+                  getPreviousConsultation()?.structuredNote ? (
+                    <DifferentialDiagnosisPanel
+                      clinicalReading={
+                        getPreviousConsultation()?.clinicalReading
+                      }
+                      diagnoses={getPreviousConsultation()?.possibleDiagnoses}
+                      structuredNoteFallback={
+                        getPreviousConsultation()?.structuredNote
+                      }
+                    />
+                  ) : (
+                    <p className="text-sm text-gray-800 whitespace-pre-wrap">
+                      {getPreviousConsultation()?.rawInput ||
+                        t("followups.start.noInstructionsRecorded")}
+                    </p>
+                  )}
                 </div>
 
                 <div className="bg-white/80 rounded-lg p-3 border border-blue-100">
@@ -895,6 +933,13 @@ const StartFollowUp = () => {
                     className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
                   />
                 </div>
+
+                {/* التحاليل المعملية / تقارير الأشعة - اختياري */}
+                <LabFilesUploader
+                  files={labFiles}
+                  onChange={setLabFiles}
+                  disabled={prescriptionOnlyEdit}
+                />
 
                 {/* اللغة بقت بتتحدد من زرار EN/AR اللي فوق الصفحة */}
               </div>
@@ -1099,6 +1144,7 @@ const StartFollowUp = () => {
                       clinicalReading={aiResult.clinicalReading}
                       diagnoses={aiResult.possibleDiagnoses}
                       structuredNoteFallback={aiResult.structuredNote}
+                      labFiles={labFiles}
                     />
 
                     {!aiResult.structuredNote &&

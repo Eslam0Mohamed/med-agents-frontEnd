@@ -499,6 +499,12 @@ export default function PrescriptionModal({
     // as needed" لأدوية الـ PRN) - لازم نتأكد إنها من ضمن FREQUENCY_PERIODS
     // قبل ما نحطها في الفورم، وإلا الحفظ هيفشل برسالة enum validation مش
     // واضحة للدكتور. لو القيمة مش صالحة، نرجع لـ "per day" كـ default آمن.
+    // نفس الفكرة بالظبط بس لـ dosageUnit - الـ AI أحيانًا بيرجّع قيمة مش من
+    // الـ 3 المسموحين (أو بيلخبط ويحط قيمة تخص الـ frequency بالغلط، زي
+    // "per day") - لازم نتحقق منها هي كمان قبل ما تدخل الفورم
+    const safeDosageUnit = DOSAGE_UNITS.includes(med.dosageUnit)
+      ? med.dosageUnit
+      : "mg";
     const safeFrequencyPeriod = FREQUENCY_PERIODS.includes(med.frequencyPeriod)
       ? med.frequencyPeriod
       : "per day";
@@ -508,7 +514,7 @@ export default function PrescriptionModal({
       name: med.name || "",
       activeIngredient: med.activeIngredient || "",
       dosageAmount: med.dosageAmount ?? "",
-      dosageUnit: med.dosageUnit || "mg",
+      dosageUnit: safeDosageUnit,
       frequencyCount: med.frequencyCount ?? "",
       frequencyPeriod: safeFrequencyPeriod,
       isChronic: !!med.isChronic,
