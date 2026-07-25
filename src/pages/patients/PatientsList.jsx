@@ -299,12 +299,12 @@ export default function PatientsList() {
                   >
                     ✏️
                   </button>
-                  <button
+                  {/* <button
                     onClick={() => handleDelete(patient._id)}
                     className="w-8 h-8 flex items-center justify-center rounded-md border border-red-200 text-red-500 hover:bg-red-50"
                   >
                     🗑️
-                  </button>
+                  </button> */}
                 </div>
               </div>
             ))}
