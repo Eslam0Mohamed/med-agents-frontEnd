@@ -22,6 +22,21 @@ const likelihoodDotStyles = {
 // كان هيغرق الشاشة ببادجز مالهاش قيمة إضافية
 const evidenceBadgeStyles = "bg-sky-100 text-sky-700";
 
+// أسماء عرض للمصادر الخارجية اللي ممكن ترجع في groundingSourcesUsed - الحقل
+// ده (بعكس evidenceBasis) مضمون من الكود نفسه، مش معتمد على إن الموديل
+// "يفتكر" يذكر المصدر جوه النص، فبنعرضه مرة واحدة على مستوى الحالة كلها
+// (مش لكل تشخيص لوحده، لأن الاسترجاع بيحصل مرة واحدة للحالة كلها)
+const sourceDisplayLabels = {
+  pinecone: "consultations.sourcePinecone",
+  pubmed: "consultations.sourcePubmed",
+  medlineplus: "consultations.sourceMedlineplus",
+};
+const sourceDisplayFallback = {
+  pinecone: "Internal knowledge base",
+  pubmed: "PubMed",
+  medlineplus: "MedlinePlus",
+};
+
 /**
  * عرض مضغوط لنتيجة إيجنت التشخيص التفريقي (Differential Diagnosis Agent):
  * القراءة السريرية + ليستة تشخيصات قابلة للطي (accordion) بدل ما كل تفاصيل
@@ -41,6 +56,10 @@ const DifferentialDiagnosisPanel = ({
   // التوليد (اختياري) - بنعرض ليستة أسمائهم كـ badge صغير أسفل النتيجة
   // بس عشان الشفافية (الدكتور يعرف إن الإيجنت فعلاً شافهم)
   labFiles = [],
+  // أسماء المصادر الخارجية اللي فعليًا رجّعت بيانات استُخدمت في توليد
+  // التشخيص التفريقي ده كله (مش لكل تشخيص لوحده) - جاية من
+  // differentialDiagnosisAgent.groundingSourcesUsed، مضمونة من الكود
+  groundingSourcesUsed = [],
   className = "",
 }) => {
   const { t } = useTranslation();
@@ -78,9 +97,24 @@ const DifferentialDiagnosisPanel = ({
 
       {diagnoses.length > 0 && (
         <div>
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
-            {t("consultations.possibleDiagnoses")}
-          </p>
+          <div className="flex items-center justify-between flex-wrap gap-1 mb-1.5">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+              {t("consultations.possibleDiagnoses")}
+            </p>
+            {groundingSourcesUsed.length > 0 && (
+              <p className="text-[11px] text-sky-700 flex items-center gap-1 flex-wrap">
+                <FiBookOpen className="shrink-0" size={11} />
+                <span>{t("consultations.sourcesConsulted", "Sources consulted")}:</span>
+                <span className="font-medium">
+                  {groundingSourcesUsed
+                    .map((s) =>
+                      t(sourceDisplayLabels[s] || "", sourceDisplayFallback[s] || s),
+                    )
+                    .join(", ")}
+                </span>
+              </p>
+            )}
+          </div>
           <div className="border border-gray-200 rounded-lg divide-y divide-gray-100 overflow-hidden bg-white">
             {diagnoses.map((d, i) => {
               const isOpen = openIndex === i;
