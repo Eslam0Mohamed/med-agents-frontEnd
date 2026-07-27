@@ -28,7 +28,8 @@
     "password": "Password",
     "loginButton": "Sign In",
     "loggingIn": "Signing in...",
-    "invalidCredentials": "Invalid email or password"
+    "invalidCredentials": "Invalid email or password",
+    "networkError": "Couldn't reach the server. Please check your internet connection and try again."
   },
   "common": {
     "save": "Save",

@@ -38,7 +38,16 @@ export default function Login() {
       await login(data.email, data.password);
       navigate('/patients');
     } catch (err) {
-      setServerError(t('auth.invalidCredentials'));
+      // مفيش أي response خالص معناه الطلب مووصلش للسيرفر أصلاً (مفيش نت،
+      // أو السيرفر واقع) - ده مختلف تمامًا عن "بيانات دخول غلط" ولازم
+      // الدكتور يعرف الفرق
+      if (!err.response) {
+        setServerError(t('auth.networkError'));
+      } else if (err.response.status === 401) {
+        setServerError(t('auth.invalidCredentials'));
+      } else {
+        setServerError(err.response.data?.message || t('common.somethingWentWrong'));
+      }
     } finally {
       setIsLoading(false);
     }
