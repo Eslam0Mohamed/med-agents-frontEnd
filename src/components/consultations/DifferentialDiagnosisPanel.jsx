@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { FiChevronDown } from "react-icons/fi";
+import { FiChevronDown, FiBookOpen } from "react-icons/fi";
 
 const likelihoodBadgeStyles = {
   high: "bg-emerald-100 text-emerald-700",
@@ -12,6 +12,29 @@ const likelihoodDotStyles = {
   high: "bg-emerald-500",
   moderate: "bg-amber-500",
   low: "bg-gray-400",
+};
+
+// evidenceBasis بيرجعها differentialDiagnosisAgent صراحة لكل تشخيص - "referenced"
+// لو مبني فعليًا على مرجع موثّق (Pinecone/PubMed/MedlinePlus)، أو
+// "general_knowledge" لو معرفة عامة للموديل مش مستندة لمرجع مباشر. بنعرضها
+// كـ badge صغير بس لما تكون "referenced" (إشارة إيجابية واضحة) - مفيش داعي
+// نعرض badge لكل حالة "general_knowledge" لأنها هي الغالبية والافتراضي، وده
+// كان هيغرق الشاشة ببادجز مالهاش قيمة إضافية
+const evidenceBadgeStyles = "bg-sky-100 text-sky-700";
+
+// أسماء عرض للمصادر الخارجية اللي ممكن ترجع في groundingSourcesUsed - الحقل
+// ده (بعكس evidenceBasis) مضمون من الكود نفسه، مش معتمد على إن الموديل
+// "يفتكر" يذكر المصدر جوه النص، فبنعرضه مرة واحدة على مستوى الحالة كلها
+// (مش لكل تشخيص لوحده، لأن الاسترجاع بيحصل مرة واحدة للحالة كلها)
+const sourceDisplayLabels = {
+  pinecone: "consultations.sourcePinecone",
+  pubmed: "consultations.sourcePubmed",
+  medlineplus: "consultations.sourceMedlineplus",
+};
+const sourceDisplayFallback = {
+  pinecone: "Internal knowledge base",
+  pubmed: "PubMed",
+  medlineplus: "MedlinePlus",
 };
 
 /**
@@ -33,6 +56,10 @@ const DifferentialDiagnosisPanel = ({
   // التوليد (اختياري) - بنعرض ليستة أسمائهم كـ badge صغير أسفل النتيجة
   // بس عشان الشفافية (الدكتور يعرف إن الإيجنت فعلاً شافهم)
   labFiles = [],
+  // أسماء المصادر الخارجية اللي فعليًا رجّعت بيانات استُخدمت في توليد
+  // التشخيص التفريقي ده كله (مش لكل تشخيص لوحده) - جاية من
+  // differentialDiagnosisAgent.groundingSourcesUsed، مضمونة من الكود
+  groundingSourcesUsed = [],
   className = "",
 }) => {
   const { t } = useTranslation();
@@ -70,15 +97,31 @@ const DifferentialDiagnosisPanel = ({
 
       {diagnoses.length > 0 && (
         <div>
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
-            {t("consultations.possibleDiagnoses")}
-          </p>
+          <div className="flex items-center justify-between flex-wrap gap-1 mb-1.5">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+              {t("consultations.possibleDiagnoses")}
+            </p>
+            {groundingSourcesUsed.length > 0 && (
+              <p className="text-[11px] text-sky-700 flex items-center gap-1 flex-wrap">
+                <FiBookOpen className="shrink-0" size={11} />
+                <span>{t("consultations.sourcesConsulted", "Sources consulted")}:</span>
+                <span className="font-medium">
+                  {groundingSourcesUsed
+                    .map((s) =>
+                      t(sourceDisplayLabels[s] || "", sourceDisplayFallback[s] || s),
+                    )
+                    .join(", ")}
+                </span>
+              </p>
+            )}
+          </div>
           <div className="border border-gray-200 rounded-lg divide-y divide-gray-100 overflow-hidden bg-white">
             {diagnoses.map((d, i) => {
               const isOpen = openIndex === i;
               const likelihoodKey = d.likelihood
                 ? `consultations.likelihood${d.likelihood.charAt(0).toUpperCase()}${d.likelihood.slice(1)}`
                 : null;
+              const isReferenced = d.evidenceBasis === "referenced";
 
               return (
                 <div key={i}>
@@ -99,6 +142,18 @@ const DifferentialDiagnosisPanel = ({
                       </span>
                     </span>
                     <span className="flex items-center gap-2 shrink-0">
+                      {isReferenced && (
+                        <span
+                          title={t(
+                            "consultations.evidenceReferencedTooltip",
+                            "Backed by a cited clinical reference",
+                          )}
+                          className={`hidden sm:flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-semibold ${evidenceBadgeStyles}`}
+                        >
+                          <FiBookOpen className="shrink-0" size={10} />
+                          {t("consultations.evidenceReferenced", "Referenced")}
+                        </span>
+                      )}
                       {likelihoodKey && (
                         <span
                           className={`text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase ${
@@ -119,6 +174,15 @@ const DifferentialDiagnosisPanel = ({
 
                   {isOpen && (
                     <div className="px-3 pb-3 space-y-1.5 text-xs text-gray-600 leading-relaxed bg-gray-50/60">
+                      {/* بادج referenced بتتخفي في الهيدر على الموبايل (sm:hidden أعلاه)
+                          عشان تفضل مساحة العنوان مضغوطة - هنا بنعرضها تاني كاملة
+                          جوه التفاصيل المفتوحة، فمتبقاش مخفية خالص على الموبايل */}
+                      {isReferenced && (
+                        <p className="sm:hidden flex items-center gap-1 text-sky-700 font-semibold">
+                          <FiBookOpen className="shrink-0" size={11} />
+                          {t("consultations.evidenceReferenced", "Referenced")}
+                        </p>
+                      )}
                       <p>
                         <span className="font-semibold text-gray-500">
                           {t("consultations.supportingReasoning")}:{" "}

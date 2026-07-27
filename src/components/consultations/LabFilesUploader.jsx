@@ -85,7 +85,7 @@ const LabFilesUploader = ({ files = [], onChange, disabled = false }) => {
   };
 
   return (
-    <div className="md:col-span-2">
+    <div>
       <div className="flex items-center justify-between mb-1">
         <label className="block text-sm font-medium text-blue-700">
           {t("consultations.labFiles")}{" "}

@@ -509,12 +509,17 @@ const ConsultationForm = () => {
                   )}
                 </div>
 
-                {/* التحاليل المعملية / تقارير الأشعة - اختياري */}
-                <LabFilesUploader
-                  files={labFiles}
-                  onChange={setLabFiles}
-                  disabled={prescriptionOnlyEdit}
-                />
+                {/* التحاليل المعملية / تقارير الأشعة - اختياري - بنلف
+                    الكومبوننت بـ div محدد span صراحةً هنا (مش جوه
+                    الكومبوننت نفسه) عشان الفورم دي بس هي اللي grid بتاعها
+                    عمودين فعلاً */}
+                <div className="md:col-span-2">
+                  <LabFilesUploader
+                    files={labFiles}
+                    onChange={setLabFiles}
+                    disabled={prescriptionOnlyEdit}
+                  />
+                </div>
 
                 {/* اللغة بقت بتتحدد من زرار EN/AR اللي فوق الصفحة، مش من
                     جوه الفورم نفسه */}
