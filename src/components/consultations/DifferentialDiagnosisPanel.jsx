@@ -22,10 +22,11 @@ const likelihoodDotStyles = {
 // كان هيغرق الشاشة ببادجز مالهاش قيمة إضافية
 const evidenceBadgeStyles = "bg-sky-100 text-sky-700";
 
-// أسماء عرض للمصادر الخارجية اللي ممكن ترجع في groundingSourcesUsed - الحقل
-// ده (بعكس evidenceBasis) مضمون من الكود نفسه، مش معتمد على إن الموديل
-// "يفتكر" يذكر المصدر جوه النص، فبنعرضه مرة واحدة على مستوى الحالة كلها
-// (مش لكل تشخيص لوحده، لأن الاسترجاع بيحصل مرة واحدة للحالة كلها)
+// أسماء عرض للمصادر الخارجية. groundingSourcesUsed بيتعرض مرة واحدة على
+// مستوى الحالة كلها (كل المصادر اللي اتسألت خلال التوليد). لكن كل تشخيص
+// كمان بيرجع referenceSource بتاعه (لو evidenceBasis === "referenced") -
+// بيتحدد بالكود (تطابق كلمات مفتاحية مع نص كل مصدر لوحده)، فبنعرضه جوه
+// بادج الـ "Referenced" الخاصة بالتشخيص ده نفسه، مش بس على مستوى الحالة
 const sourceDisplayLabels = {
   pinecone: "consultations.sourcePinecone",
   pubmed: "consultations.sourcePubmed",
@@ -104,11 +105,16 @@ const DifferentialDiagnosisPanel = ({
             {groundingSourcesUsed.length > 0 && (
               <p className="text-[11px] text-sky-700 flex items-center gap-1 flex-wrap">
                 <FiBookOpen className="shrink-0" size={11} />
-                <span>{t("consultations.sourcesConsulted", "Sources consulted")}:</span>
+                <span>
+                  {t("consultations.sourcesConsulted", "Sources consulted")}:
+                </span>
                 <span className="font-medium">
                   {groundingSourcesUsed
                     .map((s) =>
-                      t(sourceDisplayLabels[s] || "", sourceDisplayFallback[s] || s),
+                      t(
+                        sourceDisplayLabels[s] || "",
+                        sourceDisplayFallback[s] || s,
+                      ),
                     )
                     .join(", ")}
                 </span>
@@ -129,60 +135,74 @@ const DifferentialDiagnosisPanel = ({
                     type="button"
                     onClick={() => setOpenIndex(isOpen ? -1 : i)}
                     aria-expanded={isOpen}
-                    className="w-full flex items-start justify-between gap-2 px-3 py-2 text-start hover:bg-gray-50 transition"
+                    className="w-full flex flex-col gap-1.5 px-3 py-2 text-start hover:bg-gray-50 transition"
                   >
-                    <span className="flex items-start gap-2 min-w-0">
-                      <span
-                        className={`shrink-0 w-2 h-2 rounded-full mt-1.5 ${
-                          likelihoodDotStyles[d.likelihood] || "bg-gray-400"
-                        }`}
-                      />
-                      <span className="text-sm font-bold text-gray-900 break-words">
-                        {i + 1}. {d.diagnosis}
-                      </span>
-                    </span>
-                    <span className="flex items-center gap-2 shrink-0">
-                      {isReferenced && (
+                    {/* الصف الأول: اسم التشخيص + السهم بس - العنوان بياخد
+                        المساحة كلها ومبيتزنقش أبدًا مع أي بادج */}
+                    <span className="flex items-start justify-between gap-2">
+                      <span className="flex items-start gap-2 min-w-0 flex-1">
                         <span
-                          title={t(
-                            "consultations.evidenceReferencedTooltip",
-                            "Backed by a cited clinical reference",
-                          )}
-                          className={`hidden sm:flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-semibold ${evidenceBadgeStyles}`}
-                        >
-                          <FiBookOpen className="shrink-0" size={10} />
-                          {t("consultations.evidenceReferenced", "Referenced")}
-                        </span>
-                      )}
-                      {likelihoodKey && (
-                        <span
-                          className={`text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase ${
-                            likelihoodBadgeStyles[d.likelihood] ||
-                            "bg-gray-100 text-gray-600"
+                          className={`shrink-0 w-2 h-2 rounded-full mt-1.5 ${
+                            likelihoodDotStyles[d.likelihood] || "bg-gray-400"
                           }`}
-                        >
-                          {t(likelihoodKey, d.likelihood)}
+                        />
+                        <span className="text-sm font-bold text-gray-900 break-words">
+                          {i + 1}. {d.diagnosis}
                         </span>
-                      )}
+                      </span>
                       <FiChevronDown
                         className={`shrink-0 mt-0.5 text-gray-400 transition-transform duration-200 ${
                           isOpen ? "rotate-180" : ""
                         }`}
                       />
                     </span>
+
+                    {/* الصف التاني: البادجات - بعد ما العنوان يظهر كامل،
+                        مش على نفس السطر خالص، فمالهاش أي تأثير على مساحته */}
+                    {(isReferenced || likelihoodKey) && (
+                      <span className="flex items-center gap-2 flex-wrap ps-4">
+                        {isReferenced && (
+                          <span
+                            title={t(
+                              "consultations.evidenceReferencedTooltip",
+                              "Backed by a cited clinical reference",
+                            )}
+                            className={`flex items-center gap-1 whitespace-nowrap text-[10px] px-2 py-0.5 rounded-full font-semibold ${evidenceBadgeStyles}`}
+                          >
+                            <FiBookOpen className="shrink-0" size={10} />
+                            {t(
+                              "consultations.evidenceReferenced",
+                              "Referenced",
+                            )}
+                            {d.referenceSource && (
+                              <span className="opacity-80">
+                                (
+                                {t(
+                                  sourceDisplayLabels[d.referenceSource] || "",
+                                  sourceDisplayFallback[d.referenceSource] ||
+                                    d.referenceSource,
+                                )}
+                                )
+                              </span>
+                            )}
+                          </span>
+                        )}
+                        {likelihoodKey && (
+                          <span
+                            className={`text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase ${
+                              likelihoodBadgeStyles[d.likelihood] ||
+                              "bg-gray-100 text-gray-600"
+                            }`}
+                          >
+                            {t(likelihoodKey, d.likelihood)}
+                          </span>
+                        )}
+                      </span>
+                    )}
                   </button>
 
                   {isOpen && (
                     <div className="px-3 pb-3 space-y-1.5 text-xs text-gray-600 leading-relaxed bg-gray-50/60">
-                      {/* بادج referenced بتتخفي في الهيدر على الموبايل (sm:hidden أعلاه)
-                          عشان تفضل مساحة العنوان مضغوطة - هنا بنعرضها تاني كاملة
-                          جوه التفاصيل المفتوحة، فمتبقاش مخفية خالص على الموبايل */}
-                      {isReferenced && (
-                        <p className="sm:hidden flex items-center gap-1 text-sky-700 font-semibold">
-                          <FiBookOpen className="shrink-0" size={11} />
-                          {t("consultations.evidenceReferenced", "Referenced")}
-                        </p>
-                      )}
                       <p>
                         <span className="font-semibold text-gray-500">
                           {t("consultations.supportingReasoning")}:{" "}
