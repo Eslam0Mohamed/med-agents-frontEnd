@@ -81,7 +81,11 @@ export default function Login() {
               {serverError}
             </div>
           )}
-
+<div className="mb-4 p-3">
+  <p className='text-md text-blue-600'>Use these credentials to log in:</p>
+  <p className=''><strong>Email :</strong> eslam@gmail.com</p>
+  <p className=''><strong>Password :</strong> 123456</p> 
+</div>
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
             <div>
               <label className={`block text-sm mb-1 transition-colors ${
