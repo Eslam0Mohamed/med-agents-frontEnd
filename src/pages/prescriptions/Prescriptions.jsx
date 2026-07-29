@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import Swal from "sweetalert2";
 import { useTranslation } from "react-i18next";
 import {
   getAllPrescriptions,
@@ -10,6 +9,7 @@ import PrescriptionModal from "../../components/prescriptions/PrescriptionModal"
 import "../followups/followups.css";
 import { calculateAge, printPrescription } from "../../utils/prescriptionPrint";
 import Loading from "../../components/Loading";
+import InlineError from "../../components/InlineError";
 const PAGE_LIMIT = 10;
 
 function toDateKey(date) {
@@ -484,6 +484,7 @@ export default function Prescriptions() {
   const [loading, setLoading] = useState(true);
   const [editingPrescription, setEditingPrescription] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [loadError, setLoadError] = useState("");
 
   // زي صفحة الفولو أب بالظبط: نجيب الروشتات كلها مرة واحدة بس أول ما
   // الصفحة تفتح، وبعدين الفلترة بالبحث والتاريخ والـ pagination كلها
@@ -491,6 +492,7 @@ export default function Prescriptions() {
   const loadPrescriptions = useCallback(async () => {
     try {
       setLoading(true);
+      setLoadError("");
       const res = await getAllPrescriptions({
         search: "",
         date: "",
@@ -499,7 +501,7 @@ export default function Prescriptions() {
       });
       setAllPrescriptions(res.data || []);
     } catch {
-      Swal.fire(t("common.error"), t("prescriptions.loadError"), "error");
+      setLoadError(t("prescriptions.loadError"));
     } finally {
       setLoading(false);
     }
@@ -632,6 +634,7 @@ export default function Prescriptions() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 -mt-12">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_260px] gap-6 items-start">
           <div>
+            <InlineError message={loadError} />
             <div className="mb-6 relative group shadow-sm rounded-2xl">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-600 transition-colors">
                 <svg

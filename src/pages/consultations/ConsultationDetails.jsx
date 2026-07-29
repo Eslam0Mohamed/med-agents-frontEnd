@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import Swal from 'sweetalert2';
 import { getConsultationById } from '../../api/consultation';
 import { getPrescriptionByConsultation } from '../../api/prescription';
 
@@ -11,11 +10,13 @@ const ConsultationDetails = () => {
   const [consultation, setConsultation] = useState(null);
   const [prescription, setPrescription] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const fetchDetails = async () => {
       try {
         setLoading(true);
+        setError('');
         const res = await getConsultationById(id);
         const found = res?.data || res;
 
@@ -29,10 +30,10 @@ const ConsultationDetails = () => {
             setPrescription(null);
           }
         } else {
-          Swal.fire(t('common.error'), t('consultations.notFound'), 'error');
+          setError(t('consultations.notFound'));
         }
       } catch {
-        Swal.fire(t('common.error'), t('consultations.failedLoad'), 'error');
+        setError(t('consultations.failedLoad'));
       } finally {
         setLoading(false);
       }
@@ -52,7 +53,7 @@ const ConsultationDetails = () => {
   if (!consultation) {
     return (
       <div className="text-center py-20 bg-[#f8fafc] h-screen flex flex-col justify-center items-center p-4">
-        <p className="text-slate-500 font-medium text-sm capitalize">{t('consultations.noRecordsFound')}</p>
+        <p className="text-slate-500 font-medium text-sm capitalize">{error || t('consultations.noRecordsFound')}</p>
         <Link to="/consultations" className="text-blue-500 font-bold mt-2 underline text-xs capitalize">{t('consultations.backToConsultations')}</Link>
       </div>
     );

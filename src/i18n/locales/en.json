@@ -28,7 +28,8 @@
     "password": "Password",
     "loginButton": "Sign In",
     "loggingIn": "Signing in...",
-    "invalidCredentials": "Invalid email or password"
+    "invalidCredentials": "Invalid email or password",
+    "networkError": "Couldn't reach the server. Please check your internet connection and try again."
   },
   "common": {
     "save": "Save",
@@ -113,6 +114,8 @@
   "patients": {
     "title": "Patients",
     "searchPlaceholder": "Search patient by name",
+    "loadError": "Couldn't load patients. Please check your connection and try again.",
+    "staleDataError": "Showing previously loaded data — couldn't refresh it. Please check your connection.",
     "addPatient": "Add Patient",
     "fullName": "Full Name in Arabic",
     "phone": "Phone",
@@ -269,7 +272,8 @@
     "labFilesRemove": "Remove file",
     "labFilesAttached": "Attached files reviewed by the agent",
     "labFilesAddMore": "Add files",
-    "labFilesEmpty": "No files attached"
+    "labFilesEmpty": "No files attached",
+    "failedLoadPatients": "Failed to load patients list"
   },
   "followups": {
     "title": "Follow-ups",

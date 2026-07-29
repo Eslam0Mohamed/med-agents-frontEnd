@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
@@ -8,6 +8,7 @@ import { resolveLabFileUrl } from "../../api/consultation";
 import Swal from "sweetalert2";
 import { clearHistory } from "../../slices/patientsSlice";
 import Loading from "../../components/Loading";
+import InlineError from "../../components/InlineError";
 import DifferentialDiagnosisPanel from "../../components/consultations/DifferentialDiagnosisPanel";
 const urgencyStyles = {
   low: "bg-green-100 text-green-700",
@@ -26,6 +27,7 @@ export default function PatientHistory() {
   const { history, isHistoryLoading, error } = useSelector(
     (state) => state.patients,
   );
+  const [actionError, setActionError] = useState("");
 
   useEffect(() => {
     dispatch(fetchPatientHistory(id));
@@ -43,14 +45,13 @@ export default function PatientHistory() {
     });
     if (!confirm.isConfirmed) return;
 
+    setActionError("");
     try {
       await discontinueMedication(id, { prescriptionId, medicationId });
       dispatch(fetchPatientHistory(id));
     } catch (err) {
-      Swal.fire(
-        t("common.error"),
+      setActionError(
         err?.response?.data?.message || t("common.somethingWentWrong"),
-        "error",
       );
     }
   };
@@ -66,14 +67,13 @@ export default function PatientHistory() {
     });
     if (!confirm.isConfirmed) return;
 
+    setActionError("");
     try {
       await reactivateMedication(id, medicationId);
       dispatch(fetchPatientHistory(id));
     } catch (err) {
-      Swal.fire(
-        t("common.error"),
+      setActionError(
         err?.response?.data?.message || t("common.somethingWentWrong"),
-        "error",
       );
     }
   };
@@ -231,6 +231,8 @@ export default function PatientHistory() {
       <h2 className="text-lg font-bold text-gray-900 mb-4">
         {t("patients.consultationHistory")} ({consultations.length})
       </h2>
+
+      <InlineError message={actionError} />
 
       {consultations.length === 0 && (
         <div className="text-center text-gray-400 py-10 bg-white rounded-xl shadow-sm">

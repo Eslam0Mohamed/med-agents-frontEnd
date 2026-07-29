@@ -8,7 +8,7 @@ import {
   FiCheckCircle,
   FiEdit3,
 } from "react-icons/fi";
-import Swal from "sweetalert2";
+import InlineError from "../../components/InlineError";
 import { getFollowUps } from "../../api/followup";
 import "./followups.css";
 
@@ -42,6 +42,7 @@ const FollowUps = () => {
   ];
 
   const [followUps, setFollowUps] = useState([]);
+  const [loadError, setLoadError] = useState("");
   const [activeTab, setActiveTab] = useState("upcoming");
   const [loading, setLoading] = useState(false);
 
@@ -123,6 +124,7 @@ const FollowUps = () => {
   const loadFollowUps = async () => {
     try {
       setLoading(true);
+      setLoadError("");
       // /followups دلوقتي بيرجّع فولو أبس الدكتور بس من الباك مباشرة
       // (بالاعتماد على doctorId المسجل على الفولو أب نفسه)، فمش محتاجين
       // نجيب كونسلتيشنز الدكتور تاني ونعمل cross-reference يدوي زي الأول —
@@ -133,7 +135,7 @@ const FollowUps = () => {
       setFollowUps(followupsRes?.data || []);
     } catch (error) {
       console.error(error);
-      Swal.fire(t("common.error"), t("followups.loadError"), "error");
+      setLoadError(t("followups.loadError"));
     } finally {
       setLoading(false);
     }
@@ -396,6 +398,7 @@ const FollowUps = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 -mt-12">
         <section className="followups-page">
+          <InlineError message={loadError} />
           <div className="mb-6 relative group shadow-sm rounded-2xl">
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-600 transition-colors">
               <svg

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import Swal from "sweetalert2";
+import InlineError from "../../components/InlineError";
 import { getConsultations } from "../../api/consultation";
 import "../followups/followups.css";
 
@@ -177,10 +177,12 @@ const Consultations = () => {
     return nowTick - completedAt > EDIT_LOCK_MS;
   };
   const [selectedDate, setSelectedDate] = useState(null);
+  const [loadError, setLoadError] = useState("");
 
   const loadConsultations = useCallback(async () => {
     try {
       setLoading(true);
+      setLoadError("");
       const res = await getConsultations();
       const list = Array.isArray(res?.data) ? res.data : [];
       setConsultations(list);
@@ -188,11 +190,11 @@ const Consultations = () => {
     } catch {
       setConsultations([]);
       setFiltered([]);
-      Swal.fire(t("common.error"), t("consultations.failedLoadList"), "error");
+      setLoadError(t("consultations.failedLoadList"));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     loadConsultations();
@@ -365,6 +367,7 @@ const Consultations = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 -mt-12">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6 items-start">
           <div>
+            <InlineError message={loadError} />
             <div className="mb-6 relative group shadow-sm rounded-2xl">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-600 transition-colors">
                 <svg
