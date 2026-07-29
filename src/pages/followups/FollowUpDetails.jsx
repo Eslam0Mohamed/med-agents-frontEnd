@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import Swal from 'sweetalert2';
 import { getFollowUpById } from '../../api/followup';
 import { getPrescriptionByConsultation } from '../../api/prescription';
 import DifferentialDiagnosisPanel from '../../components/consultations/DifferentialDiagnosisPanel';
@@ -13,11 +12,13 @@ const FollowUpDetails = () => {
   const [followUp, setFollowUp] = useState(null);
   const [prescription, setPrescription] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const fetchDetails = async () => {
       try {
         setLoading(true);
+        setError('');
 
         const res = await getFollowUpById(followupId);
         const data = res?.data || res;
@@ -41,11 +42,11 @@ const FollowUpDetails = () => {
             }
           }
         } else {
-          Swal.fire(t('common.error'), t('followups.start.notFound'), 'error');
+          setError(t('followups.start.notFound'));
         }
       } catch (error) {
         console.error(error);
-        Swal.fire(t('common.error'), t('followups.messages.errorLoadDetails'), 'error');
+        setError(t('followups.messages.errorLoadDetails'));
       } finally {
         setLoading(false);
       }
@@ -155,7 +156,7 @@ const FollowUpDetails = () => {
     return (
       <div className="text-center py-20 bg-[#f8fafc] h-screen flex flex-col justify-center items-center p-4">
         <p className="text-slate-500 font-medium text-sm capitalize">
-          {t('followups.details.notFound')}
+          {error || t('followups.details.notFound')}
         </p>
 
         <Link

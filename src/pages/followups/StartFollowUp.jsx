@@ -16,6 +16,7 @@ import apiInstance from "../../config/apiInstance";
 import LanguageToggle from "../../components/LanguageToggle";
 import DifferentialDiagnosisPanel from "../../components/consultations/DifferentialDiagnosisPanel";
 import LabFilesUploader from "../../components/consultations/LabFilesUploader";
+import InlineError from "../../components/InlineError";
 
 const initialForm = {
   rawInput: "",
@@ -46,6 +47,8 @@ const StartFollowUp = () => {
   const [labFiles, setLabFiles] = useState([]);
 
   const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState("");
+  const [formError, setFormError] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -250,6 +253,7 @@ const StartFollowUp = () => {
   const loadFollowUp = async () => {
     try {
       setLoading(true);
+      setLoadError("");
 
       // زي صفحة الكونسلتيشن بالظبط: دايمًا نجيب البيانات فريش من الباك اند
       // بدل الاعتماد على location.state (ممكن تبقى قديمة من وقت تحميل
@@ -314,11 +318,7 @@ const StartFollowUp = () => {
       }
     } catch (error) {
       console.error(error);
-      Swal.fire(
-        t("common.error"),
-        t("followups.messages.errorLoadDetails"),
-        "error",
-      );
+      setLoadError(t("followups.messages.errorLoadDetails"));
     } finally {
       setLoading(false);
     }
@@ -361,20 +361,12 @@ const StartFollowUp = () => {
 
   const validateClinicalInputs = () => {
     if (!form.rawInput.trim() || !form.symptoms.trim()) {
-      Swal.fire(
-        t("followups.messages.missingDataTitle"),
-        t("followups.messages.missingClinicalData"),
-        "warning",
-      );
+      setFormError(t("followups.messages.missingClinicalData"));
       return false;
     }
 
     if (!getPatientId()) {
-      Swal.fire(
-        t("common.error"),
-        t("followups.messages.missingPatientData"),
-        "error",
-      );
+      setFormError(t("followups.messages.missingPatientData"));
       return false;
     }
 
@@ -382,6 +374,7 @@ const StartFollowUp = () => {
   };
 
   const handleGetAIRecommendation = async () => {
+    setFormError("");
     if (!validateClinicalInputs()) return;
 
     try {
@@ -434,11 +427,7 @@ const StartFollowUp = () => {
       const normalized = normalizeAIResult(response);
 
       if (!normalized) {
-        Swal.fire(
-          t("followups.messages.noAIResultTitle"),
-          t("followups.messages.noAIResultText"),
-          "warning",
-        );
+        setFormError(t("followups.messages.noAIResultText"));
         return;
       }
 
@@ -459,12 +448,10 @@ const StartFollowUp = () => {
     } catch (error) {
       console.error("AI ERROR:", error?.response?.data || error);
 
-      Swal.fire(
-        t("common.error"),
+      setFormError(
         error?.response?.data?.message ||
           error?.response?.data?.error ||
           t("followups.messages.aiFailed"),
-        "error",
       );
     } finally {
       setIsGenerating(false);
@@ -473,13 +460,10 @@ const StartFollowUp = () => {
 
   const handleConfirmFollowUp = async (event) => {
     event.preventDefault();
+    setFormError("");
 
     if (!isEditMode && !aiResult) {
-      Swal.fire(
-        t("followups.messages.aiRequiredTitle"),
-        t("followups.messages.aiRequiredText"),
-        "warning",
-      );
+      setFormError(t("followups.messages.aiRequiredText"));
       return;
     }
 
@@ -488,22 +472,14 @@ const StartFollowUp = () => {
       !form.symptoms.trim() ||
       !form.diagnosis.trim()
     ) {
-      Swal.fire(
-        t("followups.messages.missingDataTitle"),
-        t("followups.messages.missingFinalData"),
-        "warning",
-      );
+      setFormError(t("followups.messages.missingFinalData"));
       return;
     }
 
     const patientId = getPatientId();
 
     if (!patientId) {
-      Swal.fire(
-        t("common.error"),
-        t("followups.messages.missingPatientData"),
-        "error",
-      );
+      setFormError(t("followups.messages.missingPatientData"));
       return;
     }
 
@@ -523,22 +499,14 @@ const StartFollowUp = () => {
       );
 
       if (chosenDateOnly <= todayDateOnly) {
-        Swal.fire(
-          t("common.error"),
-          t("followups.messages.followUpDateBeforeCompletion"),
-          "error",
-        );
+        setFormError(t("followups.messages.followUpDateBeforeCompletion"));
         return;
       }
 
       const maxAllowedDate = new Date(todayDateOnly);
       maxAllowedDate.setMonth(maxAllowedDate.getMonth() + 6);
       if (chosenDateOnly > maxAllowedDate) {
-        Swal.fire(
-          t("common.error"),
-          t("followups.messages.followUpDateTooFar"),
-          "error",
-        );
+        setFormError(t("followups.messages.followUpDateTooFar"));
         return;
       }
     }
@@ -590,13 +558,6 @@ const StartFollowUp = () => {
 
       let savedConsultationId = "";
       let newFollowUp = null;
-
-      // TEMP DEBUG — هنشيلها بعد ما نلاقي السبب
-      console.log("[StartFollowUp][DEBUG] aiResult before submit:", aiResult);
-      console.log(
-        "[StartFollowUp][DEBUG] consultationPayload being sent:",
-        consultationPayload,
-      );
 
       if (aiResult?._id) {
         // في وضع التعديل، لازم نبعت followUpDate دايمًا حتى لو فاضية — عشان
@@ -682,12 +643,10 @@ const StartFollowUp = () => {
       console.error("FULL ERROR:", error);
       console.error("BACKEND RESPONSE:", error?.response?.data);
 
-      Swal.fire(
-        t("common.error"),
+      setFormError(
         error?.response?.data?.error ||
           error?.response?.data?.message ||
           t("followups.messages.saveFailed"),
-        "error",
       );
     } finally {
       setSubmitting(false);
@@ -729,7 +688,7 @@ const StartFollowUp = () => {
     return (
       <div className="text-center py-20 bg-[#f8fafc] h-screen flex flex-col justify-center items-center p-4">
         <p className="text-slate-500 font-medium text-sm capitalize">
-          {t("followups.start.notFound")}
+          {loadError || t("followups.start.notFound")}
         </p>
 
         <Link
@@ -886,6 +845,8 @@ const StartFollowUp = () => {
                 </div>
               </div>
             </div>
+
+            <InlineError message={formError} />
 
             <form onSubmit={handleConfirmFollowUp} className="space-y-4">
               <div className="grid grid-cols-1 gap-4">

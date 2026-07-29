@@ -114,6 +114,8 @@
   "patients": {
     "title": "المرضى",
     "searchPlaceholder": "ابحث عن مريض بالاسم",
+    "loadError": "تعذر تحميل قائمة المرضى. تأكد من اتصالك بالإنترنت وحاول تاني",
+    "staleDataError": "البيانات الظاهرة من آخر تحميل ناجح — تعذر تحديثها. تأكد من اتصالك بالإنترنت",
     "addPatient": "إضافة مريض",
     "fullName": " الاسم بالكامل باللغه العربيه",
     "phone": "رقم الموبايل",
@@ -270,7 +272,8 @@
     "labFilesRemove": "شيل الملف",
     "labFilesAttached": "ملفات راجعها الإيجنت",
     "labFilesAddMore": "إضافة ملفات",
-    "labFilesEmpty": "مفيش ملفات مرفقة"
+    "labFilesEmpty": "مفيش ملفات مرفقة",
+    "failedLoadPatients": "فشل تحميل قائمة المرضى"
   },
   "followups": {
     "title": "المتابعات",

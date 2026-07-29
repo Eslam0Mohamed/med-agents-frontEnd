@@ -19,6 +19,7 @@ import PrescriptionModal from "../../components/prescriptions/PrescriptionModal"
 import LanguageToggle from "../../components/LanguageToggle";
 import DifferentialDiagnosisPanel from "../../components/consultations/DifferentialDiagnosisPanel";
 import LabFilesUploader from "../../components/consultations/LabFilesUploader";
+import InlineError from "../../components/InlineError";
 
 const ConsultationForm = () => {
   const { t, i18n } = useTranslation();
@@ -39,6 +40,8 @@ const ConsultationForm = () => {
   const [aiResult, setAiResult] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  const [loadError, setLoadError] = useState("");
+  const [formError, setFormError] = useState("");
 
   const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
   const [savedConsultationId, setSavedConsultationId] = useState("");
@@ -143,9 +146,10 @@ const ConsultationForm = () => {
         }
       } catch (err) {
         console.error("Failed to load consultation", err);
+        setLoadError(t("consultations.failedLoad"));
       }
     },
-    [id, setValue, prescriptionOnlyEdit],
+    [id, setValue, prescriptionOnlyEdit, t],
   );
 
   useEffect(() => {
@@ -170,11 +174,12 @@ const ConsultationForm = () => {
         }
       } catch (err) {
         console.error("Failed to load patients", err);
+        setLoadError(t("consultations.failedLoadPatients"));
       }
     };
 
     loadPatients();
-  }, [isEditMode, patientId, loadConsultation, setValue]);
+  }, [isEditMode, patientId, loadConsultation, setValue, t]);
 
   useEffect(() => {
     if (!isEditMode && !patientId && patients.length > 0) {
@@ -221,19 +226,15 @@ const ConsultationForm = () => {
       })),
     };
 
+    setFormError("");
     try {
       const res = await getAIRecommendation(payload);
       setAiResult(res.data);
       setCreatedId(res.data._id);
       setIsSaved(true);
     } catch (err) {
-      console.log(err.response?.data);
-      Swal.fire({
-        title: t("common.error"),
-        text: t("consultations.failedAI"),
-        icon: "error",
-        confirmButtonText: t("common.ok"),
-      });
+      console.error("Failed to get AI recommendation", err.response?.data || err);
+      setFormError(t("consultations.failedAI"));
     } finally {
       setIsGenerating(false);
     }
@@ -241,6 +242,7 @@ const ConsultationForm = () => {
 
   const onSubmit = async (formData) => {
     setIsLoading(true);
+    setFormError("");
 
     const payload = {
       patientId: selectedPatientId || formData.patientId,
@@ -339,12 +341,7 @@ const ConsultationForm = () => {
 
       setShowPrescriptionModal(true);
     } catch {
-      Swal.fire({
-        title: t("common.error"),
-        text: t("consultations.failedSave"),
-        icon: "error",
-        confirmButtonText: t("common.ok"),
-      });
+      setFormError(t("consultations.failedSave"));
     } finally {
       setIsLoading(false);
     }
@@ -419,6 +416,9 @@ const ConsultationForm = () => {
             <p className="text-sm text-gray-500 mb-6 pb-4 border-b">
               {t("consultations.formSubtitle")}
             </p>
+
+            <InlineError message={loadError} />
+            <InlineError message={formError} />
 
             <form onSubmit={handleSubmit(onSubmit)}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

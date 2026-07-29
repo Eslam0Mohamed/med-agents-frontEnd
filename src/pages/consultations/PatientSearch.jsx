@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { getAllPatients } from "../../api/patient";
+import InlineError from "../../components/InlineError";
 
 const PatientSearch = () => {
   const { t } = useTranslation();
@@ -9,6 +10,7 @@ const PatientSearch = () => {
   const [search, setSearch] = useState("");
   const [allPatients, setAllPatients] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
 
   // زي صفحة الفولو أب بالظبط: نجيب القايمة كلها مرة واحدة أول ما الصفحة
   // تفتح، وبعدين الفلترة بتتم في المتصفح نفسه (useMemo) من غير أي نداء
@@ -17,15 +19,17 @@ const PatientSearch = () => {
     (async () => {
       try {
         setLoading(true);
+        setLoadError("");
         const res = await getAllPatients({});
         setAllPatients(res.data || []);
       } catch (err) {
         console.error("Failed to load patients", err);
+        setLoadError(t("consultations.failedLoadPatients"));
       } finally {
         setLoading(false);
       }
     })();
-  }, []);
+  }, [t]);
 
   const patients = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -85,6 +89,7 @@ const PatientSearch = () => {
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 mt-6">
         <div className="bg-white rounded-2xl shadow p-5 sm:p-6">
+          <InlineError message={loadError} />
           <div className="mb-6 relative group">
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-600 transition-colors">
               <svg

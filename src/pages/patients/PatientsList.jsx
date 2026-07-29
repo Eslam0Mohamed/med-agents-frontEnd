@@ -1,38 +1,53 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Swal from "sweetalert2";
 import { fetchPatients, deletePatient } from "../../api/patient";
 import Loading from "../../components/Loading";
+import InlineError from "../../components/InlineError";
 export default function PatientsList() {
   const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { list, isLoading } = useSelector((state) => state.patients);
+  const { list, isLoading, pagination, error } = useSelector(
+    (state) => state.patients,
+  );
 
-  const [search, setSearch] = useState("");
+  // searchInput بيتحدث فورًا مع كل حرف (للـ input نفسه)، أما debouncedSearch
+  // فبيتأخر 400ms بعد آخر حرف قبل ما فعليًا يبعت نداء للباك اند - عشان منبعتش
+  // نداء API مع كل ضغطة زرار
+  const [searchInput, setSearchInput] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
   const limit = 10;
 
-  // زي صفحة الفولو أب: بنجيب المرضى كلهم مرة واحدة بس (من غير search
-  // parameter)، وبعدين الفلترة والـ pagination بيتعملوا في المتصفح على
-  // طول، من غير أي نداء تاني للباك مع كل حرف بيتكتب
   useEffect(() => {
-    dispatch(fetchPatients({ search: "", page: 1, limit: 1000 }));
-  }, [dispatch]);
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchInput.trim());
+      setPage(1);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
-  const filteredPatients = useMemo(() => {
-    const query = search.trim().toLowerCase();
-    if (!query) return list || [];
-    return (list || []).filter((p) => p.name?.toLowerCase().includes(query));
-  }, [list, search]);
+  // البحث والـ pagination بقوا بيتعملوا فعليًا في الباك اند (زي ما الـ API
+  // أصلاً بيدعمهم) بدل ما نجيب لحد 1000 مريض ونفلتر في المتصفح - كده مفيش
+  // سقف تخبي مرضى، ومفيش تحميل بيانات زيادة عن اللي محتاجينه فعليًا
+  useEffect(() => {
+    dispatch(fetchPatients({ search: debouncedSearch, page, limit }));
+  }, [dispatch, debouncedSearch, page]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredPatients.length / limit));
-  const pagedPatients = filteredPatients.slice(
-    (page - 1) * limit,
-    page * limit,
-  );
+  // ملحوظة: لما فيه بحث فعال، الـ endpoint الحالي بيرجّع كل النتايج المطابقة
+  // دفعة واحدة من غير pagination (pagination: null) - فبنعمل الترقيم على
+  // نتيجة البحث دي في المتصفح. لما مفيش بحث، الترقيم بيجي جاهز من السيرفر
+  const isSearching = debouncedSearch.length > 0;
+  const pagedPatients = isSearching
+    ? (list || []).slice((page - 1) * limit, page * limit)
+    : list || [];
+  const totalCount = isSearching ? (list || []).length : pagination?.total || 0;
+  const totalPages = isSearching
+    ? Math.max(1, Math.ceil((list || []).length / limit))
+    : Math.max(1, pagination?.totalPages || 1);
 
   const calculateAge = (dob) => {
     const today = new Date();
@@ -50,11 +65,6 @@ export default function PatientsList() {
       .join("")
       .slice(0, 2)
       .toUpperCase();
-
-  const handleSearch = (value) => {
-    setSearch(value);
-    setPage(1);
-  };
 
   const handleDelete = (id) => {
     Swal.fire({
@@ -152,13 +162,23 @@ export default function PatientsList() {
           <input
             type="text"
             placeholder={t("patients.searchPlaceholder")}
-            value={search}
-            onChange={(e) => handleSearch(e.target.value)}
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
             className="w-full border-0 rounded-2xl pl-12 pr-4 py-3.5 sm:py-4 text-sm sm:text-base bg-white shadow-md focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all duration-200 placeholder-slate-400 font-medium text-slate-700"
           />
         </div>
 
-        {!isLoading && filteredPatients.length === 0 && (
+        <InlineError
+          message={
+            error
+              ? list?.length > 0
+                ? t("patients.staleDataError")
+                : t("patients.loadError")
+              : ""
+          }
+        />
+
+        {!isLoading && !error && pagedPatients.length === 0 && (
           <div className="text-center text-gray-400 py-10">
             {t("common.noData")}
           </div>
@@ -311,11 +331,11 @@ export default function PatientsList() {
           </div>
         )}
 
-        {!isLoading && filteredPatients.length > 0 && (
+        {!isLoading && totalCount > 0 && (
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 bg-white rounded-2xl shadow-xl shadow-slate-100/80 border border-slate-100 px-4 py-3">
             <p className="text-xs text-gray-500 font-semibold">
               {t("common.showing")} {pagedPatients.length} {t("common.of")}{" "}
-              {filteredPatients.length}
+              {totalCount}
             </p>
             <div className="flex items-center gap-1.5">
               <button
