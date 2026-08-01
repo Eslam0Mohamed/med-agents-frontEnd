@@ -17,6 +17,7 @@ import LanguageToggle from "../../components/LanguageToggle";
 import DifferentialDiagnosisPanel from "../../components/consultations/DifferentialDiagnosisPanel";
 import LabFilesUploader from "../../components/consultations/LabFilesUploader";
 import InlineError from "../../components/InlineError";
+import MicButton from "../../components/consultations/MicButton";
 
 const initialForm = {
   rawInput: "",
@@ -864,9 +865,28 @@ const StartFollowUp = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-blue-700 mb-1">
-                    {t("consultations.doctorNotes")}
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-sm font-medium text-blue-700">
+                      {t("consultations.doctorNotes")}
+                    </label>
+                    {!prescriptionOnlyEdit && (
+                      <MicButton
+                        onTranscript={(text) => {
+                          const nextRawInput = form.rawInput
+                            ? `${form.rawInput} ${text}`
+                            : text;
+                          setForm((prev) => ({
+                            ...prev,
+                            rawInput: nextRawInput,
+                            ...(!isEditMode
+                              ? { diagnosis: "", followUpDate: "" }
+                              : {}),
+                          }));
+                          if (!isEditMode) setAiResult(null);
+                        }}
+                      />
+                    )}
+                  </div>
 
                   <textarea
                     name="rawInput"
@@ -880,9 +900,28 @@ const StartFollowUp = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-blue-700 mb-1">
-                    {t("consultations.symptoms")}
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-sm font-medium text-blue-700">
+                      {t("consultations.symptoms")}
+                    </label>
+                    {!prescriptionOnlyEdit && (
+                      <MicButton
+                        onTranscript={(text) => {
+                          const nextSymptoms = form.symptoms
+                            ? `${form.symptoms}, ${text}`
+                            : text;
+                          setForm((prev) => ({
+                            ...prev,
+                            symptoms: nextSymptoms,
+                            ...(!isEditMode
+                              ? { diagnosis: "", followUpDate: "" }
+                              : {}),
+                          }));
+                          if (!isEditMode) setAiResult(null);
+                        }}
+                      />
+                    )}
+                  </div>
 
                   <input
                     type="text"

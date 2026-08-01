@@ -183,6 +183,9 @@
     "patient": "المريض",
     "patientPlaceholder": "اكتب اسم المريض...",
     "doctorNotes": "ملاحظات الطبيب",
+    "startRecording": "بدء التسجيل الصوتي",
+    "stopRecording": "إيقاف التسجيل",
+    "recordingError": "تعذّر معالجة التسجيل",
     "transcribing": "جاري التحويل لنص...",
     "symptoms": "الأعراض (مفصولة بفواصل)",
     "symptomsPlaceholder": "صداع، حمى، سعال",
@@ -508,7 +511,13 @@
     "evidenceBased": "Evidence-based responses",
     "evidenceBasedAr": "إجابات مبنية على مصادر طبية",
     "errorAr": "عذراً، حدث خطأ.",
-    "errorEn": "Sorry, something went wrong."
+    "errorEn": "Sorry, something went wrong.",
+    "attachImage": "إرفاق صورة",
+    "removeImage": "إزالة الصورة",
+    "imageTypeError": "الصور المدعومة فقط: JPG, PNG, WEBP.",
+    "imageSizeError": "الصورة كبيرة جدًا (الحد الأقصى 10 ميجا).",
+    "imageOnlyMessage": "[Image attached]",
+    "imageOnlyMessageAr": "[صورة مرفقة]"
   },
   "profile": {
     "specialty": "التخصص",

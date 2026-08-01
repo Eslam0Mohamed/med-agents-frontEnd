@@ -20,6 +20,7 @@ import LanguageToggle from "../../components/LanguageToggle";
 import DifferentialDiagnosisPanel from "../../components/consultations/DifferentialDiagnosisPanel";
 import LabFilesUploader from "../../components/consultations/LabFilesUploader";
 import InlineError from "../../components/InlineError";
+import MicButton from "../../components/consultations/MicButton";
 
 const ConsultationForm = () => {
   const { t, i18n } = useTranslation();
@@ -58,6 +59,7 @@ const ConsultationForm = () => {
     register,
     handleSubmit,
     setValue,
+    getValues,
     watch,
     trigger,
     reset,
@@ -233,7 +235,10 @@ const ConsultationForm = () => {
       setCreatedId(res.data._id);
       setIsSaved(true);
     } catch (err) {
-      console.error("Failed to get AI recommendation", err.response?.data || err);
+      console.error(
+        "Failed to get AI recommendation",
+        err.response?.data || err,
+      );
       setFormError(t("consultations.failedAI"));
     } finally {
       setIsGenerating(false);
@@ -474,9 +479,23 @@ const ConsultationForm = () => {
 
                 {/* Doctor's Notes */}
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-blue-700 mb-1">
-                    {t("consultations.doctorNotes")}
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-sm font-medium text-blue-700">
+                      {t("consultations.doctorNotes")}
+                    </label>
+                    {!prescriptionOnlyEdit && (
+                      <MicButton
+                        onTranscript={(text) => {
+                          const current = getValues("rawInput") || "";
+                          setValue(
+                            "rawInput",
+                            current ? `${current} ${text}` : text,
+                            { shouldValidate: true, shouldDirty: true },
+                          );
+                        }}
+                      />
+                    )}
+                  </div>
                   <textarea
                     {...register("rawInput")}
                     rows={4}
@@ -492,9 +511,23 @@ const ConsultationForm = () => {
 
                 {/* Symptoms */}
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-blue-700 mb-1">
-                    {t("consultations.symptoms")}
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-sm font-medium text-blue-700">
+                      {t("consultations.symptoms")}
+                    </label>
+                    {!prescriptionOnlyEdit && (
+                      <MicButton
+                        onTranscript={(text) => {
+                          const current = getValues("symptoms") || "";
+                          setValue(
+                            "symptoms",
+                            current ? `${current}, ${text}` : text,
+                            { shouldValidate: true, shouldDirty: true },
+                          );
+                        }}
+                      />
+                    )}
+                  </div>
                   <input
                     type="text"
                     {...register("symptoms")}

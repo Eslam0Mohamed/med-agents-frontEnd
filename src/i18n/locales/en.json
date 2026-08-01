@@ -183,6 +183,9 @@
     "patient": "Patient",
     "patientPlaceholder": "Type patient name...",
     "doctorNotes": "Doctor's Notes",
+    "startRecording": "Start voice input",
+    "stopRecording": "Stop recording",
+    "recordingError": "Could not process recording",
     "transcribing": "Transcribing...",
     "symptoms": "Symptoms (comma separated)",
     "symptomsPlaceholder": "headache, fever, cough",
@@ -508,7 +511,13 @@
     "evidenceBased": "Evidence-based responses",
     "evidenceBasedAr": "إجابات مبنية على مصادر طبية",
     "errorAr": "عذراً، حدث خطأ.",
-    "errorEn": "Sorry, something went wrong."
+    "errorEn": "Sorry, something went wrong.",
+    "attachImage": "Attach image",
+    "removeImage": "Remove image",
+    "imageTypeError": "Only JPG, PNG, or WEBP images are supported.",
+    "imageSizeError": "Image is too large (max 10MB).",
+    "imageOnlyMessage": "[Image attached]",
+    "imageOnlyMessageAr": "[صورة مرفقة]"
   },
   "profile": {
     "specialty": "Specialty",
