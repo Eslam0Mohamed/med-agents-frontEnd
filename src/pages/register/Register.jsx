@@ -1,16 +1,17 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import { loginSchema } from '../../schemas/loginSchema';
+import { registerSchema } from '../../schemas/registerSchema';
+import { registerRequest } from '../../api/Auth';
 import PublicNavbar from "../puplic/puplicNavbar/PuplicNavbar"
 import Footer from '../../components/Footer';
 import LanguageSwitcher from '../../components/LanguageSwitcher';
 
-export default function Login() {
+export default function Register() {
   const { t, i18n } = useTranslation();
   const currentLang = i18n.language || "en";
   const isRtl = currentLang === "ar";
@@ -27,7 +28,7 @@ export default function Login() {
     handleSubmit,
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(registerSchema),
   });
 
   const onSubmit = async (data) => {
@@ -35,15 +36,29 @@ export default function Login() {
     setServerError('');
 
     try {
+      await registerRequest({
+        name: data.name,
+        email: data.email,
+        password: data.password,
+        specialty: data.specialty,
+        language: currentLang,
+      });
+
       await login(data.email, data.password);
       navigate('/patients');
     } catch (err) {
       if (!err.response) {
         setServerError(t('auth.networkError'));
-      } else if (err.response.status === 401) {
-        setServerError(t('auth.invalidCredentials'));
+      } else if (err.response.status === 400) {
+        setServerError(
+          err.response.data?.message || t('auth.registerFailed'),
+        );
+      } else if (err.response.status === 429) {
+        setServerError(t('auth.tooManyAttempts'));
       } else {
-        setServerError(err.response.data?.message || t('common.somethingWentWrong'));
+        setServerError(
+          err.response.data?.message || t('common.somethingWentWrong'),
+        );
       }
     } finally {
       setIsLoading(false);
@@ -55,12 +70,12 @@ export default function Login() {
       isDark ? "bg-slate-950 text-slate-100" : "bg-slate-50/50 text-gray-800"
     }`} dir={isRtl ? "rtl" : "ltr"}>
       <PublicNavbar/>
-      
+
       <div className="flex-1 flex items-center justify-center relative p-6">
         <div className="absolute top-4 end-4">
           <LanguageSwitcher />
         </div>
-        
+
         <div className={`rounded-xl border p-8 w-full max-w-sm transition-colors ${
           isDark ? "bg-slate-900 border-slate-800 shadow-xl shadow-slate-950/50" : "bg-white border-gray-100 shadow-md"
         }`}>
@@ -68,7 +83,7 @@ export default function Login() {
             <h1 className={`text-xl font-semibold transition-colors ${isDark ? "text-white" : "text-gray-900"}`}>
               Med<span className="text-blue-600">Agents</span>
             </h1>
-            <p className={`text-sm mt-1 transition-colors ${isDark ? "text-slate-400" : "text-gray-500"}`}>{t('auth.welcomeBack')}</p>
+            <p className={`text-sm mt-1 transition-colors ${isDark ? "text-slate-400" : "text-gray-500"}`}>{t('auth.createAccount')}</p>
           </div>
 
           {serverError && (
@@ -84,16 +99,39 @@ export default function Login() {
               <label className={`block text-sm mb-1 transition-colors ${
                 isDark ? 'text-slate-300' : 'text-gray-600'
               }`}>
+                {t('auth.name')}
+              </label>
+              <input
+                type="text"
+                {...register('name')}
+                className={`w-full border rounded-md px-3 py-2 text-sm outline-none focus:border-blue-500 transition-colors ${
+                  errors.name
+                    ? 'border-red-400'
+                    : isDark
+                    ? 'bg-slate-950 border-slate-800 text-slate-100'
+                    : 'bg-white border-gray-300 text-gray-800'
+                }`}
+                placeholder={t('auth.namePlaceholder')}
+              />
+              {errors.name && (
+                <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>
+              )}
+            </div>
+
+            <div>
+              <label className={`block text-sm mb-1 transition-colors ${
+                isDark ? 'text-slate-300' : 'text-gray-600'
+              }`}>
                 {t('auth.email')}
               </label>
               <input
                 type="email"
                 {...register('email')}
                 className={`w-full border rounded-md px-3 py-2 text-sm outline-none focus:border-blue-500 transition-colors ${
-                  errors.email 
-                    ? 'border-red-400' 
-                    : isDark 
-                    ? 'bg-slate-950 border-slate-800 text-slate-100' 
+                  errors.email
+                    ? 'border-red-400'
+                    : isDark
+                    ? 'bg-slate-950 border-slate-800 text-slate-100'
                     : 'bg-white border-gray-300 text-gray-800'
                 }`}
                 placeholder="doctor@medagents.com"
@@ -107,22 +145,68 @@ export default function Login() {
               <label className={`block text-sm mb-1 transition-colors ${
                 isDark ? 'text-slate-300' : 'text-gray-600'
               }`}>
+                {t('auth.specialty')} <span className="opacity-60">({t('common.optional')})</span>
+              </label>
+              <input
+                type="text"
+                {...register('specialty')}
+                className={`w-full border rounded-md px-3 py-2 text-sm outline-none focus:border-blue-500 transition-colors ${
+                  isDark
+                    ? 'bg-slate-950 border-slate-800 text-slate-100'
+                    : 'bg-white border-gray-300 text-gray-800'
+                }`}
+                placeholder={t('auth.specialtyPlaceholder')}
+              />
+            </div>
+
+            <div>
+              <label className={`block text-sm mb-1 transition-colors ${
+                isDark ? 'text-slate-300' : 'text-gray-600'
+              }`}>
                 {t('auth.password')}
               </label>
               <input
                 type="password"
                 {...register('password')}
                 className={`w-full border rounded-md px-3 py-2 text-sm outline-none focus:border-blue-500 transition-colors ${
-                  errors.password 
-                    ? 'border-red-400' 
-                    : isDark 
-                    ? 'bg-slate-950 border-slate-800 text-slate-100' 
+                  errors.password
+                    ? 'border-red-400'
+                    : isDark
+                    ? 'bg-slate-950 border-slate-800 text-slate-100'
                     : 'bg-white border-gray-300 text-gray-800'
                 }`}
                 placeholder="••••••••"
               />
               {errors.password && (
                 <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>
+              )}
+              {!errors.password && (
+                <p className={`text-xs mt-1 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>
+                  {t('auth.passwordHint')}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className={`block text-sm mb-1 transition-colors ${
+                isDark ? 'text-slate-300' : 'text-gray-600'
+              }`}>
+                {t('auth.confirmPassword')}
+              </label>
+              <input
+                type="password"
+                {...register('confirmPassword')}
+                className={`w-full border rounded-md px-3 py-2 text-sm outline-none focus:border-blue-500 transition-colors ${
+                  errors.confirmPassword
+                    ? 'border-red-400'
+                    : isDark
+                    ? 'bg-slate-950 border-slate-800 text-slate-100'
+                    : 'bg-white border-gray-300 text-gray-800'
+                }`}
+                placeholder="••••••••"
+              />
+              {errors.confirmPassword && (
+                <p className="text-red-500 text-xs mt-1">{errors.confirmPassword.message}</p>
               )}
             </div>
 
@@ -131,14 +215,14 @@ export default function Login() {
               disabled={isLoading}
               className="bg-blue-600 text-white rounded-md py-2 text-sm font-medium hover:bg-blue-700 disabled:bg-gray-400 transition"
             >
-              {isLoading ? t('auth.loggingIn') : t('auth.loginButton')}
+              {isLoading ? t('auth.registering') : t('auth.registerButton')}
             </button>
           </form>
 
           <p className={`text-center text-sm mt-5 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
-            {t('auth.dontHaveAccount')}{' '}
-            <Link to="/register" className="text-blue-600 hover:underline font-medium">
-              {t('auth.registerButton')}
+            {t('auth.alreadyHaveAccount')}{' '}
+            <Link to="/login" className="text-blue-600 hover:underline font-medium">
+              {t('auth.loginButton')}
             </Link>
           </p>
         </div>

@@ -5,6 +5,11 @@ export const loginRequest = async (email, password) => {
   return res.data;
 };
 
+export const registerRequest = async (data) => {
+  const res = await apiInstance.post('/auth/register', data);
+  return res.data;
+};
+
 export const logoutRequest = async () => {
   const res = await apiInstance.post('/auth/logout');
   return res.data;
