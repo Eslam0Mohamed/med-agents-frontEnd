@@ -73,7 +73,8 @@
     "showing": "Showing",
     "of": "of",
     "type": "Type",
-    "date": "Date"
+    "date": "Date",
+    "add": "Add"
   },
   "reports": {
     "title": "AI Clinical Report Generator",
