@@ -122,7 +122,13 @@
       "October": "October",
       "November": "November",
       "December": "December"
-    }
+    },
+    "consultationsReviewed": "Consultations reviewed",
+    "patientCondition": "Patient Condition",
+    "clinicalFindings": "Clinical Findings",
+    "treatmentPlan": "Treatment Plan",
+    "recommendations": "Recommendations",
+    "followupNotes": "Follow-up Notes"
   },
   "patients": {
     "title": "Patients",
@@ -137,7 +143,9 @@
       "phoneInvalid": "Enter a valid Egyptian mobile number (e.g. 010/011/012/015XXXXXXXX)",
       "dobRequired": "Date of birth is required",
       "dobFuture": "Date of birth cannot be in the future",
-      "genderRequired": "Please select a gender"
+      "genderRequired": "Please select a gender",
+      "phoneAlreadyExists": "You already have a patient registered with this phone number.",
+      "serverError": "Something went wrong while saving. Please try again."
     },
     "dateOfBirth": "Date of Birth",
     "gender": "Gender",
@@ -175,7 +183,9 @@
     "privacyTitle": "Privacy Compliance",
     "privacyText": "All data entered here is encrypted and stored in compliance with local healthcare regulations.",
     "patientAddedTitle": "Patient added successfully",
-    "patientAddedText": "Let's start a consultation for them now."
+    "patientAddedText": "Let's start a consultation for them now.",
+    "loadError": "Couldn't load patients. Please check your connection and try again.",
+    "staleDataError": "Showing previously loaded data — couldn't refresh it. Please check your connection."
   },
   "consultations": {
     "title": "Consultations",
@@ -259,7 +269,32 @@
     "noNotes": "No supplementary clinical inputs.",
     "pendingDiagnosis": "Pending definitive analysis.",
     "noPrescription": "No active medications issued.",
-    "noScheduledReturn": "No scheduled returns."
+    "noScheduledReturn": "No scheduled returns.",
+    "labFiles": "Lab Results / Radiology Reports",
+    "labFilesOptional": "Optional",
+    "labFilesAddMore": "Add files",
+    "labFilesAttached": "Attached",
+    "labFilesEmpty": "No files attached",
+    "labFilesHint": "Attach lab results or radiology reports (images or PDF) — optional. The Differential Diagnosis agent will review them when generating its recommendation.",
+    "labFilesInvalidType": "Only images (JPG, PNG, WEBP) and PDF files are allowed.",
+    "labFilesRemove": "Remove file",
+    "labFilesTooLarge": "Each file must be 10MB or smaller.",
+    "labFilesTooMany": "You can attach up to 5 files.",
+    "labFilesUploadFailed": "Failed to upload the file. Please try again.",
+    "labFilesUploading": "Uploading...",
+    "clinicalReading": "Clinical Reading",
+    "possibleDiagnoses": "Possible Diagnoses",
+    "sourcesConsulted": "Sources consulted",
+    "evidenceReferenced": "Referenced",
+    "evidenceReferencedTooltip": "Backed by a cited clinical reference",
+    "supportingReasoning": "Supporting reasoning",
+    "againstReasoning": "Against",
+    "recommendedTests": "Recommended tests",
+    "recommendedProtocol": "Recommended protocol",
+    "startRecording": "Start voice dictation",
+    "stopRecording": "Stop voice dictation",
+    "recordingError": "Couldn't access the microphone. Please check your browser permissions.",
+    "failedLoadPatients": "Failed to load patients list"
   },
   "followups": {
     "title": "Follow-ups",
@@ -406,7 +441,8 @@
       "newFollowUpCreatedTitle": "New follow-up scheduled",
       "newFollowUpCreatedText": "A new follow-up has been created for {{date}}.",
       "newFollowUpNotConfirmed": "The consultation was saved, but we couldn't confirm a new follow-up was created for that date. Please check the Follow-ups list."
-    }
+    },
+    "pastDueCannotStart": "This follow-up is past due and can no longer be started."
   },
   "prescriptions": {
     "title": "Prescriptions",
@@ -493,7 +529,13 @@
     "evidenceBased": "Evidence-based responses",
     "evidenceBasedAr": "إجابات مبنية على مصادر طبية",
     "errorAr": "عذراً، حدث خطأ.",
-    "errorEn": "Sorry, something went wrong."
+    "errorEn": "Sorry, something went wrong.",
+    "attachImage": "Attach image",
+    "removeImage": "Remove image",
+    "imageOnlyMessage": "Image attached",
+    "imageOnlyMessageAr": "تم إرفاق صورة",
+    "imageSizeError": "Image size must be 10MB or smaller.",
+    "imageTypeError": "Only image files (JPG, PNG, WEBP) are allowed."
   },
   "profile": {
     "specialty": "Specialty",

@@ -122,7 +122,13 @@
       "October": "أكتوبر",
       "November": "نوفمبر",
       "December": "ديسمبر"
-    }
+    },
+    "consultationsReviewed": "الاستشارات اللي تمت مراجعتها",
+    "patientCondition": "حالة المريض",
+    "clinicalFindings": "النتائج السريرية",
+    "treatmentPlan": "خطة العلاج",
+    "recommendations": "التوصيات",
+    "followupNotes": "ملاحظات المتابعة"
   },
   "patients": {
     "title": "المرضى",
@@ -137,7 +143,9 @@
       "phoneInvalid": "اكتب رقم موبايل مصري صحيح (زي 010/011/012/015XXXXXXXX)",
       "dobRequired": "تاريخ الميلاد مطلوب",
       "dobFuture": "تاريخ الميلاد مينفعش يكون في المستقبل",
-      "genderRequired": "من فضلك اختر النوع"
+      "genderRequired": "من فضلك اختر النوع",
+      "phoneAlreadyExists": "عندك مريض مسجل بالفعل بنفس رقم التليفون ده.",
+      "serverError": "حصلت مشكلة أثناء الحفظ. حاول تاني."
     },
     "dateOfBirth": "تاريخ الميلاد",
     "gender": "النوع",
@@ -175,7 +183,9 @@
     "privacyTitle": "حماية الخصوصية",
     "privacyText": "جميع البيانات المدخلة هنا مشفّرة ومحفوظة وفقًا للوائح الرعاية الصحية المحلية.",
     "patientAddedTitle": "تمت إضافة المريض بنجاح",
-    "patientAddedText": "تعالي نبدأ له كونسلتيشن دلوقتي."
+    "patientAddedText": "تعالي نبدأ له كونسلتيشن دلوقتي.",
+    "loadError": "تعذر تحميل قائمة المرضى. تأكد من اتصالك بالإنترنت وحاول تاني",
+    "staleDataError": "البيانات الظاهرة من آخر تحميل ناجح — تعذر تحديثها. تأكد من اتصالك بالإنترنت"
   },
   "consultations": {
     "title": "الاستشارات",
@@ -259,7 +269,32 @@
     "noNotes": "لا توجد مدخلات سريرية إضافية.",
     "pendingDiagnosis": "بانتظار التشخيص النهائي.",
     "noPrescription": "لا توجد أدوية موصوفة حاليًا.",
-    "noScheduledReturn": "لا يوجد موعد متابعة مجدول."
+    "noScheduledReturn": "لا يوجد موعد متابعة مجدول.",
+    "labFiles": "نتائج التحاليل / تقارير الأشعة",
+    "labFilesOptional": "اختياري",
+    "labFilesAddMore": "إضافة ملفات",
+    "labFilesAttached": "المرفقات",
+    "labFilesEmpty": "لا توجد ملفات مرفقة",
+    "labFilesHint": "أرفق نتائج تحاليل أو تقارير أشعة (صور أو PDF) — اختياري. أجنت التشخيص التفريقي هيراجعها وقت إعداد التوصية.",
+    "labFilesInvalidType": "الصور المسموحة بس (JPG, PNG, WEBP) وملفات PDF.",
+    "labFilesRemove": "إزالة الملف",
+    "labFilesTooLarge": "كل ملف لازم يكون 10 ميجا أو أقل.",
+    "labFilesTooMany": "أقصى عدد ملفات مسموح بيه 5.",
+    "labFilesUploadFailed": "فشل رفع الملف. حاول تاني.",
+    "labFilesUploading": "جاري الرفع...",
+    "clinicalReading": "القراءة السريرية",
+    "possibleDiagnoses": "التشخيصات المحتملة",
+    "sourcesConsulted": "المصادر المرجعية",
+    "evidenceReferenced": "موثّق",
+    "evidenceReferencedTooltip": "مدعوم بمرجع طبي موثّق",
+    "supportingReasoning": "الأسباب المؤيدة",
+    "againstReasoning": "الأسباب المعارضة",
+    "recommendedTests": "التحاليل المقترحة",
+    "recommendedProtocol": "بروتوكول العلاج المقترح",
+    "startRecording": "بدء التسجيل الصوتي",
+    "stopRecording": "إيقاف التسجيل الصوتي",
+    "recordingError": "تعذر الوصول للميكروفون. تأكد من صلاحيات المتصفح.",
+    "failedLoadPatients": "فشل تحميل قائمة المرضى"
   },
   "followups": {
     "title": "المتابعات",
@@ -406,7 +441,8 @@
       "newFollowUpCreatedTitle": "تم جدولة فولو أب جديدة",
       "newFollowUpCreatedText": "اتعملت فولو أب جديدة في يوم {{date}}.",
       "newFollowUpNotConfirmed": "الكونسلتيشن اتحفظت، بس مقدرناش نتأكد إن فولو أب جديدة اتعملت في التاريخ ده. من فضلك راجع صفحة الفولو أبس."
-    }
+    },
+    "pastDueCannotStart": "الفولو أب دي فاتت ميعادها ومينفعش تتبدأ."
   },
   "prescriptions": {
     "title": "الروشتات",
@@ -493,7 +529,13 @@
     "evidenceBased": "Evidence-based responses",
     "evidenceBasedAr": "إجابات مبنية على مصادر طبية",
     "errorAr": "عذراً، حدث خطأ.",
-    "errorEn": "Sorry, something went wrong."
+    "errorEn": "Sorry, something went wrong.",
+    "attachImage": "إرفاق صورة",
+    "removeImage": "إزالة الصورة",
+    "imageOnlyMessage": "تم إرفاق صورة",
+    "imageOnlyMessageAr": "تم إرفاق صورة",
+    "imageSizeError": "حجم الصورة لازم يكون 10 ميجا أو أقل.",
+    "imageTypeError": "الصور المسموحة بس (JPG, PNG, WEBP)."
   },
   "profile": {
     "specialty": "التخصص",
