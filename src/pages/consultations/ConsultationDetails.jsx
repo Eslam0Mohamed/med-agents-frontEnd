@@ -44,7 +44,7 @@ const ConsultationDetails = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen bg-[#f8fafc]">
+      <div className="flex justify-center items-center h-screen bg-slate-50">
         <div className="w-9 h-9 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
@@ -52,7 +52,7 @@ const ConsultationDetails = () => {
 
   if (!consultation) {
     return (
-      <div className="text-center py-20 bg-[#f8fafc] h-screen flex flex-col justify-center items-center p-4">
+      <div className="text-center py-20 bg-slate-50 h-screen flex flex-col justify-center items-center p-4">
         <p className="text-slate-500 font-medium text-sm capitalize">{error || t('consultations.noRecordsFound')}</p>
         <Link to="/consultations" className="text-blue-500 font-bold mt-2 underline text-xs capitalize">{t('consultations.backToConsultations')}</Link>
       </div>
@@ -90,7 +90,7 @@ const ConsultationDetails = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] antialiased text-slate-800 pt-6 sm:pt-10 pb-20 font-sans tracking-tight w-full box-border">
+    <div className="min-h-screen bg-slate-50 antialiased text-slate-700 pt-6 sm:pt-10 pb-20 font-sans tracking-tight w-full box-border">
       
       {/* Advanced Micro-Interaction Cinema Transitions */}
       <style>{`
@@ -193,7 +193,7 @@ const ConsultationDetails = () => {
           {/* Active Prescription Block */}
           <div className="stagger-row stagger-5 grid grid-cols-1 sm:grid-cols-3 items-start gap-1 sm:gap-4 border-b border-blue-50/60 pb-3.5 px-1 rounded-xl hover:bg-slate-50/40 transition">
             <span className="text-[11px] font-bold text-blue-500 tracking-widest uppercase pt-0.5 shrink-0 capitalize">{t('consultations.prescription')}</span>
-            <div className="sm:col-span-2 text-sm text-slate-800 font-semibold whitespace-pre-line leading-relaxed break-words">
+            <div className="sm:col-span-2 text-sm text-slate-700 font-semibold whitespace-pre-line leading-relaxed break-words">
               <span className="inline sm:hidden text-slate-400 font-normal mr-1">:</span>
               {renderPrescription()}
             </div>
@@ -202,7 +202,7 @@ const ConsultationDetails = () => {
           {/* Next Planned Follow-Up */}
           <div className="stagger-row stagger-6 grid grid-cols-1 sm:grid-cols-3 items-start gap-1 sm:gap-4 pt-1 px-1 rounded-xl hover:bg-slate-50/40 transition">
             <span className="text-[11px] font-bold text-blue-500 tracking-widest uppercase pt-0.5 shrink-0 capitalize">{t('consultations.followUpDate')}</span>
-            <div className="sm:col-span-2 text-sm text-slate-800 font-bold">
+            <div className="sm:col-span-2 text-sm text-slate-700 font-bold">
               <span className="inline sm:hidden text-slate-400 font-normal mr-1">:</span>
               {consultation.followUpDate ? (
                 new Date(consultation.followUpDate).toLocaleDateString(undefined, {
