@@ -42,7 +42,40 @@
     "registerButton": "إنشاء حساب",
     "registering": "جاري إنشاء الحساب...",
     "registerFailed": "تعذر إنشاء الحساب. تأكد من البيانات وحاول تاني",
-    "tooManyAttempts": "محاولات كتير قوي. استنى شوية وحاول تاني"
+    "tooManyAttempts": "محاولات كتير قوي. استنى شوية وحاول تاني",
+    "verifyEmailTitle": "أكّد بريدك الإلكتروني",
+    "verifyEmailSubtitle": "بعتنالك كود من 6 أرقام على إيميلك. اكتبه تحت عشان تكمل.",
+    "otpCode": "كود التأكيد",
+    "verifying": "جاري التأكيد...",
+    "verifyButton": "تأكيد",
+    "otpResent": "تم إرسال كود جديد لإيميلك.",
+    "resendIn": "إعادة الإرسال بعد {{seconds}} ثانية",
+    "resendOtp": "إعادة إرسال الكود",
+    "backToLogin": "الرجوع لتسجيل الدخول",
+    "credentialProof": "إثبات إنك دكتور مرخّص",
+    "credentialProofHint": "ارفع كارت النقابة أو شهادة تثبت ترخيصك الطبي. حسابك هيتراجع من فريقنا قبل ما يتفعّل.",
+    "credentialProofPlaceholder": "اضغط للرفع (صورة أو PDF)",
+    "proofRequired": "من فضلك ارفع إثبات إنك دكتور مرخّص.",
+    "proofInvalidType": "الصور المسموحة بس (JPG, PNG, WEBP) وملفات PDF.",
+    "proofTooLarge": "الملف لازم يكون 8 ميجا أو أقل.",
+    "emailNotVerified": "لازم تأكد إيميلك الأول قبل تسجيل الدخول.",
+    "forgotPasswordLink": "نسيت كلمة المرور؟",
+    "forgotPasswordTitle": "نسيت كلمة المرور؟",
+    "forgotPasswordSubtitle": "اكتب إيميلك وهنبعتلك كود تقدر تغيّر بيه كلمة المرور.",
+    "sendingCode": "جاري إرسال الكود...",
+    "sendResetCode": "إرسال كود إعادة التعيين",
+    "resetPasswordTitle": "إعادة تعيين كلمة المرور",
+    "resetPasswordSubtitle": "اكتب الكود اللي وصلك على إيميلك مع كلمة المرور الجديدة.",
+    "newPassword": "كلمة المرور الجديدة",
+    "resetting": "جاري إعادة التعيين...",
+    "resetPasswordButton": "إعادة تعيين كلمة المرور",
+    "passwordsDontMatch": "كلمتا المرور غير متطابقتين.",
+    "passwordResetSuccess": "تم تغيير كلمة المرور. سجّل دخول بكلمة المرور الجديدة.",
+    "accountPendingTitle": "حسابك تحت المراجعة",
+    "accountPendingSubtitle": "شكرًا لتسجيلك! فريقنا بيراجع الإثبات اللي بعتهولنا. هتقدر تستخدم التطبيق أول ما حسابك يتفعّل.",
+    "accountRejectedTitle": "التسجيل مش موافَق عليه",
+    "accountRejectedSubtitle": "للأسف مقدرناش نتأكد من الإثبات اللي بعتهولنا.",
+    "rejectionReasonLabel": "السبب"
   },
   "common": {
     "save": "حفظ",
@@ -73,8 +106,7 @@
     "showing": "عرض",
     "of": "من",
     "type": "النوع",
-    "date": "التاريخ",
-    "add": "إضافة"
+    "date": "التاريخ"
   },
   "reports": {
     "title": "مولّد التقارير السريرية بالذكاء الاصطناعي",
@@ -143,9 +175,7 @@
       "phoneInvalid": "اكتب رقم موبايل مصري صحيح (زي 010/011/012/015XXXXXXXX)",
       "dobRequired": "تاريخ الميلاد مطلوب",
       "dobFuture": "تاريخ الميلاد مينفعش يكون في المستقبل",
-      "genderRequired": "من فضلك اختر النوع",
-      "phoneAlreadyExists": "عندك مريض مسجل بالفعل بنفس رقم التليفون ده.",
-      "serverError": "حصلت مشكلة أثناء الحفظ. حاول تاني."
+      "genderRequired": "من فضلك اختر النوع"
     },
     "dateOfBirth": "تاريخ الميلاد",
     "gender": "النوع",
@@ -183,9 +213,7 @@
     "privacyTitle": "حماية الخصوصية",
     "privacyText": "جميع البيانات المدخلة هنا مشفّرة ومحفوظة وفقًا للوائح الرعاية الصحية المحلية.",
     "patientAddedTitle": "تمت إضافة المريض بنجاح",
-    "patientAddedText": "تعالي نبدأ له كونسلتيشن دلوقتي.",
-    "loadError": "تعذر تحميل قائمة المرضى. تأكد من اتصالك بالإنترنت وحاول تاني",
-    "staleDataError": "البيانات الظاهرة من آخر تحميل ناجح — تعذر تحديثها. تأكد من اتصالك بالإنترنت"
+    "patientAddedText": "تعالي نبدأ له كونسلتيشن دلوقتي."
   },
   "consultations": {
     "title": "الاستشارات",
@@ -269,32 +297,7 @@
     "noNotes": "لا توجد مدخلات سريرية إضافية.",
     "pendingDiagnosis": "بانتظار التشخيص النهائي.",
     "noPrescription": "لا توجد أدوية موصوفة حاليًا.",
-    "noScheduledReturn": "لا يوجد موعد متابعة مجدول.",
-    "labFiles": "نتائج التحاليل / تقارير الأشعة",
-    "labFilesOptional": "اختياري",
-    "labFilesAddMore": "إضافة ملفات",
-    "labFilesAttached": "المرفقات",
-    "labFilesEmpty": "لا توجد ملفات مرفقة",
-    "labFilesHint": "أرفق نتائج تحاليل أو تقارير أشعة (صور أو PDF) — اختياري. أجنت التشخيص التفريقي هيراجعها وقت إعداد التوصية.",
-    "labFilesInvalidType": "الصور المسموحة بس (JPG, PNG, WEBP) وملفات PDF.",
-    "labFilesRemove": "إزالة الملف",
-    "labFilesTooLarge": "كل ملف لازم يكون 10 ميجا أو أقل.",
-    "labFilesTooMany": "أقصى عدد ملفات مسموح بيه 5.",
-    "labFilesUploadFailed": "فشل رفع الملف. حاول تاني.",
-    "labFilesUploading": "جاري الرفع...",
-    "clinicalReading": "القراءة السريرية",
-    "possibleDiagnoses": "التشخيصات المحتملة",
-    "sourcesConsulted": "المصادر المرجعية",
-    "evidenceReferenced": "موثّق",
-    "evidenceReferencedTooltip": "مدعوم بمرجع طبي موثّق",
-    "supportingReasoning": "الأسباب المؤيدة",
-    "againstReasoning": "الأسباب المعارضة",
-    "recommendedTests": "التحاليل المقترحة",
-    "recommendedProtocol": "بروتوكول العلاج المقترح",
-    "startRecording": "بدء التسجيل الصوتي",
-    "stopRecording": "إيقاف التسجيل الصوتي",
-    "recordingError": "تعذر الوصول للميكروفون. تأكد من صلاحيات المتصفح.",
-    "failedLoadPatients": "فشل تحميل قائمة المرضى"
+    "noScheduledReturn": "لا يوجد موعد متابعة مجدول."
   },
   "followups": {
     "title": "المتابعات",
@@ -441,8 +444,7 @@
       "newFollowUpCreatedTitle": "تم جدولة فولو أب جديدة",
       "newFollowUpCreatedText": "اتعملت فولو أب جديدة في يوم {{date}}.",
       "newFollowUpNotConfirmed": "الكونسلتيشن اتحفظت، بس مقدرناش نتأكد إن فولو أب جديدة اتعملت في التاريخ ده. من فضلك راجع صفحة الفولو أبس."
-    },
-    "pastDueCannotStart": "الفولو أب دي فاتت ميعادها ومينفعش تتبدأ."
+    }
   },
   "prescriptions": {
     "title": "الروشتات",
@@ -529,13 +531,7 @@
     "evidenceBased": "Evidence-based responses",
     "evidenceBasedAr": "إجابات مبنية على مصادر طبية",
     "errorAr": "عذراً، حدث خطأ.",
-    "errorEn": "Sorry, something went wrong.",
-    "attachImage": "إرفاق صورة",
-    "removeImage": "إزالة الصورة",
-    "imageOnlyMessage": "تم إرفاق صورة",
-    "imageOnlyMessageAr": "تم إرفاق صورة",
-    "imageSizeError": "حجم الصورة لازم يكون 10 ميجا أو أقل.",
-    "imageTypeError": "الصور المسموحة بس (JPG, PNG, WEBP)."
+    "errorEn": "Sorry, something went wrong."
   },
   "profile": {
     "specialty": "التخصص",

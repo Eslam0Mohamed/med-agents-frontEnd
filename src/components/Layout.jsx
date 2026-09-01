@@ -23,9 +23,15 @@ export default function Layout() {
     location.pathname.startsWith(p),
   );
 
+  // حساب مش approved (تحت المراجعة أو مرفوض) - بنفحصها الأول قبل حتى
+  // الاشتراك، لأن دكتور مش موافَق عليه مالوش صلاحيات أصلاً بغض النظر عن
+  // حالة اشتراكه
+  const isApproved = user?.role === 'admin' || user?.verificationStatus === 'approved';
+
   useEffect(() => {
-    // الأدمن مالوش اشتراك أصلاً، والصفحات المستثناة مش محتاجة فحص
-    if (user?.role === 'admin' || isExemptPath) {
+    // الأدمن مالوش اشتراك أصلاً، والصفحات المستثناة مش محتاجة فحص، وأي
+    // حساب مش approved أصلاً مش هيوصل للفحص ده (هيتحول قبل ما يوصل هنا)
+    if (user?.role === 'admin' || isExemptPath || !isApproved) {
       setChecked(true);
       return;
     }
@@ -53,7 +59,13 @@ export default function Layout() {
     };
     // بنعيد الفحص كل ما الدكتور يتنقل بين الصفحات، عشان لو الاشتراك خلص
     // أثناء الجلسة نمسكها بسرعة مش بس أول ما يفتح التطبيق
-  }, [location.pathname, user?.role, isExemptPath]);
+  }, [location.pathname, user?.role, isExemptPath, isApproved]);
+
+  // فحص الموافقة له الأولوية - حساب تحت المراجعة يتحول فورًا من غير ما
+  // نستنى أي فحص اشتراك أصلاً
+  if (!isApproved) {
+    return <Navigate to="/account-under-review" replace />;
+  }
 
   if (checked && isExpired && !isExemptPath) {
     return <Navigate to="/subscriptions?expired=1" replace />;

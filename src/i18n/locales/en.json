@@ -42,7 +42,40 @@
     "registerButton": "Create Account",
     "registering": "Creating account...",
     "registerFailed": "Couldn't create your account. Please check your details and try again.",
-    "tooManyAttempts": "Too many attempts. Please wait a few minutes and try again."
+    "tooManyAttempts": "Too many attempts. Please wait a few minutes and try again.",
+    "verifyEmailTitle": "Verify your email",
+    "verifyEmailSubtitle": "We sent a 6-digit code to your email. Enter it below to continue.",
+    "otpCode": "Verification Code",
+    "verifying": "Verifying...",
+    "verifyButton": "Verify",
+    "otpResent": "A new code has been sent to your email.",
+    "resendIn": "Resend code in {{seconds}}s",
+    "resendOtp": "Resend code",
+    "backToLogin": "Back to login",
+    "credentialProof": "Proof you are a licensed doctor",
+    "credentialProofHint": "Upload your syndicate card or a certificate confirming your medical license. Your account will be reviewed by our team before activation.",
+    "credentialProofPlaceholder": "Click to upload (image or PDF)",
+    "proofRequired": "Please upload proof that you are a licensed doctor.",
+    "proofInvalidType": "Only images (JPG, PNG, WEBP) and PDF files are allowed.",
+    "proofTooLarge": "The file must be 8MB or smaller.",
+    "emailNotVerified": "Please verify your email before logging in.",
+    "forgotPasswordLink": "Forgot password?",
+    "forgotPasswordTitle": "Forgot your password?",
+    "forgotPasswordSubtitle": "Enter your email and we'll send you a code to reset your password.",
+    "sendingCode": "Sending code...",
+    "sendResetCode": "Send reset code",
+    "resetPasswordTitle": "Reset your password",
+    "resetPasswordSubtitle": "Enter the code we sent to your email along with your new password.",
+    "newPassword": "New Password",
+    "resetting": "Resetting...",
+    "resetPasswordButton": "Reset Password",
+    "passwordsDontMatch": "Passwords do not match.",
+    "passwordResetSuccess": "Your password has been reset. Please log in with your new password.",
+    "accountPendingTitle": "Your account is under review",
+    "accountPendingSubtitle": "Thanks for registering! Our team is reviewing the proof you submitted. You'll be able to use the app once your account is approved.",
+    "accountRejectedTitle": "Registration not approved",
+    "accountRejectedSubtitle": "Unfortunately, we couldn't verify your submitted credentials.",
+    "rejectionReasonLabel": "Reason"
   },
   "common": {
     "save": "Save",
@@ -73,8 +106,7 @@
     "showing": "Showing",
     "of": "of",
     "type": "Type",
-    "date": "Date",
-    "add": "Add"
+    "date": "Date"
   },
   "reports": {
     "title": "AI Clinical Report Generator",
@@ -143,9 +175,7 @@
       "phoneInvalid": "Enter a valid Egyptian mobile number (e.g. 010/011/012/015XXXXXXXX)",
       "dobRequired": "Date of birth is required",
       "dobFuture": "Date of birth cannot be in the future",
-      "genderRequired": "Please select a gender",
-      "phoneAlreadyExists": "You already have a patient registered with this phone number.",
-      "serverError": "Something went wrong while saving. Please try again."
+      "genderRequired": "Please select a gender"
     },
     "dateOfBirth": "Date of Birth",
     "gender": "Gender",
@@ -183,9 +213,7 @@
     "privacyTitle": "Privacy Compliance",
     "privacyText": "All data entered here is encrypted and stored in compliance with local healthcare regulations.",
     "patientAddedTitle": "Patient added successfully",
-    "patientAddedText": "Let's start a consultation for them now.",
-    "loadError": "Couldn't load patients. Please check your connection and try again.",
-    "staleDataError": "Showing previously loaded data — couldn't refresh it. Please check your connection."
+    "patientAddedText": "Let's start a consultation for them now."
   },
   "consultations": {
     "title": "Consultations",
@@ -269,32 +297,7 @@
     "noNotes": "No supplementary clinical inputs.",
     "pendingDiagnosis": "Pending definitive analysis.",
     "noPrescription": "No active medications issued.",
-    "noScheduledReturn": "No scheduled returns.",
-    "labFiles": "Lab Results / Radiology Reports",
-    "labFilesOptional": "Optional",
-    "labFilesAddMore": "Add files",
-    "labFilesAttached": "Attached",
-    "labFilesEmpty": "No files attached",
-    "labFilesHint": "Attach lab results or radiology reports (images or PDF) — optional. The Differential Diagnosis agent will review them when generating its recommendation.",
-    "labFilesInvalidType": "Only images (JPG, PNG, WEBP) and PDF files are allowed.",
-    "labFilesRemove": "Remove file",
-    "labFilesTooLarge": "Each file must be 10MB or smaller.",
-    "labFilesTooMany": "You can attach up to 5 files.",
-    "labFilesUploadFailed": "Failed to upload the file. Please try again.",
-    "labFilesUploading": "Uploading...",
-    "clinicalReading": "Clinical Reading",
-    "possibleDiagnoses": "Possible Diagnoses",
-    "sourcesConsulted": "Sources consulted",
-    "evidenceReferenced": "Referenced",
-    "evidenceReferencedTooltip": "Backed by a cited clinical reference",
-    "supportingReasoning": "Supporting reasoning",
-    "againstReasoning": "Against",
-    "recommendedTests": "Recommended tests",
-    "recommendedProtocol": "Recommended protocol",
-    "startRecording": "Start voice dictation",
-    "stopRecording": "Stop voice dictation",
-    "recordingError": "Couldn't access the microphone. Please check your browser permissions.",
-    "failedLoadPatients": "Failed to load patients list"
+    "noScheduledReturn": "No scheduled returns."
   },
   "followups": {
     "title": "Follow-ups",
@@ -441,8 +444,7 @@
       "newFollowUpCreatedTitle": "New follow-up scheduled",
       "newFollowUpCreatedText": "A new follow-up has been created for {{date}}.",
       "newFollowUpNotConfirmed": "The consultation was saved, but we couldn't confirm a new follow-up was created for that date. Please check the Follow-ups list."
-    },
-    "pastDueCannotStart": "This follow-up is past due and can no longer be started."
+    }
   },
   "prescriptions": {
     "title": "Prescriptions",
@@ -529,13 +531,7 @@
     "evidenceBased": "Evidence-based responses",
     "evidenceBasedAr": "إجابات مبنية على مصادر طبية",
     "errorAr": "عذراً، حدث خطأ.",
-    "errorEn": "Sorry, something went wrong.",
-    "attachImage": "Attach image",
-    "removeImage": "Remove image",
-    "imageOnlyMessage": "Image attached",
-    "imageOnlyMessageAr": "تم إرفاق صورة",
-    "imageSizeError": "Image size must be 10MB or smaller.",
-    "imageTypeError": "Only image files (JPG, PNG, WEBP) are allowed."
+    "errorEn": "Sorry, something went wrong."
   },
   "profile": {
     "specialty": "Specialty",

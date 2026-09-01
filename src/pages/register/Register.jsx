@@ -3,13 +3,15 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import { registerSchema } from '../../schemas/Registerschema';
+import { registerSchema } from '../../schemas/registerSchema';
 import { registerRequest } from '../../api/Auth';
 import PublicNavbar from "../puplic/puplicNavbar/PuplicNavbar"
 import Footer from '../../components/Footer';
 import LanguageSwitcher from '../../components/LanguageSwitcher';
+
+const ALLOWED_PROOF_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+const MAX_PROOF_SIZE = 8 * 1024 * 1024; // 8MB - نفس الحد بالظبط في الباك اند
 
 export default function Register() {
   const { t, i18n } = useTranslation();
@@ -19,8 +21,9 @@ export default function Register() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [serverError, setServerError] = useState('');
+  const [proofFile, setProofFile] = useState(null);
+  const [proofError, setProofError] = useState('');
 
-  const { login } = useAuth();
   const navigate = useNavigate();
 
   const {
@@ -31,9 +34,36 @@ export default function Register() {
     resolver: zodResolver(registerSchema),
   });
 
+  const handleProofChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!ALLOWED_PROOF_TYPES.includes(file.type)) {
+      setProofError(t('auth.proofInvalidType'));
+      setProofFile(null);
+      return;
+    }
+    if (file.size > MAX_PROOF_SIZE) {
+      setProofError(t('auth.proofTooLarge'));
+      setProofFile(null);
+      return;
+    }
+
+    setProofError('');
+    setProofFile(file);
+  };
+
   const onSubmit = async (data) => {
-    setIsLoading(true);
     setServerError('');
+
+    // ملف الإثبات إلزامي بس مش جزء من zod schema (بيتحقق منه لوحده هنا)
+    // عشان input الملف صعب يتظبط مع react-hook-form زي حقول النص العادية
+    if (!proofFile) {
+      setProofError(t('auth.proofRequired'));
+      return;
+    }
+
+    setIsLoading(true);
 
     try {
       await registerRequest({
@@ -42,10 +72,13 @@ export default function Register() {
         password: data.password,
         specialty: data.specialty,
         language: currentLang,
+        credentialProof: proofFile,
       });
 
-      await login(data.email, data.password);
-      navigate('/patients');
+      // الحساب اتعمل بس لسه محتاج تأكيد الإيميل الأول (وبعدها موافقة
+      // الأدمن) - مش هنعمل login تلقائي زي الأول، هنودّيه لصفحة تأكيد
+      // الكود اللي وصله في إيميله
+      navigate('/verify-email', { state: { email: data.email } });
     } catch (err) {
       if (!err.response) {
         setServerError(t('auth.networkError'));
@@ -207,6 +240,37 @@ export default function Register() {
               />
               {errors.confirmPassword && (
                 <p className="text-red-500 text-xs mt-1">{errors.confirmPassword.message}</p>
+              )}
+            </div>
+
+            <div>
+              <label className={`block text-sm mb-1 transition-colors ${
+                isDark ? 'text-slate-300' : 'text-gray-600'
+              }`}>
+                {t('auth.credentialProof')}
+              </label>
+              <p className={`text-xs mb-2 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>
+                {t('auth.credentialProofHint')}
+              </p>
+              <label
+                className={`flex items-center justify-center gap-2 w-full border border-dashed rounded-md px-3 py-4 text-sm cursor-pointer transition-colors ${
+                  proofError
+                    ? 'border-red-400'
+                    : isDark
+                    ? 'bg-slate-950 border-slate-700 text-slate-300 hover:border-blue-600'
+                    : 'bg-white border-gray-300 text-gray-600 hover:border-blue-400'
+                }`}
+              >
+                📎 {proofFile ? proofFile.name : t('auth.credentialProofPlaceholder')}
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,application/pdf"
+                  onChange={handleProofChange}
+                  className="hidden"
+                />
+              </label>
+              {proofError && (
+                <p className="text-red-500 text-xs mt-1">{proofError}</p>
               )}
             </div>
 
