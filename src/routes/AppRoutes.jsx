@@ -1,15 +1,15 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import Login from "../pages/Login/Login";
 import Register from "../pages/Register/Register";
-import VerifyEmail from "../pages/VerifyEmail/VerifyEmail";
-import ForgotPassword from "../pages/ForgotPassword/ForgotPassword";
-import ResetPassword from "../pages/ResetPassword/ResetPassword";
-import AccountUnderReview from "../pages/AccountUnderReview/AccountUnderReview";
 import ProtectedRoute from "../components/ProtectedRoute";
 import Layout from "../components/Layout";
 import NotFound from "../components/NotFound";
 import AiChat from "../pages/ai-chat/AiChat";
 import DrugSafety from "../pages/drug-safety/DrugSafety";
+import VerifyEmail from "../pages/verify-email/VerifyEmail";
+import ForgotPassword from "../pages/forgot-password/ForgotPassword";
+import ResetPassword from "../pages/reset-password/ResetPassword";
+import AccountUnderReview from "../pages/account-under-review/AccountUnderReview";
 
 import Profile from "../pages/profile/Profile";
 import Settings from "../pages/settings/Settings";
@@ -64,6 +64,13 @@ const router = createBrowserRouter([
   {
     path: "/reset-password",
     element: <ResetPassword />,
+  },
+     { path: "/account-under-review",
+    element: (
+      <ProtectedRoute>
+        <AccountUnderReview />
+      </ProtectedRoute>
+    ),
   },
 
   {
