@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../context/ThemeContext';
-import { registerSchema } from '../../schemas/registerSchema';
+import { registerSchema } from '../../schemas/Registerschema';
 import { registerRequest } from '../../api/Auth';
 import PublicNavbar from "../puplic/puplicNavbar/PuplicNavbar"
 import Footer from '../../components/Footer';
