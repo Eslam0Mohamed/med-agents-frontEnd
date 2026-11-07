@@ -1,11 +1,16 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import Login from "../pages/Login/Login";
 import Register from "../pages/register/Register";
+
 import ProtectedRoute from "../components/ProtectedRoute";
 import Layout from "../components/Layout";
 import NotFound from "../components/NotFound";
 import AiChat from "../pages/ai-chat/AiChat";
 import DrugSafety from "../pages/drug-safety/DrugSafety";
+import VerifyEmail from "../pages/verify-email/VerifyEmail";
+import ForgotPassword from "../pages/forgot-password/ForgotPassword";
+import ResetPassword from "../pages/reset-password/ResetPassword";
+import AccountUnderReview from "../pages/account-under-review/AccountUnderReview";
 
 import Profile from "../pages/profile/Profile";
 import Settings from "../pages/settings/Settings";
@@ -45,6 +50,39 @@ const router = createBrowserRouter([
   {
     path: "/register",
     element: <Register />,
+  },
+
+  {
+    path: "/verify-email",
+    element: <VerifyEmail />,
+  },
+
+  {
+    path: "/forgot-password",
+    element: <ForgotPassword />,
+  },
+
+  {
+    path: "/reset-password",
+    element: <ResetPassword />,
+  },
+     { path: "/account-under-review",
+    element: (
+      <ProtectedRoute>
+        <AccountUnderReview />
+      </ProtectedRoute>
+    ),
+  },
+
+  {
+    // محمية (لازم تسجيل دخول) بس من غير Layout (بلا Navbar/Footer عاديين)
+    // عشان تكون شاشة مستقلة واضحة
+    path: "/account-under-review",
+    element: (
+      <ProtectedRoute>
+        <AccountUnderReview />
+      </ProtectedRoute>
+    ),
   },
 
   {

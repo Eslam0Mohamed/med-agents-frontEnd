@@ -18,11 +18,12 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     const res = await loginRequest(email, password);
-    const { token, name, role, language } = res.data;
+    const { token, name, role, language, verificationStatus, rejectionReason } = res.data;
 
     localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify({ name, role, language }));
-    setUser({ name, role, language });
+    const userData = { name, role, language, verificationStatus, rejectionReason };
+    localStorage.setItem('user', JSON.stringify(userData));
+    setUser(userData);
 
     return res;
   };

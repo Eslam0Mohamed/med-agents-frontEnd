@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
@@ -18,9 +18,20 @@ export default function Login() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [serverError, setServerError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state?.passwordResetSuccess) {
+      setSuccessMessage(t('auth.passwordResetSuccess'));
+      // نشيل الـ state من الـ history عشان الرسالة متفضلش تظهر تاني لو
+      // الدكتور عمل refresh أو رجع بالـ back button
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state, t]);
 
   const {
     register,
@@ -40,6 +51,8 @@ export default function Login() {
     } catch (err) {
       if (!err.response) {
         setServerError(t('auth.networkError'));
+      } else if (err.response.data?.error === 'EMAIL_NOT_VERIFIED') {
+        navigate('/verify-email', { state: { email: data.email } });
       } else if (err.response.status === 401) {
         setServerError(t('auth.invalidCredentials'));
       } else {
@@ -70,6 +83,14 @@ export default function Login() {
             </h1>
             <p className={`text-sm mt-1 transition-colors ${isDark ? "text-slate-400" : "text-gray-500"}`}>{t('auth.welcomeBack')}</p>
           </div>
+
+          {successMessage && !serverError && (
+            <div className={`text-sm rounded-md p-2 mb-4 text-center transition-colors ${
+              isDark ? 'bg-emerald-950/40 text-emerald-400 border border-emerald-900/30' : 'bg-emerald-50 text-emerald-600'
+            }`}>
+              {successMessage}
+            </div>
+          )}
 
           {serverError && (
             <div className={`text-sm rounded-md p-2 mb-4 text-center transition-colors ${
@@ -104,11 +125,16 @@ export default function Login() {
             </div>
 
             <div>
-              <label className={`block text-sm mb-1 transition-colors ${
-                isDark ? 'text-slate-300' : 'text-gray-600'
-              }`}>
-                {t('auth.password')}
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className={`block text-sm transition-colors ${
+                  isDark ? 'text-slate-300' : 'text-gray-600'
+                }`}>
+                  {t('auth.password')}
+                </label>
+                <Link to="/forgot-password" className="text-blue-600 hover:underline text-xs font-medium">
+                  {t('auth.forgotPasswordLink')}
+                </Link>
+              </div>
               <input
                 type="password"
                 {...register('password')}
