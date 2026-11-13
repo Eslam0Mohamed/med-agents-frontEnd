@@ -10,6 +10,11 @@ import PublicNavbar from "../puplic/puplicNavbar/PuplicNavbar"
 import Footer from '../../components/Footer';
 import LanguageSwitcher from '../../components/LanguageSwitcher';
 
+
+const DEMO_EMAIL = import.meta.env.VITE_DEMO_EMAIL;
+const DEMO_PASSWORD = import.meta.env.VITE_DEMO_PASSWORD;
+const hasDemo = Boolean(DEMO_EMAIL && DEMO_PASSWORD);
+
 export default function Login() {
   const { t, i18n } = useTranslation();
   const currentLang = i18n.language || "en";
@@ -39,6 +44,7 @@ export default function Login() {
     formState: { errors },
   } = useForm({
     resolver: zodResolver(loginSchema),
+    defaultValues: hasDemo ? { email: DEMO_EMAIL, password: DEMO_PASSWORD } : undefined,
   });
 
   const onSubmit = async (data) => {
@@ -97,6 +103,24 @@ export default function Login() {
               isDark ? 'bg-red-950/40 text-red-400 border border-red-900/30' : 'bg-red-50 text-red-600'
             }`}>
               {serverError}
+            </div>
+          )}
+
+          {hasDemo && (
+            <div className={`text-xs rounded-md p-3 mb-4 border transition-colors ${
+              isDark ? 'bg-blue-950/30 border-blue-900/40 text-blue-300' : 'bg-blue-50 border-blue-100 text-blue-700'
+            }`}>
+              <p className="font-semibold mb-1">
+                {isRtl ? 'حساب تجريبي جاهز للتجربة' : 'Demo account ready to try'}
+              </p>
+              <p>
+                {isRtl
+                  ? 'البيانات متعبّية تلقائيًا، اضغط تسجيل الدخول وجرّب الموقع.'
+                  : 'Credentials are pre-filled. Just press Login and explore.'}
+              </p>
+              <p className="mt-1 font-mono break-all" dir="ltr">
+                {DEMO_EMAIL} / {DEMO_PASSWORD}
+              </p>
             </div>
           )}
 
